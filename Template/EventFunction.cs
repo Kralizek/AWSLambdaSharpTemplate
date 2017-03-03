@@ -10,24 +10,20 @@ namespace Template
     {
         public Task FunctionHandlerAsync(TInput input, ILambdaContext context)
         {
-            ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
+            ConfigureExecution(context);
 
-            ConfigureServices(services);
-            var serviceProvider = services.BuildServiceProvider();
-
-            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-            ConfigureExecution(context, loggerFactory);
-
-            var handler = serviceProvider.GetService<IEventHandler<TInput>>();
-
-            if (handler == null)
+            using (CreateScope())
             {
-                throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
-            }
+                var handler = ServiceProvider.GetService<IEventHandler<TInput>>();
 
-            return handler.HandleAsync(input);
+                if (handler == null)
+                {
+                    throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
+                }
+
+                Logger.LogInformation("Invoking handler");
+                return handler.HandleAsync(input);
+            }
         }
     }
 

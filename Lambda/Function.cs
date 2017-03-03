@@ -31,9 +31,9 @@ namespace Lambda
             services.AddRequestResponseHandler<UpperCaseHandler, string, string>();
         }
 
-        protected override void ConfigureExecution(ILambdaContext lambdaContext, ILoggerFactory loggerFactory)
+        protected override void ConfigureLogging(ILoggerFactory loggerFactory)
         {
-            // Here you modify the execution of the function. e.g. you can attach loggers to the logger factory.
+            // Here you can register the loggers you prefer.
 
             loggerFactory.AddLambdaLogger(new LambdaLoggerOptions
             {

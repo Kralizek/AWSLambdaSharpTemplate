@@ -11,26 +11,21 @@ namespace Template
 
         public Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
         {
-            ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
+            ConfigureExecution(context);
 
-            ConfigureServices(services);
-            var serviceProvider = services.BuildServiceProvider();
-
-            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-            ConfigureExecution(context, loggerFactory);
-            
-            var handler = serviceProvider.GetService<IRequestResponseHandler<TInput, TOutput>>();
-
-            if (handler == null)
+            using (CreateScope())
             {
-                throw new InvalidOperationException($"No IRequestResponseHandler<{typeof(TInput).Name}, {typeof(TOutput).Name}> could be found.");
+                var handler = ServiceProvider.GetService<IRequestResponseHandler<TInput, TOutput>>();
+
+                if (handler == null)
+                {
+                    throw new InvalidOperationException($"No IRequestResponseHandler<{typeof(TInput).Name}, {typeof(TOutput).Name}> could be found.");
+                }
+
+                Logger.LogInformation("Invoking handler");
+                return handler.HandleAsync(input);
             }
-
-            return handler.HandleAsync(input);
         }
-
     }
 
     public interface IRequestResponseHandler<TInput, TOutput>
