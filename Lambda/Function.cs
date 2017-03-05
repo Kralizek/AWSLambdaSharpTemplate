@@ -28,7 +28,7 @@ namespace Lambda
             // Here you register the services you can use.
 
             // This call is needed to inform the base class which is your handler.
-            services.AddRequestResponseHandler<UpperCaseHandler, string, string>();
+            RegisterHandler<UpperCaseHandler>(services);
         }
 
         protected override void ConfigureLogging(ILoggerFactory loggerFactory)

@@ -25,6 +25,11 @@ namespace Template
                 return handler.HandleAsync(input);
             }
         }
+
+        protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IEventHandler<TInput>
+        {
+            services.AddTransient<IEventHandler<TInput>, THandler>();
+        }
     }
 
     public interface IEventHandler<TInput>

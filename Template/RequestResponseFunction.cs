@@ -26,6 +26,11 @@ namespace Template
                 return handler.HandleAsync(input);
             }
         }
+
+        protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IRequestResponseHandler<TInput, TOutput>
+        {
+            services.AddTransient<IRequestResponseHandler<TInput, TOutput>, THandler>();
+        }
     }
 
     public interface IRequestResponseHandler<TInput, TOutput>
