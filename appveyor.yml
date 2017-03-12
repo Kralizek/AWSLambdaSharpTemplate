@@ -1,0 +1,33 @@
+version: '{build}'
+
+image: Visual Studio 2017
+
+configuration: Release
+
+platform: Any CPU
+
+only_commits:
+  files:
+    - src/
+
+build_script:
+
+- ps: >-
+
+    $currentPath = Get-Location
+
+    dotnet restore
+
+    dotnet build -c Release --no-incremental
+
+    Get-ChildItem .\tests\ -Directory | %{ cd $_.FullName; dotnet test }
+
+    Set-Location $currentPath
+
+    Get-ChildItem src\**\*.csproj -Recurse | % { dotnet pack $_.FullName -c Release  }
+
+test: off
+
+artifacts:
+
+- path: '**\*.nupkg'
