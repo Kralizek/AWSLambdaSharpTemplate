@@ -21,7 +21,7 @@ namespace Kralizek.Lambda
                 }
 
                 Logger.LogInformation("Invoking handler");
-                return handler.HandleAsync(input);
+                return handler.HandleAsync(input, context);
             }
         }
 
@@ -33,6 +33,6 @@ namespace Kralizek.Lambda
 
     public interface IEventHandler<TInput>
     {
-        Task HandleAsync(TInput input);
+        Task HandleAsync(TInput input, ILambdaContext context);
     }
 }

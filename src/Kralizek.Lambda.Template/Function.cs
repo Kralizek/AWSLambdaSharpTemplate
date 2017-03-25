@@ -18,14 +18,20 @@ namespace Kralizek.Lambda
             var services = new ServiceCollection();
 
             services.AddLogging();
+            services.AddSingleton<IExecutionEnvironment>(sp => new LambdaExecutionEnvironment
+            {
+                EnvironmentName = Configuration["Environment"],
+                IsLambda = Configuration["LAMBDA_RUNTIME_DIR"] != null
+            });
 
             ConfigureServices(services);
 
             ServiceProvider = services.BuildServiceProvider();
 
             var loggerFactory = ServiceProvider.GetRequiredService<ILoggerFactory>();
+            var executionEnvironment = ServiceProvider.GetRequiredService<IExecutionEnvironment>();
 
-            ConfigureLogging(loggerFactory);
+            ConfigureLogging(loggerFactory, executionEnvironment);
 
             Logger = loggerFactory.CreateLogger("Function");
         }
@@ -34,7 +40,7 @@ namespace Kralizek.Lambda
 
         protected virtual void ConfigureServices(IServiceCollection services) { }
 
-        protected virtual void ConfigureLogging(ILoggerFactory loggingFactory) { }
+        protected virtual void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment) { }
 
         protected IConfigurationRoot Configuration { get; }
 

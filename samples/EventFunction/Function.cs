@@ -17,9 +17,9 @@ namespace EventFunction
             builder.AddEnvironmentVariables();
         }
 
-        protected override void ConfigureLogging(ILoggerFactory loggingFactory)
+        protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment)
         {
-            loggingFactory.AddLambdaLogger(new LambdaLoggerOptions
+            loggerFactory.AddLambdaLogger(new LambdaLoggerOptions
             {
                 IncludeCategory = true,
                 IncludeLogLevel = true,
@@ -42,7 +42,7 @@ namespace EventFunction
             _logger = logger;
         }
 
-        public async Task HandleAsync(string input)
+        public async Task HandleAsync(string input, ILambdaContext context)
         {
             _logger.LogInformation(input);
         }

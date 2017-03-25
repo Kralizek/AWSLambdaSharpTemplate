@@ -58,7 +58,7 @@ namespace Tests.Lambda
 
             protected override void ConfigureServices(IServiceCollection services) => IsConfigureServicesInvoked = true;
 
-            protected override void ConfigureLogging(ILoggerFactory loggingFactory) => IsConfigureLoggingInvoked = true;
+            protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment) => IsConfigureLoggingInvoked = true;
 
             public bool IsConfigureInvoked { get; private set; }
 

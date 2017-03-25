@@ -18,9 +18,9 @@ namespace RequestResponseFunction
             builder.AddEnvironmentVariables();
         }
 
-        protected override void ConfigureLogging(ILoggerFactory loggingFactory)
+        protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment)
         {
-            loggingFactory.AddLambdaLogger(new LambdaLoggerOptions
+            loggerFactory.AddLambdaLogger(new LambdaLoggerOptions
             {
                 IncludeCategory = true,
                 IncludeLogLevel = true,
@@ -43,7 +43,7 @@ namespace RequestResponseFunction
             _logger = logger;
         }
 
-        public async Task<string> HandleAsync(string input)
+        public async Task<string> HandleAsync(string input, ILambdaContext context)
         {
             _logger.LogInformation(input);
             return input?.ToUpper();

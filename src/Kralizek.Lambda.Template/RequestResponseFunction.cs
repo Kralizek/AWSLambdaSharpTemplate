@@ -22,7 +22,7 @@ namespace Kralizek.Lambda
 
                 Logger.LogInformation("Invoking handler");
 
-                return handler.HandleAsync(input);
+                return handler.HandleAsync(input, context);
             }
         }
 
@@ -34,6 +34,6 @@ namespace Kralizek.Lambda
 
     public interface IRequestResponseHandler<TInput, TOutput>
     {
-        Task<TOutput> HandleAsync(TInput input);
+        Task<TOutput> HandleAsync(TInput input, ILambdaContext context);
     }
 }
