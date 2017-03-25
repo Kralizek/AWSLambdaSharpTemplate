@@ -27,9 +27,9 @@ build_script:
 
     Get-ChildItem src\**\*.csproj -Recurse | % { dotnet pack $_.FullName -c Release  }
 
-    dotnet restore .\templates\Templates.sln
+    dotnet restore .\templates\Kralizek.Lambda.Templates.csproj
 
-    dotnet pack .\templates\Kralizek.Lambda.Templates.csproj
+    dotnet pack .\templates\Kralizek.Lambda.Templates.csproj -c Release
 
 test: off
 
