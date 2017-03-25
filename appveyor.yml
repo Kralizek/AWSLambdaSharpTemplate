@@ -9,6 +9,7 @@ platform: Any CPU
 only_commits:
   files:
     - src/
+    - templates/
 
 build_script:
 
@@ -16,15 +17,19 @@ build_script:
 
     $currentPath = Get-Location
 
-    dotnet restore
+    dotnet restore .\AWSLambdaSharpTemplate.sln
 
-    dotnet build -c Release --no-incremental
+    dotnet build .\AWSLambdaSharpTemplate.sln -c Release --no-incremental
 
     Get-ChildItem .\tests\ -Directory | %{ cd $_.FullName; dotnet test }
 
     Set-Location $currentPath
 
     Get-ChildItem src\**\*.csproj -Recurse | % { dotnet pack $_.FullName -c Release  }
+
+    dotnet restore .\templates\Templates.sln
+
+    dotnet pack .\templates\Kralizek.Lambda.Templates.csproj
 
 test: off
 
