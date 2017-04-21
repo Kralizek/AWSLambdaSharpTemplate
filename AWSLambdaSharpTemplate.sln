@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{42BE6308-5AC6-40B3-96DA-1FF015AF533E}"
 EndProject
@@ -15,6 +15,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventFunction", "samples\EventFunction\EventFunction.csproj", "{3783641F-A1E9-42A7-A7EE-99B8E8F4DB08}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestResponseFunction", "samples\RequestResponseFunction\RequestResponseFunction.csproj", "{9FAE7942-AAB6-4A33-8751-F7973F928858}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kralizek.Lambda.Template.Sns", "src\Kralizek.Lambda.Template.Sns\Kralizek.Lambda.Template.Sns.csproj", "{8DFE9840-FEF4-4E39-89FD-80E968E3C057}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +76,18 @@ Global
 		{9FAE7942-AAB6-4A33-8751-F7973F928858}.Release|x64.Build.0 = Release|Any CPU
 		{9FAE7942-AAB6-4A33-8751-F7973F928858}.Release|x86.ActiveCfg = Release|Any CPU
 		{9FAE7942-AAB6-4A33-8751-F7973F928858}.Release|x86.Build.0 = Release|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Debug|x64.Build.0 = Debug|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Debug|x86.Build.0 = Debug|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x64.ActiveCfg = Release|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x64.Build.0 = Release|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x86.ActiveCfg = Release|Any CPU
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,5 +97,6 @@ Global
 		{D0263D83-E1A0-46EB-9B82-9793A4D89590} = {A973E126-E744-44E4-A27C-6F63993AC642}
 		{3783641F-A1E9-42A7-A7EE-99B8E8F4DB08} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
 		{9FAE7942-AAB6-4A33-8751-F7973F928858} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
+		{8DFE9840-FEF4-4E39-89FD-80E968E3C057} = {42BE6308-5AC6-40B3-96DA-1FF015AF533E}
 	EndGlobalSection
 EndGlobal

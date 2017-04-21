@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sns\Kralizek.Lambda.Template.Sns.csproj" />
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template\Kralizek.Lambda.Template.csproj" />
   </ItemGroup>
 
