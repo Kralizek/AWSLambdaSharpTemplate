@@ -10,7 +10,7 @@ namespace Kralizek.Lambda
     {
         public Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
         {
-            using (CreateScope())
+            using (ServiceProvider.CreateScope())
             {
                 var handler = ServiceProvider.GetService<IRequestResponseHandler<TInput, TOutput>>();
 

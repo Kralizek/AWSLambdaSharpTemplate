@@ -47,10 +47,5 @@ namespace Kralizek.Lambda
         protected IServiceProvider ServiceProvider { get; }
 
         protected ILogger Logger { get; }
-
-        protected IServiceScope CreateScope()
-        {
-            return ServiceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
-        }
     }
 }
