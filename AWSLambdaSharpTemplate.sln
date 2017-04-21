@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestResponseFunction", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kralizek.Lambda.Template.Sns", "src\Kralizek.Lambda.Template.Sns\Kralizek.Lambda.Template.Sns.csproj", "{8DFE9840-FEF4-4E39-89FD-80E968E3C057}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnsEventFunction", "samples\SnsEventFunction\SnsEventFunction.csproj", "{08E76E38-D49D-4C15-8349-FC23EB37F0DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,18 @@ Global
 		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x64.Build.0 = Release|Any CPU
 		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x86.ActiveCfg = Release|Any CPU
 		{8DFE9840-FEF4-4E39-89FD-80E968E3C057}.Release|x86.Build.0 = Release|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Debug|x64.Build.0 = Debug|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Debug|x86.Build.0 = Debug|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Release|x64.ActiveCfg = Release|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Release|x64.Build.0 = Release|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Release|x86.ActiveCfg = Release|Any CPU
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,5 +112,6 @@ Global
 		{3783641F-A1E9-42A7-A7EE-99B8E8F4DB08} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
 		{9FAE7942-AAB6-4A33-8751-F7973F928858} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
 		{8DFE9840-FEF4-4E39-89FD-80E968E3C057} = {42BE6308-5AC6-40B3-96DA-1FF015AF533E}
+		{08E76E38-D49D-4C15-8349-FC23EB37F0DF} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
 	EndGlobalSection
 EndGlobal
