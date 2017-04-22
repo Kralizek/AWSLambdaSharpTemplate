@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageType>Template</PackageType>
-    <PackagePrefix>1.1.0</PackagePrefix>
+    <Version>1.1.0</Version>
     <PackageId>Kralizek.Lambda.Templates</PackageId>
     <Authors>Kralizek</Authors>
     <Description>Templates for AWS Lambda that use templates available in Kralizek.Lambda.Template</Description>
