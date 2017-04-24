@@ -84,7 +84,7 @@ public interface IEventHandler<TInput>
 The best way to create a new AWS Lambda that uses this structure is to use the `dotnet new` template provided via NuGet.
 
 1. Ensure you have the [.NET Core SDK 1.0.0+](https://www.microsoft.com/net/download/core) installed.
-2. Open your console prompt of choice and type `dotnet new -i Kralizek.Lambda.Templates::*`. This will install the latest version of the templates. Depending on your previous usage of `dotnet new`, it might take some time.
+2. Open your console prompt of choice and type `dotnet new -i "Kralizek.Lambda.Templates::*"`. This will install the latest version of the templates. Depending on your previous usage of `dotnet new`, it might take some time.
 3. List all available templates by typing `dotnet new -all`. You will see 4 new entries, all starting with Lambda.
 4. Create a new project using the template of your choice by typing `dotnet new {short name of the template} -n NameOfYourProject`. E.g. `dotnet new lambda-template-event-empty -n Sample`
 5. Start hacking!
