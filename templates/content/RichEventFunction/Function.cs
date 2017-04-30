@@ -3,6 +3,7 @@ using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
@@ -13,7 +14,7 @@ namespace RichEventFunction
         protected override void Configure(IConfigurationBuilder builder)
         {
             // Use this method to register your configuration flow. Exactly like in ASP.NET Core
-
+            builder.SetBasePath(Directory.GetCurrentDirectory());
             builder.AddJsonFile("application.json", optional: true);
             builder.AddEnvironmentVariables();
         }
