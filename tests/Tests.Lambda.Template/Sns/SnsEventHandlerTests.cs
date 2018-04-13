@@ -8,10 +8,11 @@ using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
+using NUnit.Framework;
 
 namespace Tests.Lambda.Sns
 {
+    [TestFixture]
     public class SnsEventHandlerTests
     {
         private Mock<INotificationHandler<TestNotification>> mockNotificationHandler;
@@ -19,7 +20,8 @@ namespace Tests.Lambda.Sns
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
 
-        public SnsEventHandlerTests()
+        [SetUp]
+        public void Initialize()
         {
             mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
             mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
@@ -44,7 +46,7 @@ namespace Tests.Lambda.Sns
             return new SnsEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object);
         }
 
-        [Fact]
+        [Test]
         public async Task HandleAsync_resolves_NotificationHandler_for_each_record()
         {
             var snsEvent = new SNSEvent
@@ -77,7 +79,7 @@ namespace Tests.Lambda.Sns
             mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
         }
 
-        [Fact]
+        [Test]
         public async Task HandleAsync_creates_a_scope_for_each_record()
         {
             var snsEvent = new SNSEvent
@@ -110,7 +112,7 @@ namespace Tests.Lambda.Sns
             mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(snsEvent.Records.Count));
         }
 
-        [Fact]
+        [Test]
         public async Task HandleAsync_executes_NotificationHandler_for_each_record()
         {
             var snsEvent = new SNSEvent
@@ -143,7 +145,7 @@ namespace Tests.Lambda.Sns
             mockNotificationHandler.Verify(p => p.HandleAsync(It.IsAny<TestNotification>(), lambdaContext), Times.Exactly(snsEvent.Records.Count));
         }
 
-        [Fact]
+        [Test]
         public async Task HandleAsync_throws_InvalidOperation_if_NotificationHandler_is_not_registered()
         {
             var snsEvent = new SNSEvent
@@ -174,7 +176,7 @@ namespace Tests.Lambda.Sns
 
             var sut = CreateSystemUnderTest();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.HandleAsync(snsEvent, lambdaContext));
+            Assert.ThrowsAsync<InvalidOperationException>(() => sut.HandleAsync(snsEvent, lambdaContext));
         }
     }
 }

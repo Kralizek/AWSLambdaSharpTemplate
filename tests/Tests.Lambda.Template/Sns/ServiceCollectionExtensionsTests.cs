@@ -3,13 +3,14 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using NUnit.Framework;
 
 namespace Tests.Lambda.Sns
 {
+    [TestFixture]
     public class ServiceCollectionExtensionsTests
     {
-        [Fact]
+        [Test]
         public void UseNotificationHandler_registers_SnsEventHandler()
         {
             var services = new ServiceCollection();
@@ -23,7 +24,7 @@ namespace Tests.Lambda.Sns
             serviceProvider.GetRequiredService<IEventHandler<SNSEvent>>();
         }
 
-        [Fact]
+        [Test]
         public void UseNotificationHandler_registers_INotificationHandler()
         {
             var services = new ServiceCollection();

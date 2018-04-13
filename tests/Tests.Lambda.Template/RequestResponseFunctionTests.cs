@@ -5,10 +5,11 @@ using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using NUnit.Framework;
 
 namespace Tests.Lambda
 {
+    [TestFixture]
     public class RequestResponseFunctionTests
     {
         private RequestResponseFunction CreateSystemUnderTest()
@@ -16,7 +17,7 @@ namespace Tests.Lambda
             return new RequestResponseFunction();
         }
 
-        [Fact]
+        [Test]
         public void Configure_should_be_invoked_on_type_initialization()
         {
             var sut = CreateSystemUnderTest();
@@ -24,7 +25,7 @@ namespace Tests.Lambda
             Assert.True(sut.IsConfigureInvoked);
         }
 
-        [Fact]
+        [Test]
         public void ConfigureServices_should_be_invoked_on_type_initialization()
         {
             var sut = CreateSystemUnderTest();
@@ -32,7 +33,7 @@ namespace Tests.Lambda
             Assert.True(sut.IsConfigureServicesInvoked);
         }
 
-        [Fact]
+        [Test]
         public void ConfigureLogging_should_be_invoked_on_type_initialization()
         {
             var sut = CreateSystemUnderTest();
@@ -40,14 +41,14 @@ namespace Tests.Lambda
             Assert.True(sut.IsConfigureLoggingInvoked);
         }
 
-        [Fact]
+        [Test]
         public async Task FunctionHandlerAsync_throws_if_no_handler_is_registered()
         {
             var sut = CreateSystemUnderTest();
 
             var context = new TestLambdaContext();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sut.FunctionHandlerAsync("Hello World", context));
+            Assert.ThrowsAsync<InvalidOperationException>(() => sut.FunctionHandlerAsync("Hello World", context));
         }
 
         public class RequestResponseFunction : RequestResponseFunction<string, string>
