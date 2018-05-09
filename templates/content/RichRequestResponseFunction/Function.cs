@@ -16,7 +16,7 @@ namespace RichRequestResponseFunction
             // Use this method to register your configuration flow. Exactly like in ASP.NET Core
             builder.SetBasePath(Directory.GetCurrentDirectory());
 
-            builder.AddJsonFile("application.json", optional: true);
+            builder.AddJsonFile("appsettings.json", optional: true);
             builder.AddEnvironmentVariables();
         }
 
