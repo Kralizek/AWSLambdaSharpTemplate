@@ -15,7 +15,7 @@ namespace Kralizek.Lambda
 
         public SqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory?.CreateLogger("SnsEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _logger = loggerFactory?.CreateLogger("SqsEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
