@@ -1,5 +1,5 @@
 using Amazon.Lambda.Core;
-using Amazon.Lambda.SNSEvents;
+using Amazon.Lambda.SQSEvents;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
-namespace SnsEventFunction
+namespace SqsEventFunction
 {
-    public class Function : EventFunction<SNSEvent>
+    public class Function : EventFunction<SQSEvent>
     {
         protected override void Configure(IConfigurationBuilder builder)
         {
@@ -24,7 +24,7 @@ namespace SnsEventFunction
         protected override void ConfigureServices(IServiceCollection services)
         {
             // You need this line to register your handler
-            services.UseNotificationHandler<Notification, NotificationHandler>();
+            services.UseSqsHandler<Notification, NotificationHandler>();
 
             // Use this method to register your services. Exactly like in ASP.NET Core
         }

@@ -5,17 +5,17 @@
         "Lambda",
         "Function",
         "Template",
-        "SNS"
+        "SQS"
     ],
-    "name": "Lambda SNS Event Function",
-    "identity": "Kralizek.Lambda.Template.EventFunction.SNS",
-    "groupIdentity": "Kralizek.Lambda.Template.EventFunction.SNS.CSharp",
-    "shortName": "lambda-template-sns-event",
+    "name": "Lambda SQS Event Function",
+    "identity": "Kralizek.Lambda.Template.EventFunction.SQS",
+    "groupIdentity": "Kralizek.Lambda.Template.EventFunction.SQS.CSharp",
+    "shortName": "lambda-template-sqs-event",
     "tags": {
         "language": "C#",
         "type": "project"
     },
-    "sourceName": "SnsEventFunction",
+    "sourceName": "SqsEventFunction",
     "preferNameDirectory": true,
     "symbols": {
         "profile": {
@@ -41,6 +41,6 @@
         }
     },
     "primaryOutputs": [
-        { "path": "./SnsEventFunction.csproj" }
+        { "path": "./SqsEventFunction.csproj" }
     ]
 }

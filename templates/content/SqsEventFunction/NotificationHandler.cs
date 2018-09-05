@@ -4,7 +4,7 @@ using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Logging;
 
-namespace SnsEventFunction
+namespace SqsEventFunction
 {
     public class NotificationHandler : INotificationHandler<Notification>
     {
