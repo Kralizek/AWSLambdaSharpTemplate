@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Kralizek.Lambda
 {
-    public class SqsEventHandler<TNotification> : IEventHandler<SQSEvent> where TNotification : class
+    public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage : class
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
@@ -25,19 +25,19 @@ namespace Kralizek.Lambda
             {
                 using (_serviceProvider.CreateScope())
                 {
-                    var message = record.Body;
-                    var notification = JsonConvert.DeserializeObject<TNotification>(message);
+                    var sqsMessage = record.Body;
+                    var message = JsonConvert.DeserializeObject<TMessage>(sqsMessage);
 
-                    var handler = _serviceProvider.GetService<INotificationHandler<TNotification>>();
+                    var handler = _serviceProvider.GetService<IMessageHandler<TMessage>>();
 
                     if (handler == null)
                     {
-                        _logger.LogCritical($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
-                        throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
+                        _logger.LogCritical($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
+                        throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
                     }
 
                     _logger.LogInformation("Invoking notification handler");
-                    await handler.HandleAsync(notification, context);
+                    await handler.HandleAsync(message, context);
                 }
             }
         }
