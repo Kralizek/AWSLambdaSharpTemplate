@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
+
 namespace Tests.Lambda.Sns
 {
     [TestFixture]
@@ -146,7 +147,7 @@ namespace Tests.Lambda.Sns
         }
 
         [Test]
-        public async Task HandleAsync_throws_InvalidOperation_if_NotificationHandler_is_not_registered()
+        public void HandleAsync_throws_InvalidOperation_if_NotificationHandler_is_not_registered()
         {
             var snsEvent = new SNSEvent
             {
