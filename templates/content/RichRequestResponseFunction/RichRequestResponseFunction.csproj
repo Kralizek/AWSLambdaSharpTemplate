@@ -9,7 +9,7 @@
     <PackageReference Include="Amazon.Lambda.Logging.AspNetCore" Version="2.0.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.2.0" />
     <PackageReference Include="Kralizek.Extensions.Logging" Version="1.0.1" />
-    <PackageReference Include="Kralizek.Lambda.Template" Version="2.0.0" />
+    <PackageReference Include="Kralizek.Lambda.Template" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
   </ItemGroup>
