@@ -42,7 +42,7 @@ namespace Tests.Lambda
         }
 
         [Test]
-        public async Task FunctionHandlerAsync_throws_if_no_handler_is_registered()
+        public void FunctionHandlerAsync_throws_if_no_handler_is_registered()
         {
             var sut = CreateSystemUnderTest();
 
@@ -66,5 +66,4 @@ namespace Tests.Lambda
             public bool IsConfigureLoggingInvoked { get; private set; }
         }
     }
-
 }

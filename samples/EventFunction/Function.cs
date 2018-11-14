@@ -42,9 +42,10 @@ namespace EventFunction
             _logger = logger;
         }
 
-        public async Task HandleAsync(string input, ILambdaContext context)
+        public Task HandleAsync(string input, ILambdaContext context)
         {
             _logger.LogInformation(input);
+            return Task.CompletedTask;
         }
     }
 }

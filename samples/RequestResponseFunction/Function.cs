@@ -43,11 +43,10 @@ namespace RequestResponseFunction
             _logger = logger;
         }
 
-        public async Task<string> HandleAsync(string input, ILambdaContext context)
+        public Task<string> HandleAsync(string input, ILambdaContext context)
         {
             _logger.LogInformation(input);
-            return input?.ToUpper();
+            return Task.FromResult(input?.ToUpper());
         }
     }
-
 }
