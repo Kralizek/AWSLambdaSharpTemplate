@@ -8,11 +8,11 @@ namespace Kralizek.Lambda
 {
     public abstract class EventFunction<TInput> : Function
     {
-        public Task FunctionHandlerAsync(TInput input, ILambdaContext context)
+        public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
         {
-            using (ServiceProvider.CreateScope())
+            using (var scope = ServiceProvider.CreateScope())
             {
-                var handler = ServiceProvider.GetService<IEventHandler<TInput>>();
+                var handler = scope.ServiceProvider.GetService<IEventHandler<TInput>>();
 
                 if (handler == null)
                 {
@@ -21,7 +21,7 @@ namespace Kralizek.Lambda
                 }
 
                 Logger.LogInformation("Invoking handler");
-                return handler.HandleAsync(input, context);
+                await handler.HandleAsync(input, context);
             }
         }
 

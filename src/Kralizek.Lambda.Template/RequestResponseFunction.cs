@@ -8,11 +8,11 @@ namespace Kralizek.Lambda
 {
     public abstract class RequestResponseFunction<TInput, TOutput> : Function
     {
-        public Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
+        public async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
         {
-            using (ServiceProvider.CreateScope())
+            using (var scope = ServiceProvider.CreateScope())
             {
-                var handler = ServiceProvider.GetService<IRequestResponseHandler<TInput, TOutput>>();
+                var handler = scope.ServiceProvider.GetService<IRequestResponseHandler<TInput, TOutput>>();
 
                 if (handler == null)
                 {
@@ -22,7 +22,7 @@ namespace Kralizek.Lambda
 
                 Logger.LogInformation("Invoking handler");
 
-                return handler.HandleAsync(input, context);
+                return await handler.HandleAsync(input, context);
             }
         }
 
