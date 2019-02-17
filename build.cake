@@ -1,7 +1,9 @@
 #tool "nuget:?package=ReportGenerator&version=4.0.5"
 #tool "nuget:?package=JetBrains.dotCover.CommandLineTools&version=2018.3.1"
 #tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
+#tool "nuget:?package=NuGet.CommandLine&version=4.9.2"
 
+#addin "Cake.FileHelpers"
 #load "./build/types.cake"
 
 var target = Argument("Target", "Full");
@@ -191,8 +193,25 @@ Task("PackLibraries")
     DotNetCorePack(state.Paths.SolutionFile.ToString(), settings);
 });
 
+
+Task("PackTemplates")
+    .IsDependentOn("Version")
+    .Does<BuildState>(state => 
+{
+    ReplaceRegexInFiles("./templates/content/**/*.csproj", @"<PackageReference Include=""(Kralizek.Lambda.Template[\w\.]*)"" Version="".+"" />", $@"<PackageReference Include=""$1"" Version=""{state.Version.PackageVersion}"" />");
+
+    var settings = new NuGetPackSettings
+    {
+        Version = state.Version.PackageVersion,
+        OutputDirectory = state.Paths.OutputFolder
+    };
+
+    NuGetPack("./templates/Kralizek.Lambda.Templates.nuspec", settings);
+});
+
 Task("Pack")
-    .IsDependentOn("PackLibraries");
+    .IsDependentOn("PackLibraries")
+    .IsDependentOn("PackTemplates");
 
 Task("UploadPackagesToAppVeyor")
     .IsDependentOn("Pack")

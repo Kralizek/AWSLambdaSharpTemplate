@@ -16,15 +16,15 @@ namespace SqsEventFunction
             // Use this method to register your configuration flow. Exactly like in ASP.NET Core
         }
 
-        protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment)
+        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
         {
             // Use this method to install logger providers
         }
 
-        protected override void ConfigureServices(IServiceCollection services)
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
             // You need this line to register your handler
-            services.UseSqsHandler<Notification, NotificationHandler>();
+            services.UseSqsHandler<TestMessage, TestMessageHandler>();
 
             // Use this method to register your services. Exactly like in ASP.NET Core
         }

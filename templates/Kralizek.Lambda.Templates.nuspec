@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Kralizek.Lambda.Templates</id>
+    <version>1.0.0</version>
+    <authors>Renato Golia</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Kralizek/AWSLambdaSharpTemplate</projectUrl>
+    <description>Templates for AWS Lambda that use templates available in Kralizek.Lambda.Template</description>
+    <packageTypes>
+      <packageType name="Template" />
+    </packageTypes>
+  </metadata>
+  <files>
+    <file src="content/**" target="content" exclude="**\bin\**;**\obj\**;**\.vs\**;**\*.user;" />
+  </files>
+</package>

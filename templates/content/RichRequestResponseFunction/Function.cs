@@ -20,12 +20,14 @@ namespace RichRequestResponseFunction
             builder.AddEnvironmentVariables();
         }
 
-        protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment)
+        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
         {
             // Use this method to install logger providers
 
+            logging.AddConfiguration(Configuration.GetSection("Logging"));
+
             /* Pushes the valid log entries into the CloudWatch log group created for this Lambda function */
-            loggerFactory.AddLambdaLogger(new LambdaLoggerOptions
+            logging.AddLambdaLogger(new LambdaLoggerOptions
             {
                 IncludeCategory = true,
                 IncludeLogLevel = true,
@@ -39,7 +41,7 @@ namespace RichRequestResponseFunction
             });
         }
 
-        protected override void ConfigureServices(IServiceCollection services)
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
             // You need this line to register your handler
             RegisterHandler<ToUpperStringRequestResponseHandler>(services);
