@@ -2,13 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Kralizek.Lambda</RootNamespace>
     <PackageId>Kralizek.Lambda.Template.Sqs</PackageId>
-    <Version>2.0.1</Version>
-    <Authors>Renato Golia</Authors>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sqs</PackageTags>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Kralizek/AWSLambdaSharpTemplate/master/LICENSE.txt</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Kralizek/AWSLambdaSharpTemplate</PackageProjectUrl>
     <Description>Extension to Kralizek.Lambda.Template to better support AWS Lambda functions that respond to SQS messages.</Description>
   </PropertyGroup>
 
@@ -17,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="[1.0.0,2)" />
+    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="[1.1.0,2)" />
   </ItemGroup>
 
 </Project>

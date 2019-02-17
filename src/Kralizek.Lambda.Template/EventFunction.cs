@@ -21,7 +21,7 @@ namespace Kralizek.Lambda
                 }
 
                 Logger.LogInformation("Invoking handler");
-                await handler.HandleAsync(input, context);
+                await handler.HandleAsync(input, context).ConfigureAwait(false);
             }
         }
 

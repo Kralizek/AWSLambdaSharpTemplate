@@ -22,9 +22,11 @@ namespace SnsEventFunction
             builder.AddEnvironmentVariables();
         }
 
-        protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment)
+        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
         {
-            loggerFactory.AddLambdaLogger(new LambdaLoggerOptions
+            logging.AddConfiguration(Configuration.GetSection("Logging"));
+
+            logging.AddLambdaLogger(new LambdaLoggerOptions
             {
                 IncludeCategory = true,
                 IncludeLogLevel = true,
@@ -32,7 +34,7 @@ namespace SnsEventFunction
             });
         }
 
-        protected override void ConfigureServices(IServiceCollection services)
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
             services.UseNotificationHandler<CustomNotification, CustomNotificationHandler>();
         }

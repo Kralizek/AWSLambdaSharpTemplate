@@ -39,7 +39,7 @@ namespace Tests.Lambda
                 _tcs = tcs;
             }
 
-            protected override void ConfigureServices(IServiceCollection services)
+            protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
             {
                 services.AddScoped(_ => _dependency);
                 services.AddTransient<IRequestResponseHandler<string, string>>(s => new TestHandler(s.GetRequiredService<DisposableDependency>(), _tcs));
