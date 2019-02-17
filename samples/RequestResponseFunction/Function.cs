@@ -18,9 +18,11 @@ namespace RequestResponseFunction
             builder.AddEnvironmentVariables();
         }
 
-        protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment)
+        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
         {
-            loggerFactory.AddLambdaLogger(new LambdaLoggerOptions
+            logging.AddConfiguration(Configuration.GetSection("Logging"));
+
+            logging.AddLambdaLogger(new LambdaLoggerOptions
             {
                 IncludeCategory = true,
                 IncludeLogLevel = true,
@@ -28,7 +30,7 @@ namespace RequestResponseFunction
             });
         }
 
-        protected override void ConfigureServices(IServiceCollection services)
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
             RegisterHandler<Handler>(services);
         }

@@ -9,38 +9,38 @@ namespace Kralizek.Lambda
     {
         protected Function()
         {
-            var builder = new ConfigurationBuilder();
+            var services = new ServiceCollection();
 
+            var builder = new ConfigurationBuilder();
+            
             Configure(builder);
 
             Configuration = builder.Build();
 
-            var services = new ServiceCollection();
-
-            services.AddLogging();
-            services.AddSingleton<IExecutionEnvironment>(sp => new LambdaExecutionEnvironment
+            var executionEnvironment = new LambdaExecutionEnvironment
             {
                 EnvironmentName = Configuration["Environment"],
                 IsLambda = Configuration["LAMBDA_RUNTIME_DIR"] != null
-            });
+            };
 
-            ConfigureServices(services);
+            services.AddSingleton<IExecutionEnvironment>(executionEnvironment);
+
+            services.AddSingleton(Configuration);
+
+            services.AddLogging(logging => ConfigureLogging(logging, executionEnvironment));
+
+            ConfigureServices(services, executionEnvironment);
 
             ServiceProvider = services.BuildServiceProvider();
 
-            var loggerFactory = ServiceProvider.GetRequiredService<ILoggerFactory>();
-            var executionEnvironment = ServiceProvider.GetRequiredService<IExecutionEnvironment>();
-
-            ConfigureLogging(loggerFactory, executionEnvironment);
-
-            Logger = loggerFactory.CreateLogger("Function");
+            Logger = ServiceProvider.GetRequiredService<ILogger<Function>>();
         }
 
         protected virtual void Configure(IConfigurationBuilder builder) { }
 
-        protected virtual void ConfigureServices(IServiceCollection services) { }
+        protected virtual void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) { }
 
-        protected virtual void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment) { }
+        protected virtual void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment) { }
 
         protected IConfigurationRoot Configuration { get; }
 

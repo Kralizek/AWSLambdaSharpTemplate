@@ -2,22 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Kralizek.Lambda</RootNamespace>
     <PackageId>Kralizek.Lambda.Template</PackageId>
-    <Version>2.0.1</Version>
-    <Authors>Renato Golia</Authors>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp</PackageTags>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Kralizek/AWSLambdaSharpTemplate/master/LICENSE.txt</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Kralizek/AWSLambdaSharpTemplate</PackageProjectUrl>
     <Description>A structured template to create AWS Lambda in C#. It supports Logging, Dependency Injection and Configuration like ASP.NET Core projects do.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.2.0" />
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
+    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.5.0" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
   </ItemGroup>
 
 </Project>

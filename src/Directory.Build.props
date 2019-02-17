@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <RootNamespace>Kralizek.Lambda</RootNamespace>
+    <Authors>Renato Golia</Authors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Kralizek/AWSLambdaSharpTemplate</PackageProjectUrl>
+    <NoWarn>NU5105,NU5125</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="All"/>
+    <PackageReference Include="SourceLink.Copy.PdbFiles" Version="2.8.3" PrivateAssets="All" /> 
+  </ItemGroup>
+</Project>

@@ -1,38 +1,32 @@
-version: '{build}'
+max_jobs: 1
 
 image: Visual Studio 2017
 
-configuration: Release
+environment:
+  MYGET_TOKEN:
+    secure: yP12k1vrHJyValU1UWnW3NySjKfXlRomR8p4qqmYs26FDztsGMlCQeT5jdCVHlz6
 
-platform: Any CPU
+cache:
+  - '%LocalAppData%\NuGet\v3-cache'
 
 only_commits:
   files:
     - src/
     - templates/
 
+nuget:
+  account_feed: false
+  project_feed: false
+  disable_publish_on_pr: true
+
+install:
+  - cmd: dotnet tool install -g Cake.Tool --version 0.30.0
+
 build_script:
-
-- ps: >-
-
-    $currentPath = Get-Location
-
-    dotnet restore .\AWSLambdaSharpTemplate.sln
-
-    dotnet build .\AWSLambdaSharpTemplate.sln -c Release --no-incremental
-
-    Get-ChildItem .\tests\ -Directory | %{ cd $_.FullName; dotnet test }
-
-    Set-Location $currentPath
-
-    Get-ChildItem src\**\*.csproj -Recurse | % { dotnet pack $_.FullName -c Release  }
-
-    dotnet restore .\templates\Kralizek.Lambda.Templates.csproj
-
-    dotnet pack .\templates\Kralizek.Lambda.Templates.csproj -c Release
-
-test: off
+  - cmd: dotnet cake --target=Full
 
 artifacts:
-
-- path: '**\*.nupkg'
+  - path: outputs\*.nupkg
+    name: packages
+  - path: outputs\*.snupkg
+    name: symbols

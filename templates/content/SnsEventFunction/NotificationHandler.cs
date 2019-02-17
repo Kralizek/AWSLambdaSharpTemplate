@@ -15,9 +15,11 @@ namespace SnsEventFunction
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task HandleAsync(Notification notification, ILambdaContext context)
+        public Task HandleAsync(Notification notification, ILambdaContext context)
         {
             _logger.LogInformation($"Received notification: {notification.Message}");
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -11,9 +11,9 @@
   "profile": "",
   "region": "eu-west-1",
   "configuration": "Release",
-  "framework": "netcoreapp2.0",
+  "framework": "netcoreapp2.1",
+  "function-runtime": "dotnetcore2.1",
   "function-name": "test-lambda-template",
-  "function-runtime": "dotnetcore2.0",
   "function-memory-size": 256,
   "function-timeout": 30,
   "function-handler": "Lambda::Lambda.Function::FunctionHandlerAsync"

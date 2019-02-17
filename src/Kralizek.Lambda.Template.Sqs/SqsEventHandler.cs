@@ -37,7 +37,7 @@ namespace Kralizek.Lambda
                     }
 
                     _logger.LogInformation("Invoking notification handler");
-                    await handler.HandleAsync(message, context);
+                    await handler.HandleAsync(message, context).ConfigureAwait(false);
                 }
             }
         }
