@@ -6,8 +6,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-
+using System.Text.Json;
 
 namespace Kralizek.Lambda
 {
@@ -29,7 +28,7 @@ namespace Kralizek.Lambda
                 using (_serviceProvider.CreateScope())
                 {
                     var message = record.Sns.Message;
-                    var notification = JsonConvert.DeserializeObject<TNotification>(message);
+                    var notification = JsonSerializer.Deserialize<TNotification>(message);
 
                     var handler = _serviceProvider.GetService<INotificationHandler<TNotification>>();
 

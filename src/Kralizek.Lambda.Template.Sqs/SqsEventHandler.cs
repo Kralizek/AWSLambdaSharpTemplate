@@ -4,7 +4,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Kralizek.Lambda
 {
@@ -26,7 +26,7 @@ namespace Kralizek.Lambda
                 using (_serviceProvider.CreateScope())
                 {
                     var sqsMessage = record.Body;
-                    var message = JsonConvert.DeserializeObject<TMessage>(sqsMessage);
+                    var message = JsonSerializer.Deserialize<TMessage>(sqsMessage);
 
                     var handler = _serviceProvider.GetService<IMessageHandler<TMessage>>();
 
