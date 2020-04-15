@@ -1,5 +1,5 @@
 #tool "nuget:?package=ReportGenerator&version=4.0.5"
-#tool "nuget:?package=JetBrains.dotCover.CommandLineTools&version=2018.3.1"
+#tool "nuget:?package=JetBrains.dotCover.CommandLineTools&version=2019.3.4"
 #tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
 #tool "nuget:?package=NuGet.CommandLine&version=4.9.2"
 
