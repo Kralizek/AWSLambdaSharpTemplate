@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace SnsEventFunction
 {
@@ -8,7 +8,7 @@ namespace SnsEventFunction
     */
     public class Notification
     {
-        [JsonProperty("message")]
+        [JsonPropertyName("message")]
         public string Message { get; set; }
     }
 }
