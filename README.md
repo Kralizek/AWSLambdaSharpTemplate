@@ -110,7 +110,7 @@ The empty templates are created with just the minimum required dependencies.
 
 These include:
 * `Amazon.Lambda.Core`
-* `Amazon.Lambda.Serialization.Json`
+* `Amazon.Lambda.Serialization.SystemTextJson`
 * `Kralizek.Lambda.Template`
 * `Amazon.Lambda.Tools`
 
@@ -124,7 +124,7 @@ The boilerplate templates are an enriched version of the empty templates. They c
 Besides the basic dependencies of the empty templates, the boilerplate templates have some extra dependencies.
 
 The extra dependencies are:
-* `Amazon.Lambda.Serialization.Json` is used to push logs into AWS CloudWatch
+* `Amazon.Lambda.Serialization.SystemTextJson` is used to push logs into AWS CloudWatch
 * `Kralizek.Extensions.Logging` contains several helper methods for better logging
 * `Microsoft.Extensions.Configuration.EnvironmentVariables` used to load configuration values from environment variables
 * `Microsoft.Extensions.Configuration.Json` used to load configuration values from json files
