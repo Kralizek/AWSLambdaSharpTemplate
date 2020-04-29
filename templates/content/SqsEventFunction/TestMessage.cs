@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace SqsEventFunction
 {
@@ -8,7 +8,7 @@ namespace SqsEventFunction
     */
     public class TestMessage
     {
-        [JsonProperty("message")]
+        [JsonPropertyName("message")]
         public string Message { get; set; }
     }
 }

@@ -1,10 +1,9 @@
 #tool "nuget:?package=ReportGenerator&version=4.0.5"
-#tool "nuget:?package=JetBrains.dotCover.CommandLineTools&version=2018.3.1"
+#tool "nuget:?package=JetBrains.dotCover.CommandLineTools&version=2019.3.4"
 #tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
 #tool "nuget:?package=NuGet.CommandLine&version=4.9.2"
 
 #addin "Cake.FileHelpers"
-#load "./build/types.cake"
 
 var target = Argument("Target", "Full");
 
@@ -243,3 +242,38 @@ Task("Full")
     .IsDependentOn("Push");
 
 RunTarget(target);
+
+public class BuildState
+{
+    public VersionInfo Version { get; set; }
+
+    public BuildPaths Paths { get; set; }
+}
+
+public class BuildPaths
+{
+    public FilePath SolutionFile { get; set; }
+
+    public DirectoryPath SolutionFolder => SolutionFile.GetDirectory();
+
+    public DirectoryPath TestFolder => SolutionFolder.Combine("tests");
+
+    public DirectoryPath OutputFolder => SolutionFolder.Combine("outputs");
+
+    public DirectoryPath TestOutputFolder => OutputFolder.Combine("tests");
+
+    public DirectoryPath ReportFolder => TestOutputFolder.Combine("report");
+
+    public FilePath DotCoverOutputFile => TestOutputFolder.CombineWithFilePath("coverage.dcvr");
+
+    public FilePath DotCoverOutputFileXml => TestOutputFolder.CombineWithFilePath("coverage.xml");
+
+    public FilePath OpenCoverResultFile => OutputFolder.CombineWithFilePath("OpenCover.xml");
+}
+
+public class VersionInfo
+{
+    public string PackageVersion { get; set; }
+
+    public string BuildVersion {get; set; }
+}

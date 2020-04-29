@@ -17,17 +17,17 @@ This is what a minimal Lambda function will look like
 ```csharp
 public class Function : EventFunction<string>
 {
-    protected override void Configure(IConfigurationBuilder builder) 
+    protected override void Configure(IConfigurationBuilder builder)
     {
 
     }
 
-    protected override void ConfigureLogging(ILoggerFactory loggerFactory, IExecutionEnvironment executionEnvironment) 
+    protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
     {
 
     }
 
-    protected override void ConfigureServices(IServiceCollection services)
+    protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
     {
         RegisterHandler<EventHandler>(services);
     }
@@ -35,7 +35,7 @@ public class Function : EventFunction<string>
 ```
 
 The only method required is `ConfigureServices` that you use to register your handler.
-You can use `ConfigureLogging` to add log providers to the provided `LoggerFactory`.
+You can use `ConfigureLogging` to add log providers to the provided `ILoggingBuilder`.
 `Configure` allows you to customize where your settings are taken from. Very much like ASP.NET Core web applications, you can use environment variables, configuration files and in-memory collections.
 
 # Type of functions and handlers
@@ -83,8 +83,8 @@ public interface IEventHandler<TInput>
 
 The best way to create a new AWS Lambda that uses this structure is to use the `dotnet new` template provided via NuGet.
 
-1. Ensure you have the [.NET Core SDK 1.0.0+](https://www.microsoft.com/net/download/core) installed.
-2. Open your console prompt of choice and type `dotnet new -i "Kralizek.Lambda.Templates::*"`. This will install the latest version of the templates. Depending on your previous usage of `dotnet new`, it might take some time.
+1. Ensure you have the latest [.NET Core SDK](https://www.microsoft.com/net/download/core) installed.
+2. Open your console prompt of choice and type `dotnet new -i "Kralizek.Lambda.Templates"`. This will install the latest version of the templates. Depending on your previous usage of `dotnet new`, it might take some time.
 3. List all available templates by typing `dotnet new -all`. You will see 4 new entries, all starting with Lambda.
 4. Create a new project using the template of your choice by typing `dotnet new {short name of the template} -n NameOfYourProject`. E.g. `dotnet new lambda-template-event-empty -n Sample`
 5. Start hacking!
@@ -110,7 +110,7 @@ The empty templates are created with just the minimum required dependencies.
 
 These include:
 * `Amazon.Lambda.Core`
-* `Amazon.Lambda.Serialization.Json`
+* `Amazon.Lambda.Serialization.SystemTextJson`
 * `Kralizek.Lambda.Template`
 * `Amazon.Lambda.Tools`
 
@@ -124,7 +124,7 @@ The boilerplate templates are an enriched version of the empty templates. They c
 Besides the basic dependencies of the empty templates, the boilerplate templates have some extra dependencies.
 
 The extra dependencies are:
-* `Amazon.Lambda.Serialization.Json` is used to push logs into AWS CloudWatch
+* `Amazon.Lambda.Serialization.SystemTextJson` is used to push logs into AWS CloudWatch
 * `Kralizek.Extensions.Logging` contains several helper methods for better logging
 * `Microsoft.Extensions.Configuration.EnvironmentVariables` used to load configuration values from environment variables
 * `Microsoft.Extensions.Configuration.Json` used to load configuration values from json files
