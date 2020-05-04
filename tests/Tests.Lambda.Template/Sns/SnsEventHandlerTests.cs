@@ -20,6 +20,8 @@ namespace Tests.Lambda.Sns
         private Mock<IServiceScopeFactory> mockServiceScopeFactory;
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
+        private Mock<IServiceScope> mockServiceScope;
+
 
         [SetUp]
         public void Initialize()
@@ -27,15 +29,20 @@ namespace Tests.Lambda.Sns
             mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
             mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                                     .Returns(Task.CompletedTask);
-            
+
+            mockServiceScope = new Mock<IServiceScope>();
+
             mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
-            mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(Mock.Of<IServiceScope>());
+            mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(mockServiceScope.Object);
 
             mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider.Setup(p => p.GetService(typeof(INotificationHandler<TestNotification>)))
                                     .Returns(mockNotificationHandler.Object);
             mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
                                     .Returns(mockServiceScopeFactory.Object);
+
+            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+
 
             mockLoggerFactory = new Mock<ILoggerFactory>();
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
@@ -174,6 +181,7 @@ namespace Tests.Lambda.Sns
 
             mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(mockServiceScopeFactory.Object);
+            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
 
             var sut = CreateSystemUnderTest();
 
