@@ -25,12 +25,12 @@ namespace Kralizek.Lambda
         {
             foreach (var record in input.Records)
             {
-                using (_serviceProvider.CreateScope())
+                using (var scope = _serviceProvider.CreateScope())
                 {
                     var message = record.Sns.Message;
                     var notification = JsonSerializer.Deserialize<TNotification>(message);
-
-                    var handler = _serviceProvider.GetService<INotificationHandler<TNotification>>();
+                    
+                    var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
 
                     if (handler == null)
                     {

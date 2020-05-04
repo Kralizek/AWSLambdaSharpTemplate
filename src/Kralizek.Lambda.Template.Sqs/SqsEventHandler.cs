@@ -23,12 +23,12 @@ namespace Kralizek.Lambda
         {
             foreach (var record in input.Records)
             {
-                using (_serviceProvider.CreateScope())
+                using (var scope = _serviceProvider.CreateScope())
                 {
                     var sqsMessage = record.Body;
                     var message = JsonSerializer.Deserialize<TMessage>(sqsMessage);
 
-                    var handler = _serviceProvider.GetService<IMessageHandler<TMessage>>();
+                    var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
 
                     if (handler == null)
                     {
