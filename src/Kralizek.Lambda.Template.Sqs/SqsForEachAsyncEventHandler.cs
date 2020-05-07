@@ -11,14 +11,14 @@ namespace Kralizek.Lambda
 {
     public class SqsForEachAsyncEventHandler<TMessage>:  IEventHandler<SQSEvent> where TMessage : class
     {
-        private readonly ILogger<SqsForEachAsyncEventHandler<TMessage>> _logger;
+        private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly int _maxDegreeOfParallelism;
 
-        public SqsForEachAsyncEventHandler(IServiceProvider serviceProvider, ILogger<SqsForEachAsyncEventHandler<TMessage>> log, ForEachAsyncHandlingOption forEachAsyncHandlingOption)
+        public SqsForEachAsyncEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, ForEachAsyncHandlingOption forEachAsyncHandlingOption)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _logger = log ?? throw new ArgumentNullException(nameof(log));
+            _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
             _maxDegreeOfParallelism = forEachAsyncHandlingOption?.MaxDegreeOfParallelism ?? 1;
         }
 
@@ -26,6 +26,7 @@ namespace Kralizek.Lambda
         {
             if (input.Records.Any())
             {
+
                 await input.Records.ForEachAsync(_maxDegreeOfParallelism, async singleSqsMessage =>
                 {
                     using (var scope = _serviceProvider.CreateScope())
@@ -34,7 +35,7 @@ namespace Kralizek.Lambda
                         _logger.LogDebug($"Message received: {sqsMessage}");
 
                         var message = JsonSerializer.Deserialize<TMessage>(sqsMessage);
-
+                        
                         var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
                         if (messageHandler == null)
                         {

@@ -15,5 +15,17 @@ namespace Kralizek.Lambda
 
             return services;
         }
+
+        public static IServiceCollection UseForEachAsyncSnsHandler<TNotification, THandler>(this IServiceCollection services, int maxDegreeOfParallelism = 1)
+            where TNotification : class
+            where THandler : class, INotificationHandler<TNotification>
+        {
+            services.AddSingleton(new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = maxDegreeOfParallelism });
+            services.AddTransient<IEventHandler<SNSEvent>, SnsForEachAsyncEventHandler<TNotification>>();
+
+            services.AddTransient<INotificationHandler<TNotification>, THandler>();
+
+            return services;
+        }
     }
 }

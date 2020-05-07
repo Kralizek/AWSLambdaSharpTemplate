@@ -60,6 +60,52 @@ namespace Tests.Lambda.Sqs
 
         }
 
+        [Test]
+        public async Task EventHandler_Should_Use_Scoped_Object_In_ForEachAsync_Loop()
+        {
+            var sqsEvent = new SQSEvent
+            {
+                Records = new List<SQSEvent.SQSMessage>
+                {
+                    new SQSEvent.SQSMessage
+                    {
+                        Body = "{}"
+                    },
+                    new SQSEvent.SQSMessage
+                    {
+                        Body = "{}"
+                    },
+                }
+            };
+
+            var dependency = new DisposableDependency();
+
+            var services = new ServiceCollection();
+
+            services.AddScoped(_ => dependency);
+
+            var tcs = new TaskCompletionSource<TestMessage>();
+            services.AddTransient<IEventHandler<SQSEvent>, SqsForEachAsyncEventHandler<TestMessage>>();
+
+            services.AddTransient<IMessageHandler<TestMessage>,
+                TestMessageScopedHandler>(provider =>
+                new TestMessageScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
+
+            var sp = services.BuildServiceProvider();
+            var sqsEventHandler = new SqsForEachAsyncEventHandler<TestMessage>(sp, new NullLoggerFactory(), 
+                new ForEachAsyncHandlingOption{MaxDegreeOfParallelism = 4});
+
+            var task = sqsEventHandler.HandleAsync(sqsEvent, new TestLambdaContext());
+
+            Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
+            Assert.That(task.IsCompleted, Is.False, "The task should not be completed");
+
+            tcs.SetResult(new TestMessage());
+            await task;
+            Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
+            Assert.That(task.IsCompleted, Is.True, "The task should be completed");
+        }
+
         private class DisposableDependency : IDisposable
         {
             public bool Disposed { get; private set; }

@@ -67,6 +67,57 @@ namespace Tests.Lambda.Sns
             Assert.That(task.IsCompleted, Is.True, "The task should be completed");
         }
 
+        [Test]
+        public async Task EventHandler_Should_Use_Scoped_Object_In_ForEachAsync_Loop()
+        {
+            var snsEvent = new SNSEvent
+            {
+                Records = new List<SNSEvent.SNSRecord>
+                {
+                    new SNSEvent.SNSRecord
+                    {
+                        Sns = new SNSEvent.SNSMessage
+                        {
+                            Message = "{}"
+                        }
+                    },
+                    new SNSEvent.SNSRecord
+                    {
+                        Sns = new SNSEvent.SNSMessage
+                        {
+                            Message = "{}"
+                        }
+                    }
+                }
+            };
+
+            var dependency = new DisposableDependency();
+
+            var services = new ServiceCollection();
+
+            services.AddScoped(_ => dependency);
+
+            var tcs = new TaskCompletionSource<TestNotification>();
+            services.AddTransient<IEventHandler<SNSEvent>, SnsForEachAsyncEventHandler<TestNotification>>();
+
+            services.AddTransient<INotificationHandler<TestNotification>,
+                TestNotificationScopedHandler>(provider => new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
+
+            var sp = services.BuildServiceProvider();
+            var sqsEventHandler = new SnsForEachAsyncEventHandler<TestNotification>(sp, new NullLoggerFactory(),
+                new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 4 });
+
+            var task = sqsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
+
+            Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
+            Assert.That(task.IsCompleted, Is.False, "The task should not be completed");
+
+            tcs.SetResult(new TestNotification());
+            await task;
+            Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
+            Assert.That(task.IsCompleted, Is.True, "The task should be completed");
+        }
+
         private class DisposableDependency : IDisposable
         {
             public bool Disposed { get; private set; }

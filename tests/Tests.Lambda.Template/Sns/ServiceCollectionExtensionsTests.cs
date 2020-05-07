@@ -25,6 +25,20 @@ namespace Tests.Lambda.Sns
         }
 
         [Test]
+        public void UseForEachAsyncNotificationHandler_registers_SnsForEachAsyncEventHandler()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseForEachAsyncSnsHandler<TestNotification, TestNotificationHandler>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            serviceProvider.GetRequiredService<IEventHandler<SNSEvent>>();
+        }
+
+        [Test]
         public void UseNotificationHandler_registers_INotificationHandler()
         {
             var services = new ServiceCollection();
@@ -32,6 +46,20 @@ namespace Tests.Lambda.Sns
             services.AddLogging();
 
             services.UseNotificationHandler<TestNotification, TestNotificationHandler>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            serviceProvider.GetRequiredService<INotificationHandler<TestNotification>>();
+        }
+
+        [Test]
+        public void UseNotificationHandler_With_ForEachSqsHandlerregisters_INotificationHandler()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseForEachAsyncSnsHandler<TestNotification, TestNotificationHandler>();
 
             var serviceProvider = services.BuildServiceProvider();
 

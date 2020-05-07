@@ -16,7 +16,7 @@ namespace Kralizek.Lambda
             return services;
         }
 
-        public static IServiceCollection UseAsyncSqsHandler<TMessage, THandler>(this IServiceCollection services, int maxDegreeOfParallelism = 1)
+        public static IServiceCollection UseForEachAsyncSqsHandler<TMessage, THandler>(this IServiceCollection services, int maxDegreeOfParallelism = 1)
             where TMessage : class
             where THandler : class, IMessageHandler<TMessage>
         {

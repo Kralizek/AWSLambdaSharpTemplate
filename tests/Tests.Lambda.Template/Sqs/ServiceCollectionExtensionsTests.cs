@@ -26,6 +26,20 @@ namespace Tests.Lambda.Sqs
         }
 
         [Test]
+        public void UseSqsForEachAsyncHandler_registers_UseSqsForEachHandler()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseForEachAsyncSqsHandler<TestMessage, TestMessageHandler>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+        }
+
+        [Test]
         public void UseNotificationHandler_registers_INotificationHandler()
         {
             var services = new ServiceCollection();
@@ -33,6 +47,20 @@ namespace Tests.Lambda.Sqs
             services.AddLogging();
 
             services.UseSqsHandler<TestMessage, TestMessageHandler>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            serviceProvider.GetRequiredService<IMessageHandler<TestMessage>>();
+        }
+
+        [Test]
+        public void UseNotificationHandler_With_ForEachSqsHandler_registers_INotificationHandler()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseForEachAsyncSqsHandler<TestMessage, TestMessageHandler>();
 
             var serviceProvider = services.BuildServiceProvider();
 
