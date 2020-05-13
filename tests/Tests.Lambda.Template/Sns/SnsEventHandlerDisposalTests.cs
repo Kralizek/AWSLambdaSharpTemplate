@@ -8,6 +8,7 @@ using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sns
@@ -98,14 +99,13 @@ namespace Tests.Lambda.Sns
             services.AddScoped(_ => dependency);
 
             var tcs = new TaskCompletionSource<TestNotification>();
-            services.AddTransient<IEventHandler<SNSEvent>, SnsForEachAsyncEventHandler<TestNotification>>();
+            services.AddTransient<IEventHandler<SNSEvent>, ParallelSnsEventHandler<TestNotification>>();
 
             services.AddTransient<INotificationHandler<TestNotification>,
                 TestNotificationScopedHandler>(provider => new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
 
             var sp = services.BuildServiceProvider();
-            var sqsEventHandler = new SnsForEachAsyncEventHandler<TestNotification>(sp, new NullLoggerFactory(),
-                new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 4 });
+            var sqsEventHandler = new ParallelSnsEventHandler<TestNotification>(sp, new NullLoggerFactory(), Options.Create(new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 }));
 
             var task = sqsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
 

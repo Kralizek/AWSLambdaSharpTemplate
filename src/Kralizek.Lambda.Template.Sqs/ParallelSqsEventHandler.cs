@@ -6,20 +6,26 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Kralizek.Lambda
 {
-    public class SqsForEachAsyncEventHandler<TMessage>:  IEventHandler<SQSEvent> where TMessage : class
+    public class ParallelSqsExecutionOptions
+    {
+        public int MaxDegreeOfParallelism { get; set; } = System.Environment.ProcessorCount;
+    }
+
+    public class ParallelSqsEventHandler<TMessage>:  IEventHandler<SQSEvent> where TMessage : class
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly int _maxDegreeOfParallelism;
+        private readonly ParallelSqsExecutionOptions _options;
 
-        public SqsForEachAsyncEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, ForEachAsyncHandlingOption forEachAsyncHandlingOption)
+        public ParallelSqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
-            _maxDegreeOfParallelism = forEachAsyncHandlingOption?.MaxDegreeOfParallelism ?? 1;
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
         public async Task HandleAsync(SQSEvent input, ILambdaContext context)
@@ -27,7 +33,7 @@ namespace Kralizek.Lambda
             if (input.Records.Any())
             {
 
-                await input.Records.ForEachAsync(_maxDegreeOfParallelism, async singleSqsMessage =>
+                await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
                 {
                     using (var scope = _serviceProvider.CreateScope())
                     {

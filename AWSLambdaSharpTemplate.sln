@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29926.136
 MinimumVisualStudioVersion = 15.0.26124.0
@@ -22,7 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnsEventFunction", "samples
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kralizek.Lambda.Template.Sqs", "src\Kralizek.Lambda.Template.Sqs\Kralizek.Lambda.Template.Sqs.csproj", "{282BE189-9DE6-4A03-B5A4-ADBF4C45D21B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnsForEachAsyncEventFunction", "SnsForEachAsyncEventFunction\SnsForEachAsyncEventFunction.csproj", "{BE6EBF5E-DACD-4FAD-89A9-667F0C76051A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnsEventFunctionWithParallelism", "samples\SnsEventFunctionWithParallelism\SnsEventFunctionWithParallelism.csproj", "{3E986948-21D5-4035-AE12-F669FA488D17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,10 +58,10 @@ Global
 		{282BE189-9DE6-4A03-B5A4-ADBF4C45D21B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{282BE189-9DE6-4A03-B5A4-ADBF4C45D21B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{282BE189-9DE6-4A03-B5A4-ADBF4C45D21B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BE6EBF5E-DACD-4FAD-89A9-667F0C76051A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BE6EBF5E-DACD-4FAD-89A9-667F0C76051A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BE6EBF5E-DACD-4FAD-89A9-667F0C76051A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BE6EBF5E-DACD-4FAD-89A9-667F0C76051A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E986948-21D5-4035-AE12-F669FA488D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E986948-21D5-4035-AE12-F669FA488D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E986948-21D5-4035-AE12-F669FA488D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E986948-21D5-4035-AE12-F669FA488D17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,7 +74,7 @@ Global
 		{8DFE9840-FEF4-4E39-89FD-80E968E3C057} = {42BE6308-5AC6-40B3-96DA-1FF015AF533E}
 		{08E76E38-D49D-4C15-8349-FC23EB37F0DF} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
 		{282BE189-9DE6-4A03-B5A4-ADBF4C45D21B} = {42BE6308-5AC6-40B3-96DA-1FF015AF533E}
-		{BE6EBF5E-DACD-4FAD-89A9-667F0C76051A} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
+		{3E986948-21D5-4035-AE12-F669FA488D17} = {B9F8C8E0-047D-4F38-8F7D-E64F39E51988}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE8B1DF0-D1A8-43E0-A6D5-305B4EF727B5}

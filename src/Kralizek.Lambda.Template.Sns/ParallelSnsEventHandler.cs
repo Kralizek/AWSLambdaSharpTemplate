@@ -6,27 +6,33 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Kralizek.Lambda
 {
-    public class SnsForEachAsyncEventHandler<TNotification>: IEventHandler<SNSEvent> where TNotification : class
+    public class ParallelSnsExecutionOptions
+    {
+        public int MaxDegreeOfParallelism { get; set; } = System.Environment.ProcessorCount;
+    }
+
+    public class ParallelSnsEventHandler<TNotification>: IEventHandler<SNSEvent> where TNotification : class
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly int _maxDegreeOfParallelism;
+        private readonly ParallelSnsExecutionOptions _options;
 
-        public SnsForEachAsyncEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, ForEachAsyncHandlingOption forEachAsyncHandlingOption)
+        public ParallelSnsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSnsExecutionOptions> options)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = loggerFactory?.CreateLogger("SnsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
-            _maxDegreeOfParallelism = forEachAsyncHandlingOption?.MaxDegreeOfParallelism ?? 1;
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
         public async Task HandleAsync(SNSEvent input, ILambdaContext context)
         {
             if (input.Records.Any())
             {
-                await input.Records.ForEachAsync(_maxDegreeOfParallelism, async record =>
+                await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async record =>
                 {
                     using (var scope = _serviceProvider.CreateScope())
                     {

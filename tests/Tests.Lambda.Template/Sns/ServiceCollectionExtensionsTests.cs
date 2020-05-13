@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +9,7 @@ namespace Tests.Lambda.Sns
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void UseNotificationHandler_registers_SnsEventHandler()
+        public void UseNotificationHandler_registers_default_SnsEventHandler()
         {
             var services = new ServiceCollection();
 
@@ -21,21 +19,25 @@ namespace Tests.Lambda.Sns
 
             var serviceProvider = services.BuildServiceProvider();
 
-            serviceProvider.GetRequiredService<IEventHandler<SNSEvent>>();
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SNSEvent>>();
+
+            Assert.That(handler, Is.InstanceOf<SnsEventHandler<TestNotification>>());
         }
 
         [Test]
-        public void UseForEachAsyncNotificationHandler_registers_SnsForEachAsyncEventHandler()
+        public void UseNotificationHandler_registers_ParallelSnsEventHandler_when_parallel_execution_is_enabled()
         {
             var services = new ServiceCollection();
 
             services.AddLogging();
 
-            services.UseForEachAsyncSnsHandler<TestNotification, TestNotificationHandler>();
+            services.UseNotificationHandler<TestNotification, TestNotificationHandler>(enableParallelExecution: true);
 
             var serviceProvider = services.BuildServiceProvider();
 
-            serviceProvider.GetRequiredService<IEventHandler<SNSEvent>>();
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SNSEvent>>();
+
+            Assert.That(handler, Is.InstanceOf<ParallelSnsEventHandler<TestNotification>>());
         }
 
         [Test]
@@ -46,20 +48,6 @@ namespace Tests.Lambda.Sns
             services.AddLogging();
 
             services.UseNotificationHandler<TestNotification, TestNotificationHandler>();
-
-            var serviceProvider = services.BuildServiceProvider();
-
-            serviceProvider.GetRequiredService<INotificationHandler<TestNotification>>();
-        }
-
-        [Test]
-        public void UseNotificationHandler_With_ForEachSqsHandlerregisters_INotificationHandler()
-        {
-            var services = new ServiceCollection();
-
-            services.AddLogging();
-
-            services.UseForEachAsyncSnsHandler<TestNotification, TestNotificationHandler>();
 
             var serviceProvider = services.BuildServiceProvider();
 

@@ -8,20 +8,21 @@ using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sqs
 {
     [TestFixture]
-    public class SqsForEachAsyncEventHandlerTests
+    public class ParallelSqsEventHandlerTests
     {
         private Mock<IMessageHandler<TestMessage>> mockMessageHandler;
         private Mock<IServiceScopeFactory> mockServiceScopeFactory;
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
         private Mock<IServiceScope> mockServiceScope;
-        private ForEachAsyncHandlingOption forEachAsyncHandlingOption;
+        private ParallelSqsExecutionOptions parallelExecutionOptions;
 
         [SetUp]
         public void Initialize()
@@ -47,12 +48,12 @@ namespace Tests.Lambda.Sqs
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
                 .Returns(Mock.Of<ILogger>());
 
-            forEachAsyncHandlingOption = new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 4 };
+            parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
         }
 
-        private SqsForEachAsyncEventHandler<TestMessage> CreateSystemUnderTest()
+        private ParallelSqsEventHandler<TestMessage> CreateSystemUnderTest()
         {
-            return new SqsForEachAsyncEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object, forEachAsyncHandlingOption);
+            return new ParallelSqsEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
         }
 
         [Test]
@@ -171,7 +172,7 @@ namespace Tests.Lambda.Sqs
 
             var cq = new ConcurrentQueue<Task>();
 
-            forEachAsyncHandlingOption = new ForEachAsyncHandlingOption {MaxDegreeOfParallelism = 2};
+            parallelExecutionOptions = new ParallelSqsExecutionOptions {MaxDegreeOfParallelism = 2};
             mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
                 .Returns(async ()=>
                 {
@@ -224,7 +225,7 @@ namespace Tests.Lambda.Sqs
             var cq = new ConcurrentQueue<Task>();
             
             //We are checking if parallelism actually does what it's supposed to do. So we should have more then 2 concurrent processes running
-            forEachAsyncHandlingOption = new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 4 };
+            parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
             mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
                 .Returns(async () =>
                 {

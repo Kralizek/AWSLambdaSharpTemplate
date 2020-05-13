@@ -9,19 +9,20 @@ using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sns
 {
-    public class SnsForEachAsyncEventHandlerTests
+    public class ParallelSnsEventHandlerTests
     {
         private Mock<INotificationHandler<TestNotification>> mockNotificationHandler;
         private Mock<IServiceScopeFactory> mockServiceScopeFactory;
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
         private Mock<IServiceScope> mockServiceScope;
-        private ForEachAsyncHandlingOption forEachAsyncHandlingOption;
+        private ParallelSnsExecutionOptions parallelExecutionOptions;
 
         [SetUp]
         public void Initialize()
@@ -48,13 +49,13 @@ namespace Tests.Lambda.Sns
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
                 .Returns(Mock.Of<ILogger>());
 
-            forEachAsyncHandlingOption = new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 4 };
+            parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 };
 
         }
 
-        private SnsForEachAsyncEventHandler<TestNotification> CreateSystemUnderTest()
+        private ParallelSnsEventHandler<TestNotification> CreateSystemUnderTest()
         {
-            return new SnsForEachAsyncEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object, forEachAsyncHandlingOption);
+            return new ParallelSnsEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
         }
 
         [Test]
@@ -212,7 +213,7 @@ namespace Tests.Lambda.Sns
 
             var cq = new ConcurrentQueue<Task>();
 
-            forEachAsyncHandlingOption = new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 2 };
+            parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 2 };
             mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                 .Returns(async () =>
                 {
@@ -277,7 +278,7 @@ namespace Tests.Lambda.Sns
             var cq = new ConcurrentQueue<Task>();
 
             //We are checking if parallelism actually does what it's supposed to do. So we should have more then 2 concurrent processes running
-            forEachAsyncHandlingOption = new ForEachAsyncHandlingOption { MaxDegreeOfParallelism = 4 };
+            parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 };
             mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                 .Returns(async () =>
                 {
