@@ -12,7 +12,7 @@ namespace Tests.Lambda.Sqs
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void UseSqsHandler_registers_UseSqsHandler()
+        public void UseSqsHandler_registers_default_SqsEventHandler()
         {
             var services = new ServiceCollection();
 
@@ -22,11 +22,29 @@ namespace Tests.Lambda.Sqs
 
             var serviceProvider = services.BuildServiceProvider();
 
-            serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+
+            Assert.That(handler, Is.InstanceOf<SqsEventHandler<TestMessage>>());
         }
 
         [Test]
-        public void UseNotificationHandler_registers_INotificationHandler()
+        public void UseSqsHandler_registers_ParallelSqsEventHandler_when_parallel_execution_is_enabled()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseSqsHandler<TestMessage, TestMessageHandler>(enableParallelExecution: true);
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+
+            Assert.That(handler, Is.InstanceOf<ParallelSqsEventHandler<TestMessage>>());
+        }
+
+        [Test]
+        public void UseSqsHandler_registers_IMessageHandler()
         {
             var services = new ServiceCollection();
 
