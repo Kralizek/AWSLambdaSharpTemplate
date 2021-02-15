@@ -37,7 +37,12 @@ namespace Kralizek.Lambda
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var message = record.Sns.Message;
-                        var notification = JsonSerializer.Deserialize<TNotification>(message);
+
+                        var serializer = _serviceProvider.GetService<ISerializer>();
+                        var notification = serializer != null
+                            ? serializer.Deserialize<TNotification>(message)
+                            : JsonSerializer.Deserialize<TNotification>(message);
+
                         _logger.LogDebug($"Message received: {message}");
 
                         var messageHandler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();

@@ -26,8 +26,11 @@ namespace Kralizek.Lambda
             }
         }
 
-        protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IRequestResponseHandler<TInput, TOutput>
+        protected void RegisterHandler<THandler>(IServiceCollection services, ISerializer serializer = null) where THandler : class, IRequestResponseHandler<TInput, TOutput>
         {
+            if (serializer != null)
+                services.AddTransient(sp => serializer);
+
             services.AddTransient<IRequestResponseHandler<TInput, TOutput>, THandler>();
         }
     }

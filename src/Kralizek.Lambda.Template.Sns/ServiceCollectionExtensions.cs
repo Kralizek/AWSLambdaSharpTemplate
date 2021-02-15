@@ -13,11 +13,14 @@ namespace Kralizek.Lambda
             return services;
         }
 
-        public static IServiceCollection UseNotificationHandler<TNotification, THandler>(this IServiceCollection services, bool enableParallelExecution = false)
+        public static IServiceCollection UseNotificationHandler<TNotification, THandler>(this IServiceCollection services, bool enableParallelExecution = false, ISerializer serializer = null)
             where TNotification : class
             where THandler : class, INotificationHandler<TNotification>
         {
             services.AddOptions();
+
+            if (serializer != null)
+                services.AddSingleton(sp => serializer);
 
             if (enableParallelExecution)
             {

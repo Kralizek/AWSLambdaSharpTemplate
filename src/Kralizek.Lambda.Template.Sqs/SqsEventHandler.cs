@@ -26,7 +26,11 @@ namespace Kralizek.Lambda
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var sqsMessage = record.Body;
-                    var message = JsonSerializer.Deserialize<TMessage>(sqsMessage);
+
+                    var serializer = _serviceProvider.GetService<ISerializer>();
+                    var message = serializer != null
+                        ? serializer.Deserialize<TMessage>(sqsMessage)
+                        : JsonSerializer.Deserialize<TMessage>(sqsMessage);
 
                     var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
 
