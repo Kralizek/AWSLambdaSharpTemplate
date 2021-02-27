@@ -33,9 +33,7 @@ namespace SnsEventFunction
 
         protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
-            services.ConfigureSnsParallelExecution(4);
-
-            services.UseNotificationHandler<CustomNotification, CustomNotificationHandler>(enableParallelExecution: true);
+            services.UseNotificationHandler<CustomNotification, CustomNotificationHandler>(c => c.UseParallelExecution(4));
         }
     }
 

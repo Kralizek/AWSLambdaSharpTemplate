@@ -15,15 +15,17 @@ namespace Kralizek.Lambda
         public int MaxDegreeOfParallelism { get; set; } = System.Environment.ProcessorCount;
     }
 
-    public class ParallelSqsEventHandler<TMessage>:  IEventHandler<SQSEvent> where TMessage : class
+    public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TMessage : class
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ISerializer _serializer;
         private readonly ParallelSqsExecutionOptions _options;
 
-        public ParallelSqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
+        public ParallelSqsEventHandler(IServiceProvider serviceProvider, ISerializer serializer, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
@@ -32,7 +34,6 @@ namespace Kralizek.Lambda
         {
             if (input.Records.Any())
             {
-
                 await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
                 {
                     using (var scope = _serviceProvider.CreateScope())
@@ -40,8 +41,8 @@ namespace Kralizek.Lambda
                         var sqsMessage = singleSqsMessage.Body;
                         _logger.LogDebug($"Message received: {sqsMessage}");
 
-                        var message = JsonSerializer.Deserialize<TMessage>(sqsMessage);
-                        
+                        var message = _serializer.Deserialize<TMessage>(sqsMessage);
+
                         var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
                         if (messageHandler == null)
                         {

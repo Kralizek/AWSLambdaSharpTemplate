@@ -22,6 +22,7 @@ namespace Tests.Lambda.Sqs
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
         private Mock<IServiceScope> mockServiceScope;
+        private Mock<ISerializer> mockSerializer;
         private ParallelSqsExecutionOptions parallelExecutionOptions;
 
         [SetUp]
@@ -48,12 +49,14 @@ namespace Tests.Lambda.Sqs
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
                 .Returns(Mock.Of<ILogger>());
 
+            mockSerializer = new Mock<ISerializer>();
+
             parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
         }
 
         private ParallelSqsEventHandler<TestMessage> CreateSystemUnderTest()
         {
-            return new ParallelSqsEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
+            return new ParallelSqsEventHandler<TestMessage>(mockServiceProvider.Object, mockSerializer.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
         }
 
         [Test]

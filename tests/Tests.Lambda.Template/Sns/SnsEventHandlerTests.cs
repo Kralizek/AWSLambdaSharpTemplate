@@ -20,6 +20,7 @@ namespace Tests.Lambda.Sns
         private Mock<IServiceScopeFactory> mockServiceScopeFactory;
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
+        private Mock<ISerializer> mockSerializer;
         private Mock<IServiceScope> mockServiceScope;
 
 
@@ -43,6 +44,8 @@ namespace Tests.Lambda.Sns
 
             mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
 
+            mockSerializer = new Mock<ISerializer>();
+
 
             mockLoggerFactory = new Mock<ILoggerFactory>();
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
@@ -51,7 +54,7 @@ namespace Tests.Lambda.Sns
 
         private SnsEventHandler<TestNotification> CreateSystemUnderTest()
         {
-            return new SnsEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object);
+            return new SnsEventHandler<TestNotification>(mockServiceProvider.Object, mockSerializer.Object, mockLoggerFactory.Object);
         }
 
         [Test]

@@ -52,8 +52,13 @@ namespace Tests.Lambda.Sns
                 TestNotificationScopedHandler>(provider =>
                 new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
 
+            services.AddSingleton<ISerializer, SystemTextJsonSerializer>();
+
             var sp = services.BuildServiceProvider();
-            var snsEventHandler = new SnsEventHandler<TestNotification>(sp, new NullLoggerFactory());
+
+            var serializer = sp.GetRequiredService<ISerializer>();
+
+            var snsEventHandler = new SnsEventHandler<TestNotification>(sp, serializer, new NullLoggerFactory());
 
             var task = snsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
 
@@ -104,8 +109,13 @@ namespace Tests.Lambda.Sns
             services.AddTransient<INotificationHandler<TestNotification>,
                 TestNotificationScopedHandler>(provider => new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
 
+            services.AddSingleton<ISerializer, SystemTextJsonSerializer>();
+
             var sp = services.BuildServiceProvider();
-            var sqsEventHandler = new ParallelSnsEventHandler<TestNotification>(sp, new NullLoggerFactory(), Options.Create(new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 }));
+
+            var serializer = sp.GetRequiredService<ISerializer>();
+
+            var sqsEventHandler = new ParallelSnsEventHandler<TestNotification>(sp, serializer, new NullLoggerFactory(), Options.Create(new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 }));
 
             var task = sqsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
 

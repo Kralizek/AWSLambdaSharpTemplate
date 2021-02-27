@@ -26,8 +26,16 @@ namespace Kralizek.Lambda
             }
         }
 
-        protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IRequestResponseHandler<TInput, TOutput>
+        protected void RegisterHandler<THandler>(IServiceCollection services, Action<ILambdaConfigurator> configure = null) 
+            where THandler : class, IRequestResponseHandler<TInput, TOutput>
         {
+            if (configure != null)
+            {
+                var configurator = new LambdaConfigurator(services);
+
+                configure(configurator);
+            }
+
             services.AddTransient<IRequestResponseHandler<TInput, TOutput>, THandler>();
         }
     }

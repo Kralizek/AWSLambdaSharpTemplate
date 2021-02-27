@@ -45,8 +45,13 @@ namespace Tests.Lambda.Sqs
                 TestMessageScopedHandler>(provider =>
                 new TestMessageScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
 
+            services.AddSingleton<ISerializer, SystemTextJsonSerializer>();
+
             var sp = services.BuildServiceProvider();
-            var sqsEventHandler = new SqsEventHandler<TestMessage>(sp, new NullLoggerFactory());
+
+            var serializer = sp.GetRequiredService<ISerializer>();
+
+            var sqsEventHandler = new SqsEventHandler<TestMessage>(sp, serializer, new NullLoggerFactory());
 
             var task = sqsEventHandler.HandleAsync(sqsEvent, new TestLambdaContext());
 
@@ -92,8 +97,13 @@ namespace Tests.Lambda.Sqs
                 TestMessageScopedHandler>(provider =>
                 new TestMessageScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
 
+            services.AddSingleton<ISerializer, SystemTextJsonSerializer>();
+
             var sp = services.BuildServiceProvider();
-            var sqsEventHandler = new ParallelSqsEventHandler<TestMessage>(sp, new NullLoggerFactory(), Options.Create(new ParallelSqsExecutionOptions{MaxDegreeOfParallelism = 4}));
+
+            var serializer = sp.GetRequiredService<ISerializer>();
+
+            var sqsEventHandler = new ParallelSqsEventHandler<TestMessage>(sp, serializer, new NullLoggerFactory(), Options.Create(new ParallelSqsExecutionOptions{MaxDegreeOfParallelism = 4}));
 
             var task = sqsEventHandler.HandleAsync(sqsEvent, new TestLambdaContext());
 

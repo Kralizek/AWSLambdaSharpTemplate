@@ -18,6 +18,7 @@ namespace Tests.Lambda.Sqs {
         private Mock<IServiceScopeFactory> mockServiceScopeFactory;
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
+        private Mock<ISerializer> mockSerializer;
         private Mock<IServiceScope> mockServiceScope;
 
 
@@ -41,6 +42,8 @@ namespace Tests.Lambda.Sqs {
 
             mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
 
+            mockSerializer = new Mock<ISerializer>();
+
             mockLoggerFactory = new Mock<ILoggerFactory>();
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
                              .Returns(Mock.Of<ILogger>());
@@ -48,7 +51,7 @@ namespace Tests.Lambda.Sqs {
 
         private SqsEventHandler<TestMessage> CreateSystemUnderTest()
         {
-            return new SqsEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object);
+            return new SqsEventHandler<TestMessage>(mockServiceProvider.Object, mockSerializer.Object, mockLoggerFactory.Object);
         }
 
         [Test]

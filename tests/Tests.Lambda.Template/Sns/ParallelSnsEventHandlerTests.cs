@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
-using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +21,7 @@ namespace Tests.Lambda.Sns
         private Mock<IServiceProvider> mockServiceProvider;
         private Mock<ILoggerFactory> mockLoggerFactory;
         private Mock<IServiceScope> mockServiceScope;
+        private Mock<ISerializer> mockSerializer;
         private ParallelSnsExecutionOptions parallelExecutionOptions;
 
         [SetUp]
@@ -44,6 +44,8 @@ namespace Tests.Lambda.Sns
 
             mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
 
+            mockSerializer = new Mock<ISerializer>();
+
 
             mockLoggerFactory = new Mock<ILoggerFactory>();
             mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
@@ -55,7 +57,7 @@ namespace Tests.Lambda.Sns
 
         private ParallelSnsEventHandler<TestNotification> CreateSystemUnderTest()
         {
-            return new ParallelSnsEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
+            return new ParallelSnsEventHandler<TestNotification>(mockServiceProvider.Object, mockSerializer.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
         }
 
         [Test]
