@@ -8,46 +8,45 @@ using Microsoft.Extensions.Logging;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace EventFunction
+namespace EventFunction;
+
+public class Function : EventFunction<string>
 {
-    public class Function : EventFunction<string>
+    protected override void Configure(IConfigurationBuilder builder)
     {
-        protected override void Configure(IConfigurationBuilder builder)
-        {
-            builder.AddEnvironmentVariables();
-        }
-
-        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
-        {
-            logging.AddConfiguration(Configuration.GetSection("Logging"));
-
-            logging.AddLambdaLogger(new LambdaLoggerOptions
-            {
-                IncludeCategory = true,
-                IncludeLogLevel = true,
-                IncludeNewline = true
-            });
-        }
-
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-        {
-            RegisterHandler<EventHandler>(services);
-        }
+        builder.AddEnvironmentVariables();
     }
 
-    public class EventHandler : IEventHandler<string>
+    protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
     {
-        private readonly ILogger<EventHandler> _logger;
+        logging.AddConfiguration(Configuration.GetSection("Logging"));
 
-        public EventHandler(ILogger<EventHandler> logger)
+        logging.AddLambdaLogger(new LambdaLoggerOptions
         {
-            _logger = logger;
-        }
+            IncludeCategory = true,
+            IncludeLogLevel = true,
+            IncludeNewline = true
+        });
+    }
 
-        public Task HandleAsync(string input, ILambdaContext context)
-        {
-            _logger.LogInformation(input);
-            return Task.CompletedTask;
-        }
+    protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+    {
+        RegisterHandler<EventHandler>(services);
+    }
+}
+
+public class EventHandler : IEventHandler<string>
+{
+    private readonly ILogger<EventHandler> _logger;
+
+    public EventHandler(ILogger<EventHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public Task HandleAsync(string input, ILambdaContext context)
+    {
+        _logger.LogInformation(input);
+        return Task.CompletedTask;
     }
 }

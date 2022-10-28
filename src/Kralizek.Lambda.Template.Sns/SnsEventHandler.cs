@@ -8,42 +8,41 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
-namespace Kralizek.Lambda
+namespace Kralizek.Lambda;
+
+public class SnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNotification : class
 {
-    public class SnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNotification : class
+    private readonly ILogger _logger;
+    private readonly IServiceProvider _serviceProvider;
+
+    public SnsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
     {
-        private readonly ILogger _logger;
-        private readonly IServiceProvider _serviceProvider;
+        _logger = loggerFactory?.CreateLogger("SnsEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+    }
 
-        public SnsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
+    public async Task HandleAsync(SNSEvent input, ILambdaContext context)
+    {
+        foreach (var record in input.Records)
         {
-            _logger = loggerFactory?.CreateLogger("SnsEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        }
-
-        public async Task HandleAsync(SNSEvent input, ILambdaContext context)
-        {
-            foreach (var record in input.Records)
+            using (var scope = _serviceProvider.CreateScope())
             {
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var message = record.Sns.Message;
+                var message = record.Sns.Message;
 
-                    var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
+                var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
 
-                    var notification = serializer.Deserialize<TNotification>(message);
+                var notification = serializer.Deserialize<TNotification>(message);
                     
-                    var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
+                var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
 
-                    if (handler == null)
-                    {
-                        _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
-                        throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
-                    }
-
-                    _logger.LogInformation("Invoking notification handler");
-                    await handler.HandleAsync(notification, context).ConfigureAwait(false);
+                if (handler == null)
+                {
+                    _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
+                    throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
                 }
+
+                _logger.LogInformation("Invoking notification handler");
+                await handler.HandleAsync(notification, context).ConfigureAwait(false);
             }
         }
     }

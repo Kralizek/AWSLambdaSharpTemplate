@@ -11,136 +11,135 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
 
-namespace Tests.Lambda.Sns
+namespace Tests.Lambda.Sns;
+
+public class SnsEventHandlerDisposalTests
 {
-    public class SnsEventHandlerDisposalTests
+    [Test]
+    public async Task EventHandler_Should_Use_Scoped_Object_In_ForEach_Loop()
     {
-        [Test]
-        public async Task EventHandler_Should_Use_Scoped_Object_In_ForEach_Loop()
+        var snsEvent = new SNSEvent
         {
-            var snsEvent = new SNSEvent
+            Records = new List<SNSEvent.SNSRecord>
             {
-                Records = new List<SNSEvent.SNSRecord>
+                new SNSEvent.SNSRecord
                 {
-                    new SNSEvent.SNSRecord
+                    Sns = new SNSEvent.SNSMessage
                     {
-                        Sns = new SNSEvent.SNSMessage
-                        {
-                            Message = "{}"
-                        }
-                    },
-                    new SNSEvent.SNSRecord
+                        Message = "{}"
+                    }
+                },
+                new SNSEvent.SNSRecord
+                {
+                    Sns = new SNSEvent.SNSMessage
                     {
-                        Sns = new SNSEvent.SNSMessage
-                        {
-                            Message = "{}"
-                        }
+                        Message = "{}"
                     }
                 }
-            };
-
-            var dependency = new DisposableDependency();
-
-            var services = new ServiceCollection();
-
-            services.AddScoped(_ => dependency);
-
-            var tcs = new TaskCompletionSource<TestNotification>();
-            services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TestNotification>>();
-
-            services.AddTransient<INotificationHandler<TestNotification>,
-                TestNotificationScopedHandler>(provider =>
-                new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
-
-            services.AddSingleton<INotificationSerializer, DefaultJsonNotificationSerializer>();
-
-            var sp = services.BuildServiceProvider();
-            var snsEventHandler = new SnsEventHandler<TestNotification>(sp, NullLoggerFactory.Instance);
-
-            var task = snsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
-
-            Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
-            Assert.That(task.IsCompleted, Is.False, "The task should not be completed");
-
-            tcs.SetResult(new TestNotification());
-
-            await task;
-
-            Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
-            Assert.That(task.IsCompleted, Is.True, "The task should be completed");
-        }
-
-        [Test]
-        public async Task EventHandler_Should_Use_Scoped_Object_In_ForEachAsync_Loop()
-        {
-            var snsEvent = new SNSEvent
-            {
-                Records = new List<SNSEvent.SNSRecord>
-                {
-                    new SNSEvent.SNSRecord
-                    {
-                        Sns = new SNSEvent.SNSMessage
-                        {
-                            Message = "{}"
-                        }
-                    },
-                    new SNSEvent.SNSRecord
-                    {
-                        Sns = new SNSEvent.SNSMessage
-                        {
-                            Message = "{}"
-                        }
-                    }
-                }
-            };
-
-            var dependency = new DisposableDependency();
-
-            var services = new ServiceCollection();
-
-            services.AddScoped(_ => dependency);
-
-            var tcs = new TaskCompletionSource<TestNotification>();
-            services.AddTransient<IEventHandler<SNSEvent>, ParallelSnsEventHandler<TestNotification>>();
-
-            services.AddTransient<INotificationHandler<TestNotification>,
-                TestNotificationScopedHandler>(provider => new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
-            
-            services.AddSingleton<INotificationSerializer, DefaultJsonNotificationSerializer>();
-
-            var sp = services.BuildServiceProvider();
-
-            var sqsEventHandler = new ParallelSnsEventHandler<TestNotification>(sp, new NullLoggerFactory(), Options.Create(new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 }));
-
-            var task = sqsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
-
-            Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
-            Assert.That(task.IsCompleted, Is.False, "The task should not be completed");
-
-            tcs.SetResult(new TestNotification());
-            await task;
-            Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
-            Assert.That(task.IsCompleted, Is.True, "The task should be completed");
-        }
-
-        private class DisposableDependency : IDisposable
-        {
-            public bool Disposed { get; private set; }
-            public void Dispose() => Disposed = true;
-        }
-
-        private class TestNotificationScopedHandler: INotificationHandler<TestNotification>
-        {
-            private readonly DisposableDependency _dependency;
-            private readonly TaskCompletionSource<TestNotification> _tcs;
-
-            public TestNotificationScopedHandler(DisposableDependency dependency, TaskCompletionSource<TestNotification> tcs)
-            {
-                _dependency = dependency;
-                _tcs = tcs;
             }
+        };
 
-            public Task HandleAsync(TestNotification message, ILambdaContext context) => _tcs.Task;
+        var dependency = new DisposableDependency();
+
+        var services = new ServiceCollection();
+
+        services.AddScoped(_ => dependency);
+
+        var tcs = new TaskCompletionSource<TestNotification>();
+        services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TestNotification>>();
+
+        services.AddTransient<INotificationHandler<TestNotification>,
+            TestNotificationScopedHandler>(provider =>
+            new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
+
+        services.AddSingleton<INotificationSerializer, DefaultJsonNotificationSerializer>();
+
+        var sp = services.BuildServiceProvider();
+        var snsEventHandler = new SnsEventHandler<TestNotification>(sp, NullLoggerFactory.Instance);
+
+        var task = snsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
+
+        Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
+        Assert.That(task.IsCompleted, Is.False, "The task should not be completed");
+
+        tcs.SetResult(new TestNotification());
+
+        await task;
+
+        Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
+        Assert.That(task.IsCompleted, Is.True, "The task should be completed");
+    }
+
+    [Test]
+    public async Task EventHandler_Should_Use_Scoped_Object_In_ForEachAsync_Loop()
+    {
+        var snsEvent = new SNSEvent
+        {
+            Records = new List<SNSEvent.SNSRecord>
+            {
+                new SNSEvent.SNSRecord
+                {
+                    Sns = new SNSEvent.SNSMessage
+                    {
+                        Message = "{}"
+                    }
+                },
+                new SNSEvent.SNSRecord
+                {
+                    Sns = new SNSEvent.SNSMessage
+                    {
+                        Message = "{}"
+                    }
+                }
+            }
+        };
+
+        var dependency = new DisposableDependency();
+
+        var services = new ServiceCollection();
+
+        services.AddScoped(_ => dependency);
+
+        var tcs = new TaskCompletionSource<TestNotification>();
+        services.AddTransient<IEventHandler<SNSEvent>, ParallelSnsEventHandler<TestNotification>>();
+
+        services.AddTransient<INotificationHandler<TestNotification>,
+            TestNotificationScopedHandler>(provider => new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
+            
+        services.AddSingleton<INotificationSerializer, DefaultJsonNotificationSerializer>();
+
+        var sp = services.BuildServiceProvider();
+
+        var sqsEventHandler = new ParallelSnsEventHandler<TestNotification>(sp, new NullLoggerFactory(), Options.Create(new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 }));
+
+        var task = sqsEventHandler.HandleAsync(snsEvent, new TestLambdaContext());
+
+        Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
+        Assert.That(task.IsCompleted, Is.False, "The task should not be completed");
+
+        tcs.SetResult(new TestNotification());
+        await task;
+        Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
+        Assert.That(task.IsCompleted, Is.True, "The task should be completed");
+    }
+
+    private class DisposableDependency : IDisposable
+    {
+        public bool Disposed { get; private set; }
+        public void Dispose() => Disposed = true;
+    }
+
+    private class TestNotificationScopedHandler: INotificationHandler<TestNotification>
+    {
+        private readonly DisposableDependency _dependency;
+        private readonly TaskCompletionSource<TestNotification> _tcs;
+
+        public TestNotificationScopedHandler(DisposableDependency dependency, TaskCompletionSource<TestNotification> tcs)
+        {
+            _dependency = dependency;
+            _tcs = tcs;
         }
+
+        public Task HandleAsync(TestNotification message, ILambdaContext context) => _tcs.Task;
     }
 }

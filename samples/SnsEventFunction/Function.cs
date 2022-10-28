@@ -10,52 +10,51 @@ using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace SnsEventFunction
+namespace SnsEventFunction;
+
+public class Function : EventFunction<SNSEvent>
 {
-    public class Function : EventFunction<SNSEvent>
+    protected override void Configure(IConfigurationBuilder builder)
     {
-        protected override void Configure(IConfigurationBuilder builder)
-        {
-            builder.AddEnvironmentVariables();
-        }
-
-        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
-        {
-            logging.AddConfiguration(Configuration.GetSection("Logging"));
-
-            logging.AddLambdaLogger(new LambdaLoggerOptions
-            {
-                IncludeCategory = true,
-                IncludeLogLevel = true,
-                IncludeNewline = true
-            });
-        }
-
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-        {
-            services.UseNotificationHandler<CustomNotification, CustomNotificationHandler>();
-        }
+        builder.AddEnvironmentVariables();
     }
 
-    public class CustomNotification
+    protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
     {
-        public string Message { get; set; }
+        logging.AddConfiguration(Configuration.GetSection("Logging"));
+
+        logging.AddLambdaLogger(new LambdaLoggerOptions
+        {
+            IncludeCategory = true,
+            IncludeLogLevel = true,
+            IncludeNewline = true
+        });
     }
 
-    public class CustomNotificationHandler : INotificationHandler<CustomNotification>
+    protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
     {
-        private readonly ILogger<CustomNotificationHandler> _logger;
+        services.UseNotificationHandler<CustomNotification, CustomNotificationHandler>();
+    }
+}
 
-        public CustomNotificationHandler(ILogger<CustomNotificationHandler> logger)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+public class CustomNotification
+{
+    public string Message { get; set; }
+}
 
-        public Task HandleAsync(CustomNotification notification, ILambdaContext context)
-        {
-            _logger.LogInformation($"Handling notification: {notification.Message}");
+public class CustomNotificationHandler : INotificationHandler<CustomNotification>
+{
+    private readonly ILogger<CustomNotificationHandler> _logger;
 
-            return Task.CompletedTask;
-        }
+    public CustomNotificationHandler(ILogger<CustomNotificationHandler> logger)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public Task HandleAsync(CustomNotification notification, ILambdaContext context)
+    {
+        _logger.LogInformation($"Handling notification: {notification.Message}");
+
+        return Task.CompletedTask;
     }
 }

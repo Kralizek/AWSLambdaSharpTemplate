@@ -9,63 +9,62 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
-namespace Tests.Lambda
+namespace Tests.Lambda;
+
+[TestFixture]
+public class EventFunctionTests
 {
-    [TestFixture]
-    public class EventFunctionTests
+    private TestEventFunction CreateSystemUnderTest()
     {
-        private TestEventFunction CreateSystemUnderTest()
-        {
-            return new TestEventFunction();
-        }
+        return new TestEventFunction();
+    }
 
-        [Test]
-        public void Configure_should_be_invoked_on_type_initialization()
-        {
-            var sut = CreateSystemUnderTest();
+    [Test]
+    public void Configure_should_be_invoked_on_type_initialization()
+    {
+        var sut = CreateSystemUnderTest();
 
-            Assert.True(sut.IsConfigureInvoked);
-        }
+        Assert.True(sut.IsConfigureInvoked);
+    }
 
-        [Test]
-        public void ConfigureServices_should_be_invoked_on_type_initialization()
-        {
-            var sut = CreateSystemUnderTest();
+    [Test]
+    public void ConfigureServices_should_be_invoked_on_type_initialization()
+    {
+        var sut = CreateSystemUnderTest();
 
-            Assert.True(sut.IsConfigureServicesInvoked);
-        }
+        Assert.True(sut.IsConfigureServicesInvoked);
+    }
 
-        [Test]
-        public void ConfigureLogging_should_be_invoked_on_type_initialization()
-        {
-            var sut = CreateSystemUnderTest();
+    [Test]
+    public void ConfigureLogging_should_be_invoked_on_type_initialization()
+    {
+        var sut = CreateSystemUnderTest();
 
-            Assert.True(sut.IsConfigureLoggingInvoked);
-        }
+        Assert.True(sut.IsConfigureLoggingInvoked);
+    }
 
-        [Test]
-        public void FunctionHandlerAsync_throws_if_no_handler_is_registered()
-        {
-            var sut = CreateSystemUnderTest();
+    [Test]
+    public void FunctionHandlerAsync_throws_if_no_handler_is_registered()
+    {
+        var sut = CreateSystemUnderTest();
 
-            var context = new TestLambdaContext();
+        var context = new TestLambdaContext();
 
-            Assert.ThrowsAsync<InvalidOperationException>(() => sut.FunctionHandlerAsync("Hello World", context));
-        }
+        Assert.ThrowsAsync<InvalidOperationException>(() => sut.FunctionHandlerAsync("Hello World", context));
+    }
 
-        public class TestEventFunction : EventFunction<string>
-        {
-            protected override void Configure(IConfigurationBuilder builder) => IsConfigureInvoked = true;
+    public class TestEventFunction : EventFunction<string>
+    {
+        protected override void Configure(IConfigurationBuilder builder) => IsConfigureInvoked = true;
 
-            protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) => IsConfigureServicesInvoked = true;
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) => IsConfigureServicesInvoked = true;
 
-            protected override void ConfigureLogging(ILoggingBuilder loggerFactory, IExecutionEnvironment executionEnvironment) => IsConfigureLoggingInvoked = true;
+        protected override void ConfigureLogging(ILoggingBuilder loggerFactory, IExecutionEnvironment executionEnvironment) => IsConfigureLoggingInvoked = true;
 
-            public bool IsConfigureInvoked { get; private set; }
+        public bool IsConfigureInvoked { get; private set; }
 
-            public bool IsConfigureServicesInvoked { get; private set; }
+        public bool IsConfigureServicesInvoked { get; private set; }
 
-            public bool IsConfigureLoggingInvoked { get; private set; }
-        }
+        public bool IsConfigureLoggingInvoked { get; private set; }
     }
 }
