@@ -16,7 +16,7 @@ namespace Kralizek.Lambda
 
                 if (handler == null)
                 {
-                    Logger.LogCritical($"No IRequestResponseHandler<{typeof(TInput).Name}, {typeof(TOutput).Name}> could be found.");
+                    Logger.LogCritical("No {Handler} could be found", $"IRequestResponseHandler<{typeof(TInput).Name}, {typeof(TOutput).Name}>");
                     throw new InvalidOperationException($"No IRequestResponseHandler<{typeof(TInput).Name}, {typeof(TOutput).Name}> could be found.");
                 }
 
@@ -27,7 +27,7 @@ namespace Kralizek.Lambda
         }
 
         protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IRequestResponseHandler<TInput, TOutput>
-        {
+        { 
             services.AddTransient<IRequestResponseHandler<TInput, TOutput>, THandler>();
         }
     }

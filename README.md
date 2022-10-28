@@ -79,6 +79,30 @@ public interface IEventHandler<TInput>
 ```
 [Here](https://github.com/Kralizek/AWSLambdaSharpTemplate/tree/master/samples/EventFunction) you can find a sample that shows an Event function that accepts an input string and logs it into CloudWatch logs.
 
+## Custom serializers
+
+You can pass a custom serializer to the Handler registration to override the default behavior of parsing all messages as JSON.
+```csharp
+
+public class CustomSerializer : ISerializer
+{
+	public T Deserialize<T>(string input)
+	{
+		// do some fancy 'serializing'
+		return JsonSerializer.Deserialize<T>(input);
+	}
+}
+
+// Function.cs
+private class DummyFunction : EventFunction<SQSEvent>
+{
+	protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+	{
+		services.UseSqsHandler<SomeEvent, DummyHandler>(serializer: new CustomSerializer());
+	}
+}
+```
+
 # Creating a new function
 
 The best way to create a new AWS Lambda that uses this structure is to use the `dotnet new` template provided via NuGet.
@@ -91,12 +115,12 @@ The best way to create a new AWS Lambda that uses this structure is to use the `
 
 Here is a list of all the available templates
 
-Name|Short name|Description
------|----------|------------
-Lambda Empty Event Function|lambda-template-event-empty|Creates an Event function with no extra setup
-Lambda Empty RequestResponse Function|lambda-template-requestresponse-empty|Creates a RequestResponse function with no extra setup
-Lambda Boilerplate Event Function|lambda-template-event-boilerplate|Creates an Event function with some boilerplate added
-Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added
+|Name|Short name|Description|
+|-|-|-|
+|Lambda Empty Event Function|lambda-template-event-empty|Creates an Event function with no extra setup|
+|Lambda Empty RequestResponse Function|lambda-template-requestresponse-empty|Creates a RequestResponse function with no extra setup|
+|Lambda Boilerplate Event Function|lambda-template-event-boilerplate|Creates an Event function with some boilerplate added|
+|Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added|
 
 All the templates support the following parameters
 * `--name|-n` Name of the project. It is also used as name of the function

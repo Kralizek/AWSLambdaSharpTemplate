@@ -37,13 +37,16 @@ namespace Kralizek.Lambda
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var message = record.Sns.Message;
-                        var notification = JsonSerializer.Deserialize<TNotification>(message);
-                        _logger.LogDebug($"Message received: {message}");
+
+                        var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
+                        var notification = serializer.Deserialize<TNotification>(message);
+
+                        _logger.LogDebug("Message received: {Message}", message);
 
                         var messageHandler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
                         if (messageHandler == null)
                         {
-                            _logger.LogCritical($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
+                            _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
                             throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
                         }
                         

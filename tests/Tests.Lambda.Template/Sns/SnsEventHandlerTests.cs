@@ -16,42 +16,50 @@ namespace Tests.Lambda.Sns
     [TestFixture]
     public class SnsEventHandlerTests
     {
-        private Mock<INotificationHandler<TestNotification>> mockNotificationHandler;
-        private Mock<IServiceScopeFactory> mockServiceScopeFactory;
-        private Mock<IServiceProvider> mockServiceProvider;
-        private Mock<ILoggerFactory> mockLoggerFactory;
-        private Mock<IServiceScope> mockServiceScope;
+        private Mock<INotificationSerializer> _mockNotificationSerializer;
+        private Mock<INotificationHandler<TestNotification>> _mockNotificationHandler;
+        private Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        private Mock<IServiceProvider> _mockServiceProvider;
+        private Mock<ILoggerFactory> _mockLoggerFactory;
+        private Mock<IServiceScope> _mockServiceScope;
 
 
         [SetUp]
         public void Initialize()
         {
-            mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
-            mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
+            _mockNotificationSerializer = new Mock<INotificationSerializer>();
+            _mockNotificationSerializer.Setup(p => p.Deserialize<TestNotification>(It.IsAny<string>())).Returns(() => new TestNotification());
+            
+            _mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
+            _mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                                     .Returns(Task.CompletedTask);
 
-            mockServiceScope = new Mock<IServiceScope>();
+            _mockServiceScope = new Mock<IServiceScope>();
 
-            mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
-            mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(mockServiceScope.Object);
+            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(_mockServiceScope.Object);
 
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(p => p.GetService(typeof(INotificationHandler<TestNotification>)))
-                                    .Returns(mockNotificationHandler.Object);
-            mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
-                                    .Returns(mockServiceScopeFactory.Object);
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider.Setup(p => p.GetService(typeof(INotificationHandler<TestNotification>)))
+                                    .Returns(_mockNotificationHandler.Object);
+            _mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
+                                    .Returns(_mockServiceScopeFactory.Object);
+            
+            _mockServiceProvider
+                .Setup(p => p.GetService(typeof(INotificationSerializer)))
+                .Returns(_mockNotificationSerializer.Object);
 
-            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+            _mockServiceScope.Setup(p => p.ServiceProvider).Returns(_mockServiceProvider.Object);
 
 
-            mockLoggerFactory = new Mock<ILoggerFactory>();
-            mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
+            _mockLoggerFactory = new Mock<ILoggerFactory>();
+            _mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
                                 .Returns(Mock.Of<ILogger>());
         }
 
         private SnsEventHandler<TestNotification> CreateSystemUnderTest()
         {
-            return new SnsEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object);
+            return new SnsEventHandler<TestNotification>(_mockServiceProvider.Object, _mockLoggerFactory.Object);
         }
 
         [Test]
@@ -84,7 +92,7 @@ namespace Tests.Lambda.Sns
             
             await sut.HandleAsync(snsEvent, lambdaContext);
 
-            mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
+            _mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
         }
 
         [Test]
@@ -117,7 +125,7 @@ namespace Tests.Lambda.Sns
 
             await sut.HandleAsync(snsEvent, lambdaContext);
 
-            mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(snsEvent.Records.Count));
+            _mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(snsEvent.Records.Count));
         }
 
         [Test]
@@ -150,7 +158,7 @@ namespace Tests.Lambda.Sns
 
             await sut.HandleAsync(snsEvent, lambdaContext);
 
-            mockNotificationHandler.Verify(p => p.HandleAsync(It.IsAny<TestNotification>(), lambdaContext), Times.Exactly(snsEvent.Records.Count));
+            _mockNotificationHandler.Verify(p => p.HandleAsync(It.IsAny<TestNotification>(), lambdaContext), Times.Exactly(snsEvent.Records.Count));
         }
 
         [Test]
@@ -179,9 +187,9 @@ namespace Tests.Lambda.Sns
 
             var lambdaContext = new TestLambdaContext();
 
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(mockServiceScopeFactory.Object);
-            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(_mockServiceScopeFactory.Object);
+            _mockServiceScope.Setup(p => p.ServiceProvider).Returns(_mockServiceProvider.Object);
 
             var sut = CreateSystemUnderTest();
 

@@ -16,7 +16,7 @@ namespace Kralizek.Lambda
 
                 if (handler == null)
                 {
-                    Logger.LogCritical($"No IEventHandler<{typeof(TInput).Name}> could be found.");
+                    Logger.LogCritical("No {Handler} could be found", $"IEventHandler<{typeof(TInput).Name}>");
                     throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
                 }
 

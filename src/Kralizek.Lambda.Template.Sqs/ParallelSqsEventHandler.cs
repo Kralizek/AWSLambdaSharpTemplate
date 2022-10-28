@@ -15,7 +15,7 @@ namespace Kralizek.Lambda
         public int MaxDegreeOfParallelism { get; set; } = System.Environment.ProcessorCount;
     }
 
-    public class ParallelSqsEventHandler<TMessage>:  IEventHandler<SQSEvent> where TMessage : class
+    public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TMessage : class
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
@@ -24,7 +24,8 @@ namespace Kralizek.Lambda
         public ParallelSqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ??
+                      throw new ArgumentNullException(nameof(loggerFactory));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
@@ -32,20 +33,23 @@ namespace Kralizek.Lambda
         {
             if (input.Records.Any())
             {
-
                 await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
                 {
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var sqsMessage = singleSqsMessage.Body;
-                        _logger.LogDebug($"Message received: {sqsMessage}");
+                        _logger.LogDebug("Message received: {Message}", sqsMessage);
 
-                        var message = JsonSerializer.Deserialize<TMessage>(sqsMessage);
-                        
+                        var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
+                        var message = serializer != null
+                            ? serializer.Deserialize<TMessage>(sqsMessage)
+                            : JsonSerializer.Deserialize<TMessage>(sqsMessage);
+
                         var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
+
                         if (messageHandler == null)
                         {
-                            _logger.LogError($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
+                            _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
                             throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
                         }
 
