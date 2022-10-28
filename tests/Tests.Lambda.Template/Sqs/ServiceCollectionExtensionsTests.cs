@@ -56,5 +56,19 @@ namespace Tests.Lambda.Sqs
 
             serviceProvider.GetRequiredService<IMessageHandler<TestMessage>>();
         }
+
+        [Test]
+        public void UseSqsHandler_registers_IMessageSerializer()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseSqsHandler<TestMessage, TestMessageHandler>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            serviceProvider.GetRequiredService<IMessageSerializer>();
+        }
     }
 }

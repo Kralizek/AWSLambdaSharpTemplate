@@ -16,7 +16,7 @@ namespace Kralizek.Lambda
 
                 if (handler == null)
                 {
-                    Logger.LogCritical($"No IEventHandler<{typeof(TInput).Name}> could be found.");
+                    Logger.LogCritical("No {Handler} could be found", $"IEventHandler<{typeof(TInput).Name}>");
                     throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
                 }
 
@@ -25,10 +25,8 @@ namespace Kralizek.Lambda
             }
         }
 
-        protected void RegisterHandler<THandler>(IServiceCollection services, ISerializer serializer = null) where THandler : class, IEventHandler<TInput>
+        protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IEventHandler<TInput>
         {
-            if (serializer != null)
-                services.AddSingleton(sp => serializer);
             services.AddTransient<IEventHandler<TInput>, THandler>();
         }
     }

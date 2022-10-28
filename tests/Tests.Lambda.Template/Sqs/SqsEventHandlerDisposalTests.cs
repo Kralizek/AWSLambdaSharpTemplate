@@ -45,6 +45,8 @@ namespace Tests.Lambda.Sqs
                 TestMessageScopedHandler>(provider =>
                 new TestMessageScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
 
+            services.AddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
+
             var sp = services.BuildServiceProvider();
             var sqsEventHandler = new SqsEventHandler<TestMessage>(sp, new NullLoggerFactory());
 
@@ -91,6 +93,8 @@ namespace Tests.Lambda.Sqs
             services.AddTransient<IMessageHandler<TestMessage>,
                 TestMessageScopedHandler>(provider =>
                 new TestMessageScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
+            
+            services.AddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
 
             var sp = services.BuildServiceProvider();
             var sqsEventHandler = new ParallelSqsEventHandler<TestMessage>(sp, new NullLoggerFactory(), Options.Create(new ParallelSqsExecutionOptions{MaxDegreeOfParallelism = 4}));

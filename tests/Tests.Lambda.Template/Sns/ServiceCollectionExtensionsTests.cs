@@ -53,5 +53,19 @@ namespace Tests.Lambda.Sns
 
             serviceProvider.GetRequiredService<INotificationHandler<TestNotification>>();
         }
+        
+        [Test]
+        public void UseNotificationHandler_registers_INotificationSerializer()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+
+            services.UseNotificationHandler<TestNotification, TestNotificationHandler>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            serviceProvider.GetRequiredService<INotificationSerializer>();
+        }
     }
 }

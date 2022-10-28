@@ -12,14 +12,13 @@ namespace Kralizek.Lambda
             return services;
         }
 
-        public static IServiceCollection UseSqsHandler<TMessage, THandler>(this IServiceCollection services, bool enableParallelExecution = false, ISerializer serializer = null)
+        public static IServiceCollection UseSqsHandler<TMessage, THandler>(this IServiceCollection services, bool enableParallelExecution = false)
             where TMessage : class
             where THandler : class, IMessageHandler<TMessage>
         {
             services.AddOptions();
 
-            if (serializer != null)
-                services.AddSingleton(sp => serializer);
+            services.AddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
 
             if (enableParallelExecution)
             {

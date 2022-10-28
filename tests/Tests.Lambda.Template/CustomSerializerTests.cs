@@ -30,7 +30,7 @@ namespace Tests.Lambda
             public string message { get; set; }
         }
 
-        private class CustomSerializer : ISerializer
+        private class CustomSerializer : IMessageSerializer
         {
             public T Deserialize<T>(string input)
             {
@@ -64,7 +64,9 @@ namespace Tests.Lambda
         {
             protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
             {
-                services.UseSqsHandler<SomeEvent, DummyHandler>(serializer: new CustomSerializer());
+                services.UseSqsHandler<SomeEvent, DummyHandler>();
+                
+                services.AddSingleton<IMessageSerializer, CustomSerializer>();
             }
         }
 
@@ -80,6 +82,7 @@ namespace Tests.Lambda
         public async Task HandleAsync_DeserializesCorrectly()
         {
             var instance = new DummyFunction();
+
             await instance.FunctionHandlerAsync(new SQSEvent()
             {
                 Records = new List<SQSEvent.SQSMessage>()

@@ -27,16 +27,15 @@ namespace Kralizek.Lambda
                 {
                     var sqsMessage = record.Body;
 
-                    var serializer = _serviceProvider.GetService<ISerializer>();
-                    var message = serializer != null
-                        ? serializer.Deserialize<TMessage>(sqsMessage)
-                        : JsonSerializer.Deserialize<TMessage>(sqsMessage);
+                    var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
+                    
+                    var message = serializer.Deserialize<TMessage>(sqsMessage);
 
                     var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
 
                     if (handler == null)
                     {
-                        _logger.LogCritical($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
+                        _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
                         throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
                     }
 

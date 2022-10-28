@@ -14,6 +14,7 @@ namespace Tests.Lambda.Sqs {
     [TestFixture]
     public class SqsEventHandlerTests
     {
+        private Mock<IMessageSerializer> mockMessageSerializer;
         private Mock<IMessageHandler<TestMessage>> mockMessageHandler;
         private Mock<IServiceScopeFactory> mockServiceScopeFactory;
         private Mock<IServiceProvider> mockServiceProvider;
@@ -24,6 +25,12 @@ namespace Tests.Lambda.Sqs {
         [SetUp]
         public void Initialize()
         {
+            mockMessageSerializer = new Mock<IMessageSerializer>();
+
+            mockMessageSerializer
+                .Setup(p => p.Deserialize<TestMessage>(It.IsAny<string>()))
+                .Returns(() => new TestMessage());
+            
             mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
             mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>())).Returns(Task.CompletedTask);
 
@@ -38,6 +45,10 @@ namespace Tests.Lambda.Sqs {
                                .Returns(mockMessageHandler.Object);
             mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
                                .Returns(mockServiceScopeFactory.Object);
+
+            mockServiceProvider
+                .Setup(p => p.GetService(typeof(IMessageSerializer)))
+                .Returns(mockMessageSerializer.Object);
 
             mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
 

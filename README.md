@@ -115,12 +115,12 @@ The best way to create a new AWS Lambda that uses this structure is to use the `
 
 Here is a list of all the available templates
 
-Name|Short name|Description
------|----------|------------
-Lambda Empty Event Function|lambda-template-event-empty|Creates an Event function with no extra setup
-Lambda Empty RequestResponse Function|lambda-template-requestresponse-empty|Creates a RequestResponse function with no extra setup
-Lambda Boilerplate Event Function|lambda-template-event-boilerplate|Creates an Event function with some boilerplate added
-Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added
+|Name|Short name|Description|
+|-|-|-|
+|Lambda Empty Event Function|lambda-template-event-empty|Creates an Event function with no extra setup|
+|Lambda Empty RequestResponse Function|lambda-template-requestresponse-empty|Creates a RequestResponse function with no extra setup|
+|Lambda Boilerplate Event Function|lambda-template-event-boilerplate|Creates an Event function with some boilerplate added|
+|Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added|
 
 All the templates support the following parameters
 * `--name|-n` Name of the project. It is also used as name of the function

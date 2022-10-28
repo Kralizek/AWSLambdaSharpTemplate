@@ -15,47 +15,65 @@ using NUnit.Framework;
 
 namespace Tests.Lambda.Sns
 {
+    [TestFixture]
     public class ParallelSnsEventHandlerTests
     {
-        private Mock<INotificationHandler<TestNotification>> mockNotificationHandler;
-        private Mock<IServiceScopeFactory> mockServiceScopeFactory;
-        private Mock<IServiceProvider> mockServiceProvider;
-        private Mock<ILoggerFactory> mockLoggerFactory;
-        private Mock<IServiceScope> mockServiceScope;
-        private ParallelSnsExecutionOptions parallelExecutionOptions;
+        private Mock<INotificationSerializer> _mockNotificationSerializer;
+        private Mock<INotificationHandler<TestNotification>> _mockNotificationHandler;
+        private Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        private Mock<IServiceProvider> _mockServiceProvider;
+        private Mock<ILoggerFactory> _mockLoggerFactory;
+        private Mock<IServiceScope> _mockServiceScope;
+        private ParallelSnsExecutionOptions _parallelExecutionOptions;
 
         [SetUp]
         public void Initialize()
         {
-            mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
-            mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
+            _mockNotificationSerializer = new Mock<INotificationSerializer>();
+            _mockNotificationSerializer.Setup(p => p.Deserialize<TestNotification>(It.IsAny<string>())).Returns(() => new TestNotification());
+            
+            _mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
+            _mockNotificationHandler
+                .Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                 .Returns(Task.CompletedTask);
+            
+            _mockServiceScope = new Mock<IServiceScope>();
+            
+            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockServiceScopeFactory
+                .Setup(p => p.CreateScope())
+                .Returns(_mockServiceScope.Object);
+            
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider
+                .Setup(p => p.GetService(typeof(INotificationHandler<TestNotification>)))
+                .Returns(_mockNotificationHandler.Object);
+            
+            _mockServiceProvider
+                .Setup(p => p.GetService(typeof(IServiceScopeFactory)))
+                .Returns(_mockServiceScopeFactory.Object);
 
-            mockServiceScope = new Mock<IServiceScope>();
-
-            mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
-            mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(mockServiceScope.Object);
-
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(p => p.GetService(typeof(INotificationHandler<TestNotification>)))
-                .Returns(mockNotificationHandler.Object);
-            mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
-                .Returns(mockServiceScopeFactory.Object);
-
-            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+            _mockServiceProvider
+                .Setup(p => p.GetService(typeof(INotificationSerializer)))
+                .Returns(_mockNotificationSerializer.Object);
+            
+            _mockServiceScope
+                .Setup(p => p.ServiceProvider)
+                .Returns(_mockServiceProvider.Object);
 
 
-            mockLoggerFactory = new Mock<ILoggerFactory>();
-            mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
+            _mockLoggerFactory = new Mock<ILoggerFactory>();
+            _mockLoggerFactory
+                .Setup(p => p.CreateLogger(It.IsAny<string>()))
                 .Returns(Mock.Of<ILogger>());
 
-            parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 };
+            _parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 };
 
         }
 
         private ParallelSnsEventHandler<TestNotification> CreateSystemUnderTest()
         {
-            return new ParallelSnsEventHandler<TestNotification>(mockServiceProvider.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
+            return new ParallelSnsEventHandler<TestNotification>(_mockServiceProvider.Object, _mockLoggerFactory.Object, Options.Create(_parallelExecutionOptions));
         }
 
         [Test]
@@ -102,7 +120,7 @@ namespace Tests.Lambda.Sns
 
             await sut.HandleAsync(snsEvent, lambdaContext);
 
-            mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
+            _mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
         }
 
         [Test]
@@ -135,7 +153,7 @@ namespace Tests.Lambda.Sns
 
             await sut.HandleAsync(snsEvent, lambdaContext);
 
-            mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
+            _mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));
         }
 
         [Test]
@@ -164,9 +182,9 @@ namespace Tests.Lambda.Sns
 
             var lambdaContext = new TestLambdaContext();
 
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(mockServiceScopeFactory.Object);
-            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(_mockServiceScopeFactory.Object);
+            _mockServiceScope.Setup(p => p.ServiceProvider).Returns(_mockServiceProvider.Object);
 
             var sut = CreateSystemUnderTest();
 
@@ -213,8 +231,8 @@ namespace Tests.Lambda.Sns
 
             var cq = new ConcurrentQueue<Task>();
 
-            parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 2 };
-            mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
+            _parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 2 };
+            _mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                 .Returns(async () =>
                 {
                     var t = Task.Delay(1);
@@ -231,8 +249,8 @@ namespace Tests.Lambda.Sns
 
             await sut.HandleAsync(snsEvent, new TestLambdaContext());
 
-            mockNotificationHandler.VerifyAll();
-            mockNotificationHandler.Verify(
+            _mockNotificationHandler.VerifyAll();
+            _mockNotificationHandler.Verify(
                 handler => handler.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()),
                 Times.Exactly(snsEvent.Records.Count));
         }
@@ -278,8 +296,8 @@ namespace Tests.Lambda.Sns
             var cq = new ConcurrentQueue<Task>();
 
             //We are checking if parallelism actually does what it's supposed to do. So we should have more then 2 concurrent processes running
-            parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 };
-            mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
+            _parallelExecutionOptions = new ParallelSnsExecutionOptions { MaxDegreeOfParallelism = 4 };
+            _mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
                 .Returns(async () =>
                 {
                     var t = Task.Delay(1);

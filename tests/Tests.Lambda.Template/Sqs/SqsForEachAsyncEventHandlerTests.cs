@@ -17,43 +17,54 @@ namespace Tests.Lambda.Sqs
     [TestFixture]
     public class ParallelSqsEventHandlerTests
     {
-        private Mock<IMessageHandler<TestMessage>> mockMessageHandler;
-        private Mock<IServiceScopeFactory> mockServiceScopeFactory;
-        private Mock<IServiceProvider> mockServiceProvider;
-        private Mock<ILoggerFactory> mockLoggerFactory;
-        private Mock<IServiceScope> mockServiceScope;
-        private ParallelSqsExecutionOptions parallelExecutionOptions;
+        private Mock<IMessageSerializer> _mockMessageSerializer;
+        private Mock<IMessageHandler<TestMessage>> _mockMessageHandler;
+        private Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        private Mock<IServiceProvider> _mockServiceProvider;
+        private Mock<ILoggerFactory> _mockLoggerFactory;
+        private Mock<IServiceScope> _mockServiceScope;
+        private ParallelSqsExecutionOptions _parallelExecutionOptions;
 
         [SetUp]
         public void Initialize()
         {
-            mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
-            mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>())).Returns(Task.CompletedTask);
+            _mockMessageSerializer = new Mock<IMessageSerializer>();
 
-            mockServiceScope = new Mock<IServiceScope>();
+            _mockMessageSerializer
+                .Setup(p => p.Deserialize<TestMessage>(It.IsAny<string>()))
+                .Returns(() => new TestMessage());
+            
+            _mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
+            _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>())).Returns(Task.CompletedTask);
 
-            mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockServiceScope = new Mock<IServiceScope>();
 
-            mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(mockServiceScope.Object);
+            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
 
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(p => p.GetService(typeof(IMessageHandler<TestMessage>)))
-                .Returns(mockMessageHandler.Object);
-            mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
-                .Returns(mockServiceScopeFactory.Object);
+            _mockServiceScopeFactory.Setup(p => p.CreateScope()).Returns(_mockServiceScope.Object);
 
-            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider.Setup(p => p.GetService(typeof(IMessageHandler<TestMessage>)))
+                .Returns(_mockMessageHandler.Object);
+            _mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
+                .Returns(_mockServiceScopeFactory.Object);
 
-            mockLoggerFactory = new Mock<ILoggerFactory>();
-            mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
+            _mockServiceProvider
+                .Setup(p => p.GetService(typeof(IMessageSerializer)))
+                .Returns(_mockMessageSerializer.Object);
+
+            _mockServiceScope.Setup(p => p.ServiceProvider).Returns(_mockServiceProvider.Object);
+
+            _mockLoggerFactory = new Mock<ILoggerFactory>();
+            _mockLoggerFactory.Setup(p => p.CreateLogger(It.IsAny<string>()))
                 .Returns(Mock.Of<ILogger>());
 
-            parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
+            _parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
         }
 
         private ParallelSqsEventHandler<TestMessage> CreateSystemUnderTest()
         {
-            return new ParallelSqsEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object, Options.Create(parallelExecutionOptions));
+            return new ParallelSqsEventHandler<TestMessage>(_mockServiceProvider.Object, _mockLoggerFactory.Object, Options.Create(_parallelExecutionOptions));
         }
 
         [Test]
@@ -88,7 +99,7 @@ namespace Tests.Lambda.Sqs
 
             await sut.HandleAsync(sqsEvent, lambdaContext);
 
-            mockServiceProvider.Verify(p => p.GetService(typeof(IMessageHandler<TestMessage>)), Times.Exactly(sqsEvent.Records.Count));
+            _mockServiceProvider.Verify(p => p.GetService(typeof(IMessageHandler<TestMessage>)), Times.Exactly(sqsEvent.Records.Count));
         }
 
         [Test]
@@ -115,7 +126,7 @@ namespace Tests.Lambda.Sqs
 
             await sut.HandleAsync(sqsEvent, lambdaContext);
 
-            mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(sqsEvent.Records.Count));
+            _mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(sqsEvent.Records.Count));
         }
 
         [Test]
@@ -138,10 +149,10 @@ namespace Tests.Lambda.Sqs
 
             var lambdaContext = new TestLambdaContext();
 
-            mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(mockServiceScopeFactory.Object);
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            _mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(_mockServiceScopeFactory.Object);
 
-            mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
+            _mockServiceScope.Setup(p => p.ServiceProvider).Returns(_mockServiceProvider.Object);
 
             var sut = CreateSystemUnderTest();
 
@@ -172,8 +183,8 @@ namespace Tests.Lambda.Sqs
 
             var cq = new ConcurrentQueue<Task>();
 
-            parallelExecutionOptions = new ParallelSqsExecutionOptions {MaxDegreeOfParallelism = 2};
-            mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
+            _parallelExecutionOptions = new ParallelSqsExecutionOptions {MaxDegreeOfParallelism = 2};
+            _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
                 .Returns(async ()=>
                 {
                     var t = Task.Delay(1);
@@ -190,8 +201,8 @@ namespace Tests.Lambda.Sqs
 
             await sut.HandleAsync(sqsEvent, new TestLambdaContext());
 
-            mockMessageHandler.VerifyAll();
-            mockMessageHandler.Verify(
+            _mockMessageHandler.VerifyAll();
+            _mockMessageHandler.Verify(
                 handler => handler.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()),
                 Times.Exactly(sqsEvent.Records.Count));
         }
@@ -225,8 +236,8 @@ namespace Tests.Lambda.Sqs
             var cq = new ConcurrentQueue<Task>();
             
             //We are checking if parallelism actually does what it's supposed to do. So we should have more then 2 concurrent processes running
-            parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
-            mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
+            _parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
+            _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
                 .Returns(async () =>
                 {
                     var t = Task.Delay(1);
