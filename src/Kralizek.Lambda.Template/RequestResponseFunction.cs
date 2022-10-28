@@ -31,7 +31,7 @@ public abstract class RequestResponseFunction<TInput, TOutput> : Function
     }
 }
 
-public interface IRequestResponseHandler<TInput, TOutput>
+public interface IRequestResponseHandler<in TInput, TOutput>
 {
-    Task<TOutput> HandleAsync(TInput input, ILambdaContext context);
+    Task<TOutput> HandleAsync(TInput? input, ILambdaContext context);
 }

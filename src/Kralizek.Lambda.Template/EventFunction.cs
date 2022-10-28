@@ -8,7 +8,7 @@ namespace Kralizek.Lambda;
 
 public abstract class EventFunction<TInput> : Function
 {
-    public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
+    public async Task FunctionHandlerAsync(TInput? input, ILambdaContext context)
     {
         using var scope = ServiceProvider.CreateScope();
 
@@ -30,7 +30,7 @@ public abstract class EventFunction<TInput> : Function
     }
 }
 
-public interface IEventHandler<TInput>
+public interface IEventHandler<in TInput>
 {
-    Task HandleAsync(TInput input, ILambdaContext context);
+    Task HandleAsync(TInput? input, ILambdaContext context);
 }

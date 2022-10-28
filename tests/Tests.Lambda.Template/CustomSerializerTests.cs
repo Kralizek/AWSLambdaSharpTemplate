@@ -13,6 +13,9 @@ namespace Tests.Lambda;
 [TestFixture]
 public class CustomSerializerTests
 {
+    private const string RawMessage = "hello world";
+    private const string Message = "hello world top secret injection from serializer";
+    
     [SetUp]
     public void Initialize()
     {
@@ -30,7 +33,7 @@ public class CustomSerializerTests
         {
             // do some fancy 'serializing'
             // use input parameter instead of the hardcoded value here
-            return JsonSerializer.Deserialize<T>("{\r\n\"message\": \"hello world topsecret injection from serializer\"\r\n}");
+            return JsonSerializer.Deserialize<T>($"{{\r\n\"message\": \"{Message}\"\r\n}}")!;
         }
     }
 
@@ -39,7 +42,8 @@ public class CustomSerializerTests
     {
         public Task HandleAsync(SomeEvent evt, ILambdaContext context)
         {
-            Assert.True(evt.message == "hello world topsecret injection from serializer");
+            Assert.That(evt?.message, Is.EqualTo(Message));
+
             return Task.CompletedTask;
         }
     }
@@ -48,7 +52,7 @@ public class CustomSerializerTests
     {
         public Task HandleAsync(SomeEvent evt, ILambdaContext context)
         {
-            Assert.True(evt.message == "hello world");
+            Assert.That(evt?.message, Is.EqualTo(RawMessage));
             return Task.CompletedTask;
         }
     }
@@ -84,10 +88,10 @@ public class CustomSerializerTests
                 new SQSEvent.SQSMessage()
                 {
                     // or xml.. or json.. or whatever you want
-                    Body = "{\r\n\"message\": \"hello world\"\r\n}"
+                    Body = $"{{\r\n\"message\": \"{RawMessage}\"\r\n}}"
                 }
             }
-        }, null);
+        }, null!);
     }
 
     [Test]
@@ -101,9 +105,9 @@ public class CustomSerializerTests
                 new SQSEvent.SQSMessage()
                 {
                     // or xml.. or json.. or whatever you want
-                    Body = "{\r\n\"message\": \"hello world\"\r\n}"
+                    Body = $"{{\r\n\"message\": \"{RawMessage}\"\r\n}}"
                 }
             }
-        }, null);
+        }, null!);
     }
 }

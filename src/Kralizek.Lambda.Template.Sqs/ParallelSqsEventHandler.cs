@@ -12,7 +12,7 @@ namespace Kralizek.Lambda;
 
 public class ParallelSqsExecutionOptions
 {
-    public int MaxDegreeOfParallelism { get; set; } = System.Environment.ProcessorCount;
+    public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
 }
 
 public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TMessage : class
@@ -24,14 +24,13 @@ public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TM
     public ParallelSqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ??
-                  throw new ArgumentNullException(nameof(loggerFactory));
+        _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
-    public async Task HandleAsync(SQSEvent input, ILambdaContext context)
+    public async Task HandleAsync(SQSEvent? input, ILambdaContext context)
     {
-        if (input.Records.Any())
+        if (input is { Records.Count: > 0 })
         {
             await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
             {
@@ -41,15 +40,15 @@ public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TM
                 _logger.LogDebug("Message received: {Message}", sqsMessage);
 
                 var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
-                var message = serializer != null
-                    ? serializer.Deserialize<TMessage>(sqsMessage)
-                    : JsonSerializer.Deserialize<TMessage>(sqsMessage);
+
+                var message = serializer.Deserialize<TMessage>(sqsMessage);
 
                 var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
 
                 if (messageHandler == null)
                 {
                     _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
+
                     throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
                 }
 

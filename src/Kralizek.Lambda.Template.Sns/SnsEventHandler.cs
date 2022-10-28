@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
@@ -18,28 +19,32 @@ public class SnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNot
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
-    public async Task HandleAsync(SNSEvent input, ILambdaContext context)
+    public async Task HandleAsync(SNSEvent? input, ILambdaContext context)
     {
-        foreach (var record in input.Records)
+        if (input is { Records: { } })
         {
-            using var scope = _serviceProvider.CreateScope();
-
-            var message = record.Sns.Message;
-
-            var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
-
-            var notification = serializer.Deserialize<TNotification>(message);
-                    
-            var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
-
-            if (handler == null)
+            foreach (var record in input.Records)
             {
-                _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
-                throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
-            }
+                using var scope = _serviceProvider.CreateScope();
 
-            _logger.LogInformation("Invoking notification handler");
-            await handler.HandleAsync(notification, context).ConfigureAwait(false);
+                var message = record.Sns.Message;
+
+                var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
+
+                var notification = serializer.Deserialize<TNotification>(message);
+
+                var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
+
+                if (handler == null)
+                {
+                    _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
+
+                    throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
+                }
+
+                _logger.LogInformation("Invoking notification handler");
+                await handler.HandleAsync(notification, context).ConfigureAwait(false);
+            }
         }
     }
 }

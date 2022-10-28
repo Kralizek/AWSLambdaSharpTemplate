@@ -18,28 +18,32 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage 
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
-    public async Task HandleAsync(SQSEvent input, ILambdaContext context)
+    public async Task HandleAsync(SQSEvent? input, ILambdaContext context)
     {
-        foreach (var record in input.Records)
+        if (input is { Records: { } })
         {
-            using var scope = _serviceProvider.CreateScope();
-
-            var sqsMessage = record.Body;
-
-            var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
-                    
-            var message = serializer.Deserialize<TMessage>(sqsMessage);
-
-            var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
-
-            if (handler == null)
+            foreach (var record in input.Records)
             {
-                _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
-                throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
-            }
+                using var scope = _serviceProvider.CreateScope();
 
-            _logger.LogInformation("Invoking notification handler");
-            await handler.HandleAsync(message, context).ConfigureAwait(false);
+                var sqsMessage = record.Body;
+
+                var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
+
+                var message = serializer.Deserialize<TMessage>(sqsMessage);
+
+                var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
+
+                if (handler == null)
+                {
+                    _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
+
+                    throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
+                }
+
+                _logger.LogInformation("Invoking notification handler");
+                await handler.HandleAsync(message, context).ConfigureAwait(false);
+            }
         }
     }
 }

@@ -5,5 +5,5 @@ namespace Kralizek.Lambda;
 
 public interface IMessageHandler<in TMessage> where TMessage : class
 {
-    Task HandleAsync(TMessage message, ILambdaContext context);
+    Task HandleAsync(TMessage? message, ILambdaContext context);
 }

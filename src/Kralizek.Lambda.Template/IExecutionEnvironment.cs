@@ -12,9 +12,12 @@ public interface IExecutionEnvironment
 
 public class LambdaExecutionEnvironment : IExecutionEnvironment
 {
-    public string EnvironmentName { get; set; }
+    internal const string DevelopmentEnvironmentName = "Development";
+    internal const string ProductionEnvironmentName = "Production";
+    
+    public string EnvironmentName { get; init; } = DevelopmentEnvironmentName;
 
-    public bool IsLambda { get; set; }
+    public bool IsLambda { get; init; }
 }
 
 public static class ExecutionEnvironmentExtensions
@@ -24,7 +27,7 @@ public static class ExecutionEnvironmentExtensions
         return string.Equals(executionEnvironment.EnvironmentName, environmentName, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool IsDevelopment(this IExecutionEnvironment executionEnvironment) => executionEnvironment.EnvironmentName == null || IsEnvironment(executionEnvironment, "development");
+    public static bool IsDevelopment(this IExecutionEnvironment executionEnvironment) => IsEnvironment(executionEnvironment, LambdaExecutionEnvironment.DevelopmentEnvironmentName);
 
-    public static bool IsProduction(this IExecutionEnvironment executionEnvironment) => IsEnvironment(executionEnvironment, "production");
+    public static bool IsProduction(this IExecutionEnvironment executionEnvironment) => IsEnvironment(executionEnvironment, LambdaExecutionEnvironment.ProductionEnvironmentName);
 }

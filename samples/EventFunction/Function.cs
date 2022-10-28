@@ -44,9 +44,9 @@ public class EventHandler : IEventHandler<string>
         _logger = logger;
     }
 
-    public Task HandleAsync(string input, ILambdaContext context)
+    public Task HandleAsync(string? input, ILambdaContext context)
     {
-        _logger.LogInformation(input);
+        _logger.LogInformation("Input: {Input}", input);
         return Task.CompletedTask;
     }
 }

@@ -38,16 +38,16 @@ public class Function : RequestResponseFunction<string ,string>
 
 public class Handler : IRequestResponseHandler<string, string>
 {
-    private readonly ILogger<EventHandler> _logger;
+    private readonly ILogger<Handler> _logger;
 
-    public Handler(ILogger<EventHandler> logger)
+    public Handler(ILogger<Handler> logger)
     {
         _logger = logger;
     }
 
-    public Task<string> HandleAsync(string input, ILambdaContext context)
+    public Task<string> HandleAsync(string? input, ILambdaContext context)
     {
-        _logger.LogInformation(input);
-        return Task.FromResult(input?.ToUpper());
+        _logger.LogInformation("Input: {Input}", input);
+        return Task.FromResult(input?.ToUpper() ?? string.Empty);
     }
 }

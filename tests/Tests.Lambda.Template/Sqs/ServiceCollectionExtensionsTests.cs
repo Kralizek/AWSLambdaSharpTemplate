@@ -15,7 +15,9 @@ public class ServiceCollectionExtensionsTests
 
         services.AddLogging();
 
+#pragma warning disable CS0618
         services.UseSqsHandler<TestMessage, TestMessageHandler>();
+#pragma warning restore CS0618
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -31,7 +33,9 @@ public class ServiceCollectionExtensionsTests
 
         services.AddLogging();
 
+#pragma warning disable CS0618
         services.UseSqsHandler<TestMessage, TestMessageHandler>(enableParallelExecution: true);
+#pragma warning restore CS0618
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -47,7 +51,9 @@ public class ServiceCollectionExtensionsTests
 
         services.AddLogging();
 
+#pragma warning disable CS0618
         services.UseSqsHandler<TestMessage, TestMessageHandler>();
+#pragma warning restore CS0618
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -61,7 +67,9 @@ public class ServiceCollectionExtensionsTests
 
         services.AddLogging();
 
+#pragma warning disable CS0618
         services.UseSqsHandler<TestMessage, TestMessageHandler>();
+#pragma warning restore CS0618
 
         var serviceProvider = services.BuildServiceProvider();
 

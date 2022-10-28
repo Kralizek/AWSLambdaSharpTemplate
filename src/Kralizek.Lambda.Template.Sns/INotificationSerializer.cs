@@ -4,10 +4,10 @@ namespace Kralizek.Lambda;
 
 public interface INotificationSerializer
 {
-    public TMessage Deserialize<TMessage>(string input);
+    public TMessage? Deserialize<TMessage>(string input);
 }
 
 public class DefaultJsonNotificationSerializer : INotificationSerializer
 {
-    public TMessage Deserialize<TMessage>(string input) => JsonSerializer.Deserialize<TMessage>(input);
+    public TMessage? Deserialize<TMessage>(string input) => JsonSerializer.Deserialize<TMessage>(input);
 }

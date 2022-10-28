@@ -13,9 +13,9 @@ public static class AsyncExtensions
     /// Lambda style extensions to cater a foreach with concurrency. 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="source">The collection please make sure the collection can handle the concurrency. If writing back to the objects in the collection</param>
+    /// <param name="source">The collection please make sure the collection can handle the concurrency. If writing back to the objects in the collection. If <c>null</c>, a completed task is returned.</param>
     /// <param name="maxDegreeOfParallelism">Concurrent threads doing the async</param>
-    /// <param name="body">The work that needs to be done.</param>
+    /// <param name="body">The work that needs to be done. If <c>null</c>, a completed task is returned.</param>
     /// <returns></returns>
     public static Task ForEachAsync<T>(this IEnumerable<T> source, int maxDegreeOfParallelism, Func<T, Task> body)
     {

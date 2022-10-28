@@ -39,7 +39,7 @@ public class Function : EventFunction<SNSEvent>
 
 public class CustomNotification
 {
-    public string Message { get; set; }
+    public string? Message { get; set; }
 }
 
 public class CustomNotificationHandler : INotificationHandler<CustomNotification>
@@ -51,9 +51,9 @@ public class CustomNotificationHandler : INotificationHandler<CustomNotification
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task HandleAsync(CustomNotification notification, ILambdaContext context)
+    public Task HandleAsync(CustomNotification? notification, ILambdaContext context)
     {
-        _logger.LogInformation($"Handling notification: {notification.Message}");
+        _logger.LogInformation("Handling notification: {Message}", notification?.Message);
 
         return Task.CompletedTask;
     }
