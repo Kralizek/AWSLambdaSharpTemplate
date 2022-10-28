@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
-using Amazon.Lambda.SNSEvents;
 
 namespace Kralizek.Lambda;
 

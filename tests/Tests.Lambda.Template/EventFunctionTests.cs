@@ -1,12 +1,9 @@
 using System;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
 using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
 using NUnit.Framework;
 
 namespace Tests.Lambda;

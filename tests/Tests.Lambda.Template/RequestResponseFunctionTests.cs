@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;

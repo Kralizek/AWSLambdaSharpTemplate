@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using Amazon.Lambda.SQSEvents;
+﻿using Amazon.Lambda.SQSEvents;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Tests.Lambda.Sns;
 
 namespace Tests.Lambda.Sqs;
 

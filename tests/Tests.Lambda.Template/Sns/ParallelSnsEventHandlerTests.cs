@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
-using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
 using Microsoft.Extensions.DependencyInjection;
