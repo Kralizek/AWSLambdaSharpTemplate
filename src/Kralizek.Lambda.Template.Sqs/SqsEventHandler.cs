@@ -22,25 +22,24 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage 
     {
         foreach (var record in input.Records)
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var sqsMessage = record.Body;
+            using var scope = _serviceProvider.CreateScope();
 
-                var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
+            var sqsMessage = record.Body;
+
+            var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
                     
-                var message = serializer.Deserialize<TMessage>(sqsMessage);
+            var message = serializer.Deserialize<TMessage>(sqsMessage);
 
-                var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
+            var handler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
 
-                if (handler == null)
-                {
-                    _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
-                    throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
-                }
-
-                _logger.LogInformation("Invoking notification handler");
-                await handler.HandleAsync(message, context).ConfigureAwait(false);
+            if (handler == null)
+            {
+                _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
+                throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
             }
+
+            _logger.LogInformation("Invoking notification handler");
+            await handler.HandleAsync(message, context).ConfigureAwait(false);
         }
     }
 }

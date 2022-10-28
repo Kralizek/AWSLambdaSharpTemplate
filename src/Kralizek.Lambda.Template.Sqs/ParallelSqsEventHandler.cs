@@ -35,26 +35,25 @@ public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TM
         {
             await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
             {
-                using (var scope = _serviceProvider.CreateScope())
+                using var scope = _serviceProvider.CreateScope();
+
+                var sqsMessage = singleSqsMessage.Body;
+                _logger.LogDebug("Message received: {Message}", sqsMessage);
+
+                var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
+                var message = serializer != null
+                    ? serializer.Deserialize<TMessage>(sqsMessage)
+                    : JsonSerializer.Deserialize<TMessage>(sqsMessage);
+
+                var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
+
+                if (messageHandler == null)
                 {
-                    var sqsMessage = singleSqsMessage.Body;
-                    _logger.LogDebug("Message received: {Message}", sqsMessage);
-
-                    var serializer = _serviceProvider.GetRequiredService<IMessageSerializer>();
-                    var message = serializer != null
-                        ? serializer.Deserialize<TMessage>(sqsMessage)
-                        : JsonSerializer.Deserialize<TMessage>(sqsMessage);
-
-                    var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
-
-                    if (messageHandler == null)
-                    {
-                        _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
-                        throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
-                    }
-
-                    await messageHandler.HandleAsync(message, context);
+                    _logger.LogError("No {Handler} could be found", $"IMessageHandler<{typeof(TMessage).Name}>");
+                    throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
                 }
+
+                await messageHandler.HandleAsync(message, context);
             });
         }
     }

@@ -22,25 +22,24 @@ public class SnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNot
     {
         foreach (var record in input.Records)
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var message = record.Sns.Message;
+            using var scope = _serviceProvider.CreateScope();
 
-                var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
+            var message = record.Sns.Message;
 
-                var notification = serializer.Deserialize<TNotification>(message);
+            var serializer = _serviceProvider.GetRequiredService<INotificationSerializer>();
+
+            var notification = serializer.Deserialize<TNotification>(message);
                     
-                var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
+            var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
 
-                if (handler == null)
-                {
-                    _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
-                    throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
-                }
-
-                _logger.LogInformation("Invoking notification handler");
-                await handler.HandleAsync(notification, context).ConfigureAwait(false);
+            if (handler == null)
+            {
+                _logger.LogCritical("No {Handler} could be found", $"INotificationHandler<{typeof(TNotification).Name}>");
+                throw new InvalidOperationException($"No INotificationHandler<{typeof(TNotification).Name}> could be found.");
             }
+
+            _logger.LogInformation("Invoking notification handler");
+            await handler.HandleAsync(notification, context).ConfigureAwait(false);
         }
     }
 }

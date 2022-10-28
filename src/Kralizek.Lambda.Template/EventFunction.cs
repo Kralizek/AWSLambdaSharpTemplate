@@ -10,19 +10,18 @@ public abstract class EventFunction<TInput> : Function
 {
     public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        using (var scope = ServiceProvider.CreateScope())
+        using var scope = ServiceProvider.CreateScope();
+
+        var handler = scope.ServiceProvider.GetService<IEventHandler<TInput>>();
+
+        if (handler == null)
         {
-            var handler = scope.ServiceProvider.GetService<IEventHandler<TInput>>();
-
-            if (handler == null)
-            {
-                Logger.LogCritical("No {Handler} could be found", $"IEventHandler<{typeof(TInput).Name}>");
-                throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
-            }
-
-            Logger.LogInformation("Invoking handler");
-            await handler.HandleAsync(input, context).ConfigureAwait(false);
+            Logger.LogCritical("No {Handler} could be found", $"IEventHandler<{typeof(TInput).Name}>");
+            throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
         }
+
+        Logger.LogInformation("Invoking handler");
+        await handler.HandleAsync(input, context).ConfigureAwait(false);
     }
 
     protected void RegisterHandler<THandler>(IServiceCollection services) where THandler : class, IEventHandler<TInput>
