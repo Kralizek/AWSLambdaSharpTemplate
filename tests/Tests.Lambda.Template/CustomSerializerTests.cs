@@ -64,7 +64,7 @@ namespace Tests.Lambda
         {
             protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
             {
-                services.UseSqsHandler<SomeEvent, DummyHandler>();
+                services.UseQueueMessageHandler<SomeEvent, DummyHandler>();
                 
                 services.AddSingleton<IMessageSerializer, CustomSerializer>();
             }
@@ -74,7 +74,7 @@ namespace Tests.Lambda
         {
             protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
             {
-                services.UseSqsHandler<SomeEvent, DummyHandlerNoChanges>();
+                services.UseQueueMessageHandler<SomeEvent, DummyHandlerNoChanges>();
             }
         }
 
