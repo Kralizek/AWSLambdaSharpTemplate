@@ -11,10 +11,10 @@
   "profile": "DefaultProfile",
   "region": "DefaultRegion",
   "configuration": "Release",
-  "framework": "netcoreapp3.1",
+  "framework": "net6.0",
   "function-name": "EmptyRequestResponseFunction",
   "function-role": "DefaultRole",
-  "function-runtime": "dotnetcore3.1",
+  "function-runtime": "dotnet6",
   "function-memory-size": 128,
   "function-timeout": 30,
   "function-handler": "EmptyRequestResponseFunction::EmptyRequestResponseFunction.Function::FunctionHandlerAsync"

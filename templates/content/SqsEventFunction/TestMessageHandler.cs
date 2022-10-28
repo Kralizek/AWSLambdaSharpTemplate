@@ -4,22 +4,21 @@ using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Logging;
 
-namespace SqsEventFunction
+namespace SqsEventFunction;
+
+public class TestMessageHandler : IMessageHandler<TestMessage>
 {
-    public class TestMessageHandler : IMessageHandler<TestMessage>
+    private readonly ILogger<TestMessageHandler> _logger;
+
+    public TestMessageHandler(ILogger<TestMessageHandler> logger)
     {
-        private readonly ILogger<TestMessageHandler> _logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        public TestMessageHandler(ILogger<TestMessageHandler> logger)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+    public Task HandleAsync(TestMessage? message, ILambdaContext context)
+    {
+        _logger.LogInformation("Received notification: {Message}", message?.Message);
 
-        public Task HandleAsync(TestMessage message, ILambdaContext context)
-        {
-            _logger.LogInformation($"Received notification: {message.Message}");
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

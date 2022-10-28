@@ -1,14 +1,13 @@
-using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace SqsEventFunction
+namespace SqsEventFunction;
+
+/*
+    This class represents the message you push into SQS and that is forwarded to this Lambda
+    Add properties so that the message can be properly deserialized.
+*/
+public class TestMessage
 {
-    /*
-        This class represents the message you push into SQS and that is forwarded to this Lambda
-        Add properties so that the message can be properly deserialized.
-    */
-    public class TestMessage
-    {
-        [JsonPropertyName("message")]
-        public string Message { get; set; }
-    }
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
 }

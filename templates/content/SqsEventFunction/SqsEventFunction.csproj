@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <AWSProjectType>Lambda</AWSProjectType>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kralizek.Lambda.Template" Version="3.0.1" /> 
-    <PackageReference Include="Kralizek.Lambda.Template.Sqs" Version="3.0.1" />
+    <PackageReference Include="Kralizek.Lambda.Template" Version="4.0.0" /> 
+    <PackageReference Include="Kralizek.Lambda.Template.Sqs" Version="4.0.0" />
   </ItemGroup>
 
 </Project>
