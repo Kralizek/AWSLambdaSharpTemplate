@@ -13,6 +13,8 @@ only_commits:
   files:
     - src/
     - templates/
+    - samples/
+    - tests/
 
 nuget:
   account_feed: false
