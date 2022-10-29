@@ -99,7 +99,7 @@ protected override void ConfigureServices(IServiceCollection services, IExecutio
 }
 ```
 
-#### Parallel execution
+#### Parallel execution of SNS notifications
 
 Since a single SNS request can contain multiple messages, you can specify that you want all messages to be processed in parallel by changing the `ConfigureServices` method like in the snippet below.
 
@@ -119,7 +119,7 @@ protected override void ConfigureServices(IServiceCollection services, IExecutio
 }
 ```
 
-#### Custom serialization
+#### Custom serialization of SNS messages
 
 Since each SNS message contains the actual payload as encoded a string, a custom serializer can be specified to replace the default JSON serializer.
 
@@ -145,6 +145,64 @@ protected override void ConfigureServices(IServiceCollection services, IExecutio
 ```
 
 ### Event functions handling SQS messages
+
+AWS Lambda functions can be used to handle SQS messages.
+
+Since all SQS messages have the same structure, the package `Kralizek.Lambda.Template.Sqs` can be used to speed up the development of functions that handle SQS messages.
+
+To do so, create a class that implements the interface `IMessageHandler<MyMessage>`, then change the `ConfigureServices` method to look like the following snippet.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>();
+}
+```
+
+#### Parallel execution of SQS messages
+
+Since a single SQS message can contain multiple messages, you can specify that you want all messages to be processed in parallel by changing the `ConfigureServices` method like in the snippet below.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>().WithParallelExecution(maxDegreeOfParallelism: 4);
+}
+```
+
+You can use the `maxDegreeOfParallelism` parameter to specify the amount of parallel executions that you desire. By default, the amount of logical processors available is used.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>().WithParallelExecution();
+}
+```
+
+#### Custom serialization of SQS messages
+
+Since each SQS message contains the actual payload as encoded a string, a custom serializer can be specified to replace the default JSON serializer.
+
+To do so, create an implementation of the interface `IMessageSerializer` and register it in the `ConfigureServices` method.
+
+```csharp
+public class MyCustomSerializer : IMessageSerializer
+{
+  public TMessage? Deserialize<TMessage>(string input)
+  {
+    // implement your deserialization strategy here
+  }
+}
+```
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>()
+
+    services.UseCustomMessageSerializer<MyCustomSerializer>();
+}
+```
 
 # Creating a new function
 
