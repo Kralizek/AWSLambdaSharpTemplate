@@ -222,6 +222,8 @@ Here is a list of all the available templates
 |Lambda Empty RequestResponse Function|lambda-template-requestresponse-empty|Creates a RequestResponse function with no extra setup|
 |Lambda Boilerplate Event Function|lambda-template-event-boilerplate|Creates an Event function with some boilerplate added|
 |Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added|
+|Lambda SNS Handler Function|lambda-template-sns-event|Creates a function to handle SNS notifications|
+|Lambda SQS Handler Function|lambda-template-sqs-event|Creates a function to handle SQS messages|
 
 All the templates support the following parameters
 
