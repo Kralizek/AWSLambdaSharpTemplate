@@ -254,9 +254,10 @@ Besides the basic dependencies of the empty templates, the boilerplate templates
 
 The extra dependencies are:
 
-* `Amazon.Lambda.Serialization.SystemTextJson` is used to push logs into AWS CloudWatch
-* `Microsoft.Extensions.Configuration.EnvironmentVariables` used to load configuration values from environment variables
-* `Microsoft.Extensions.Configuration.Json` used to load configuration values from json files
+* `Amazon.Lambda.Logging.AspNetCore` is used to push logs into AWS CloudWatch
+* `Microsoft.Extensions.Configuration.EnvironmentVariables` is used to load configuration values from environment variables
+* `Microsoft.Extensions.Configuration.Json` is used to load configuration values from json files
+* `Microsoft.Extensions.Logging.Configuration` is used to load logging configuration from the configuration subsystem
 
 ## Tools
 
