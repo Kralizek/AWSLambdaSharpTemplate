@@ -4,26 +4,25 @@ using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Logging;
 
-namespace RichEventFunction
+namespace RichEventFunction;
+
+public class StringEventHandler : IEventHandler<string>
 {
-    public class StringEventHandler : IEventHandler<string>
+    private readonly ILogger<StringEventHandler> _logger;
+
+    public StringEventHandler(ILogger<StringEventHandler> logger)
     {
-        private readonly ILogger<StringEventHandler> _logger;
-
-        public StringEventHandler(ILogger<StringEventHandler> logger)
+        if (logger == null)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            _logger = logger;
+            throw new ArgumentNullException(nameof(logger));
         }
+        _logger = logger;
+    }
 
-        public Task HandleAsync(string input, ILambdaContext context)
-        {
-            _logger.LogInformation(new {input}, state => $"Received: {state.input}");
+    public Task HandleAsync(string? input, ILambdaContext context)
+    {
+        _logger.LogInformation("Received: {Input}", input);
 
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

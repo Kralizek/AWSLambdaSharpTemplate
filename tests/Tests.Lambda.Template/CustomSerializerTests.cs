@@ -1,116 +1,113 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
-using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
-using Amazon.Lambda.TestUtilities;
 using Kralizek.Lambda;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
 using System.Text.Json;
 using NUnit.Framework;
 
 
-namespace Tests.Lambda
+namespace Tests.Lambda;
+
+[TestFixture]
+public class CustomSerializerTests
 {
-    [TestFixture]
-    public class CustomSerializerTests
+    private const string RawMessage = "hello world";
+    private const string Message = "hello world top secret injection from serializer";
+    
+    [SetUp]
+    public void Initialize()
     {
-        [SetUp]
-        public void Initialize()
-        {
             
-        }
+    }
 
-        private class SomeEvent
-        {
-            public string message { get; set; }
-        }
+    private class SomeEvent
+    {
+        public string message { get; set; }
+    }
 
-        private class CustomSerializer : IMessageSerializer
+    private class CustomSerializer : IMessageSerializer
+    {
+        public T Deserialize<T>(string input)
         {
-            public T Deserialize<T>(string input)
-            {
-                // do some fancy 'serializing'
-                // use input parameter instead of the hardcoded value here
-                return JsonSerializer.Deserialize<T>("{\r\n\"message\": \"hello world topsecret injection from serializer\"\r\n}");
-            }
+            // do some fancy 'serializing'
+            // use input parameter instead of the hardcoded value here
+            return JsonSerializer.Deserialize<T>($"{{\r\n\"message\": \"{Message}\"\r\n}}")!;
         }
+    }
 
-        // Handlers
-        private class DummyHandler : IMessageHandler<SomeEvent>
+    // Handlers
+    private class DummyHandler : IMessageHandler<SomeEvent>
+    {
+        public Task HandleAsync(SomeEvent evt, ILambdaContext context)
         {
-            public Task HandleAsync(SomeEvent evt, ILambdaContext context)
-            {
-                Assert.True(evt.message == "hello world topsecret injection from serializer");
-                return Task.CompletedTask;
-            }
+            Assert.That(evt?.message, Is.EqualTo(Message));
+
+            return Task.CompletedTask;
         }
+    }
 
-        private class DummyHandlerNoChanges : IMessageHandler<SomeEvent>
+    private class DummyHandlerNoChanges : IMessageHandler<SomeEvent>
+    {
+        public Task HandleAsync(SomeEvent evt, ILambdaContext context)
         {
-            public Task HandleAsync(SomeEvent evt, ILambdaContext context)
-            {
-                Assert.True(evt.message == "hello world");
-                return Task.CompletedTask;
-            }
+            Assert.That(evt?.message, Is.EqualTo(RawMessage));
+            return Task.CompletedTask;
         }
+    }
 
-        // Functions
-        private class DummyFunction : EventFunction<SQSEvent>
+    // Functions
+    private class DummyFunction : EventFunction<SQSEvent>
+    {
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
-            protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-            {
-                services.UseQueueMessageHandler<SomeEvent, DummyHandler>();
+            services.UseQueueMessageHandler<SomeEvent, DummyHandler>();
                 
-                services.AddSingleton<IMessageSerializer, CustomSerializer>();
-            }
+            services.AddSingleton<IMessageSerializer, CustomSerializer>();
         }
+    }
 
-        private class DummyFunctionNoChanges : EventFunction<SQSEvent>
+    private class DummyFunctionNoChanges : EventFunction<SQSEvent>
+    {
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
-            protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-            {
-                services.UseQueueMessageHandler<SomeEvent, DummyHandlerNoChanges>();
-            }
+            services.UseQueueMessageHandler<SomeEvent, DummyHandlerNoChanges>();
         }
+    }
 
-        [Test]
-        public async Task HandleAsync_DeserializesCorrectly()
+    [Test]
+    public async Task HandleAsync_DeserializesCorrectly()
+    {
+        var instance = new DummyFunction();
+
+        await instance.FunctionHandlerAsync(new SQSEvent()
         {
-            var instance = new DummyFunction();
-
-            await instance.FunctionHandlerAsync(new SQSEvent()
+            Records = new List<SQSEvent.SQSMessage>()
             {
-                Records = new List<SQSEvent.SQSMessage>()
+                new SQSEvent.SQSMessage()
                 {
-                    new SQSEvent.SQSMessage()
-                    {
-                        // or xml.. or json.. or whatever you want
-                        Body = "{\r\n\"message\": \"hello world\"\r\n}"
-                    }
+                    // or xml.. or json.. or whatever you want
+                    Body = $"{{\r\n\"message\": \"{RawMessage}\"\r\n}}"
                 }
-            }, null);
-        }
+            }
+        }, null!);
+    }
 
-        [Test]
-        public async Task HandleAsync_DeserializesCorrectly_WithoutChanges()
+    [Test]
+    public async Task HandleAsync_DeserializesCorrectly_WithoutChanges()
+    {
+        var instance = new DummyFunctionNoChanges();
+        await instance.FunctionHandlerAsync(new SQSEvent()
         {
-            var instance = new DummyFunctionNoChanges();
-            await instance.FunctionHandlerAsync(new SQSEvent()
+            Records = new List<SQSEvent.SQSMessage>()
             {
-                Records = new List<SQSEvent.SQSMessage>()
+                new SQSEvent.SQSMessage()
                 {
-                    new SQSEvent.SQSMessage()
-                    {
-                        // or xml.. or json.. or whatever you want
-                        Body = "{\r\n\"message\": \"hello world\"\r\n}"
-                    }
+                    // or xml.. or json.. or whatever you want
+                    Body = $"{{\r\n\"message\": \"{RawMessage}\"\r\n}}"
                 }
-            }, null);
-        }
+            }
+        }, null!);
     }
 }

@@ -5,6 +5,7 @@
     <PackageId>Kralizek.Lambda.Template.Sns</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sns</PackageTags>
     <Description>Extension to Kralizek.Lambda.Template to better support AWS Lambda functions that respond to SNS notifications.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

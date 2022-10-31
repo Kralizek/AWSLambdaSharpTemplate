@@ -5,6 +5,7 @@
     <PackageId>Kralizek.Lambda.Template</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp</PackageTags>
     <Description>A structured template to create AWS Lambda in C#. It supports Logging, Dependency Injection and Configuration like ASP.NET Core projects do.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

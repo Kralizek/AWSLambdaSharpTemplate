@@ -53,6 +53,7 @@ Unless specific use cases, `TOutput` should always be your type, never `Task<TOu
 A RequestResponse function requires an handler that implements `IRequestResponseHandler<TInput, TOutput>` to be registered in `ConfigureServices`.
 
 This is the signature of `IRequestResponseHandler<TInput, TOutput>`
+
 ```csharp
 public interface IRequestResponseHandler<TInput, TOutput>
 {
@@ -66,40 +67,140 @@ public interface IRequestResponseHandler<TInput, TOutput>
 
 An Event function represents a function that is not expected to produce any value.
 
-To create an Event function, simply change your class so that it inherits from `EventFunction<TInput>` where `TInput`is a class representing the incoming data.
+To create an Event function, simply change your class so that it inherits from `EventFunction<TInput>` where `TInput` is a class representing the incoming data.
 
 An Event function requires an handler that implements `IEventHandler<TInput>` to be registered in `ConfigureServices`.
 
 This is the signature of `IEventHandler<TInput>`
+
 ```csharp
 public interface IEventHandler<TInput>
 {
     Task HandleAsync(TInput input, ILambdaContext context);
 }
 ```
+
 [Here](https://github.com/Kralizek/AWSLambdaSharpTemplate/tree/master/samples/EventFunction) you can find a sample that shows an Event function that accepts an input string and logs it into CloudWatch logs.
 
-## Custom serializers
+The library offers special support for two classes of Event functions: functions that handle SQS and SNS messages.
 
-You can pass a custom serializer to the Handler registration to override the default behavior of parsing all messages as JSON.
+### Event functions handling SNS notifications
+
+AWS Lambda functions can be used to handle SNS notifications.
+
+Since all SNS notifications have the same structure, the package `Kralizek.Lambda.Template.Sns` can be used to speed up the development of functions that handle SNS notifications.
+
+To do so, create a class that implements the interface `INotificationHandler<MyNotification>`, then change the `ConfigureServices` method to look like the following snippet.
+
 ```csharp
-
-public class CustomSerializer : ISerializer
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
 {
-	public T Deserialize<T>(string input)
-	{
-		// do some fancy 'serializing'
-		return JsonSerializer.Deserialize<T>(input);
-	}
+    services.UseNotificationHandler<MyNotification, MyNotificationHandler>();
 }
+```
 
-// Function.cs
-private class DummyFunction : EventFunction<SQSEvent>
+#### Parallel execution of SNS notifications
+
+Since a single SNS request can contain multiple messages, you can specify that you want all messages to be processed in parallel by changing the `ConfigureServices` method like in the snippet below.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
 {
-	protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-	{
-		services.UseSqsHandler<SomeEvent, DummyHandler>(serializer: new CustomSerializer());
-	}
+    services.UseNotificationHandler<MyNotification, MyNotificationHandler>().WithParallelExecution(maxDegreeOfParallelism: 4);
+}
+```
+
+You can use the `maxDegreeOfParallelism` parameter to specify the amount of parallel executions that you desire. By default, the amount of logical processors available is used.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseNotificationHandler<MyNotification, MyNotificationHandler>().WithParallelExecution();
+}
+```
+
+#### Custom serialization of SNS messages
+
+Since each SNS message contains the actual payload as encoded a string, a custom serializer can be specified to replace the default JSON serializer.
+
+To do so, create an implementation of the interface `INotificationSerializer` and register it in the `ConfigureServices` method.
+
+```csharp
+public class MyCustomSerializer : INotificationSerializer
+{
+  public TMessage? Deserialize<TMessage>(string input)
+  {
+    // implement your deserialization strategy here
+  }
+}
+```
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseNotificationHandler<MyNotification, MyNotificationHandler>();
+
+    services.UseCustomNotificationSerializer<MyCustomSerializer>();
+}
+```
+
+### Event functions handling SQS messages
+
+AWS Lambda functions can be used to handle SQS messages.
+
+Since all SQS messages have the same structure, the package `Kralizek.Lambda.Template.Sqs` can be used to speed up the development of functions that handle SQS messages.
+
+To do so, create a class that implements the interface `IMessageHandler<MyMessage>`, then change the `ConfigureServices` method to look like the following snippet.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>();
+}
+```
+
+#### Parallel execution of SQS messages
+
+Since a single SQS message can contain multiple messages, you can specify that you want all messages to be processed in parallel by changing the `ConfigureServices` method like in the snippet below.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>().WithParallelExecution(maxDegreeOfParallelism: 4);
+}
+```
+
+You can use the `maxDegreeOfParallelism` parameter to specify the amount of parallel executions that you desire. By default, the amount of logical processors available is used.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>().WithParallelExecution();
+}
+```
+
+#### Custom serialization of SQS messages
+
+Since each SQS message contains the actual payload as encoded a string, a custom serializer can be specified to replace the default JSON serializer.
+
+To do so, create an implementation of the interface `IMessageSerializer` and register it in the `ConfigureServices` method.
+
+```csharp
+public class MyCustomSerializer : IMessageSerializer
+{
+  public TMessage? Deserialize<TMessage>(string input)
+  {
+    // implement your deserialization strategy here
+  }
+}
+```
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+{
+    services.UseQueueMessageHandler<MyMessage, MyMessageHandler>()
+
+    services.UseCustomMessageSerializer<MyCustomSerializer>();
 }
 ```
 
@@ -121,8 +222,11 @@ Here is a list of all the available templates
 |Lambda Empty RequestResponse Function|lambda-template-requestresponse-empty|Creates a RequestResponse function with no extra setup|
 |Lambda Boilerplate Event Function|lambda-template-event-boilerplate|Creates an Event function with some boilerplate added|
 |Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added|
+|Lambda SNS Handler Function|lambda-template-sns-event|Creates a function to handle SNS notifications|
+|Lambda SQS Handler Function|lambda-template-sqs-event|Creates a function to handle SQS messages|
 
 All the templates support the following parameters
+
 * `--name|-n` Name of the project. It is also used as name of the function
 * `--role` Name of the IAM role the function will use when being executed
 * `--region` Name of the AWS region where the function will be installed
@@ -133,6 +237,7 @@ All the templates support the following parameters
 The empty templates are created with just the minimum required dependencies.
 
 These include:
+
 * `Amazon.Lambda.Core`
 * `Amazon.Lambda.Serialization.SystemTextJson`
 * `Kralizek.Lambda.Template`
@@ -148,10 +253,11 @@ The boilerplate templates are an enriched version of the empty templates. They c
 Besides the basic dependencies of the empty templates, the boilerplate templates have some extra dependencies.
 
 The extra dependencies are:
-* `Amazon.Lambda.Serialization.SystemTextJson` is used to push logs into AWS CloudWatch
-* `Kralizek.Extensions.Logging` contains several helper methods for better logging
-* `Microsoft.Extensions.Configuration.EnvironmentVariables` used to load configuration values from environment variables
-* `Microsoft.Extensions.Configuration.Json` used to load configuration values from json files
+
+* `Amazon.Lambda.Logging.AspNetCore` is used to push logs into AWS CloudWatch
+* `Microsoft.Extensions.Configuration.EnvironmentVariables` is used to load configuration values from environment variables
+* `Microsoft.Extensions.Configuration.Json` is used to load configuration values from json files
+* `Microsoft.Extensions.Logging.Configuration` is used to load logging configuration from the configuration subsystem
 
 ## Tools
 

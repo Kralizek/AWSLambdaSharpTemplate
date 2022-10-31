@@ -5,6 +5,7 @@
     <PackageId>Kralizek.Lambda.Template.Sqs</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sqs</PackageTags>
     <Description>Extension to Kralizek.Lambda.Template to better support AWS Lambda functions that respond to SQS messages.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

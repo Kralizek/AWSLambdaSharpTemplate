@@ -3,12 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <Nullable>enable</Nullable>
     <AWSProjectType>Lambda</AWSProjectType>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kralizek.Lambda.Template" Version="3.0.1" /> 
-    <PackageReference Include="Kralizek.Lambda.Template.Sns" Version="3.0.1" />
+    <PackageReference Include="Kralizek.Lambda.Template" Version="4.0.0" /> 
+    <PackageReference Include="Kralizek.Lambda.Template.Sns" Version="4.0.0" />
   </ItemGroup>
 
 </Project>

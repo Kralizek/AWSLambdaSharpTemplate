@@ -1,8 +1,8 @@
 using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
 using Amazon.Lambda.Core;
-using Amazon.Lambda.SNSEvents;
+using Amazon.Lambda.SQSEvents;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,9 +10,9 @@ using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace SnsEventFunction;
+namespace SqsEventFunction;
 
-public class Function : EventFunction<SNSEvent>
+public class Function : EventFunction<SQSEvent>
 {
     protected override void Configure(IConfigurationBuilder builder)
     {
@@ -33,27 +33,28 @@ public class Function : EventFunction<SNSEvent>
 
     protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
     {
-        services.UseNotificationHandler<CustomNotification, CustomNotificationHandler>().WithParallelExecution(maxDegreeOfParallelism: 4);
+        services.UseQueueMessageHandler<TestMessage, TestMessageHandler>();
     }
 }
 
-public class CustomNotification
+public class TestMessage
 {
+    [JsonPropertyName("message")]
     public string? Message { get; set; }
 }
 
-public class CustomNotificationHandler : INotificationHandler<CustomNotification>
+public class TestMessageHandler : IMessageHandler<TestMessage>
 {
-    private readonly ILogger<CustomNotificationHandler> _logger;
+    private readonly ILogger<TestMessageHandler> _logger;
 
-    public CustomNotificationHandler(ILogger<CustomNotificationHandler> logger)
+    public TestMessageHandler(ILogger<TestMessageHandler> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task HandleAsync(CustomNotification? notification, ILambdaContext context)
+    public Task HandleAsync(TestMessage? message, ILambdaContext context)
     {
-        _logger.LogInformation("Handling notification: {Message}", notification?.Message);
+        _logger.LogInformation("Received notification: {Message}", message?.Message);
 
         return Task.CompletedTask;
     }
