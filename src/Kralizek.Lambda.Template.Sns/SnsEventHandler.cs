@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
+/// <summary>
+/// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SNSEvent"/> that processes all the records in sequence.
+/// </summary>
+/// <typeparam name="TNotification">The internal type of the SNS notification.</typeparam>
 public class SnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNotification : class
 {
     private readonly ILogger _logger;
@@ -19,6 +23,12 @@ public class SnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNot
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
+    /// <summary>
+    /// Handles the <see cref="SNSEvent"/> by processing each record in sequence.
+    /// </summary>
+    /// <param name="input">The incoming event.</param>
+    /// <param name="context">The execution context.</param>
+    /// <exception cref="InvalidOperationException">Thrown if there is no registered implementation of <see cref="INotificationHandler{TNotification}"/>.</exception>
     public async Task HandleAsync(SNSEvent? input, ILambdaContext context)
     {
         if (input is { Records: { } })
