@@ -10,11 +10,21 @@ using Microsoft.Extensions.Options;
 
 namespace Kralizek.Lambda;
 
+/// <summary>
+/// A set of options to customize the parallel execution of SQS messages.
+/// </summary>
 public class ParallelSqsExecutionOptions
 {
+    /// <summary>
+    /// The top limit of concurrent threads processing the incoming notifications. 
+    /// </summary>
     public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
 }
 
+/// <summary>
+/// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SQSEvent"/> that processes all the records in parallel.
+/// </summary>
+/// <typeparam name="TMessage">The internal type of the SQS message.</typeparam>
 public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TMessage : class
 {
     private readonly ILogger _logger;
@@ -28,6 +38,12 @@ public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TM
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
+    /// <summary>
+    /// Handles the <see cref="SQSEvent"/> by processing each record in parallel.
+    /// </summary>
+    /// <param name="input">The incoming event.</param>
+    /// <param name="context">The execution context.</param>
+    /// <exception cref="InvalidOperationException">Thrown if there is no registered implementation of <see cref="IMessageHandler{TMessage}"/>.</exception>
     public async Task HandleAsync(SQSEvent? input, ILambdaContext context)
     {
         if (input is { Records.Count: > 0 })

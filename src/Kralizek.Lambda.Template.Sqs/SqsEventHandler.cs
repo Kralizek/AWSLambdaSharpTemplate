@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
+/// <summary>
+/// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SQSEvent"/> that processes all the records in sequence.
+/// </summary>
+/// <typeparam name="TMessage">The internal type of the SQS message.</typeparam>
 public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage : class
 {
     private readonly ILogger _logger;
@@ -18,6 +22,12 @@ public class SqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage 
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
+    /// <summary>
+    /// Handles the <see cref="SQSEvent"/> by processing each record in sequence.
+    /// </summary>
+    /// <param name="input">The incoming event.</param>
+    /// <param name="context">The execution context.</param>
+    /// <exception cref="InvalidOperationException">Thrown if there is no registered implementation of <see cref="IMessageHandler{TMessage}"/>.</exception>
     public async Task HandleAsync(SQSEvent? input, ILambdaContext context)
     {
         if (input is { Records: { } })
