@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         if (maxDegreeOfParallelism <= 1) throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism), $"{nameof(maxDegreeOfParallelism)} must be greater than 1");
 
         configurator.Services.AddTransient<IEventHandler<SQSEvent>, ParallelSqsEventHandler<TMessage>>();
+        configurator.Services.AddTransient<IRequestResponseHandler<SQSEvent, SQSBatchResponse>, ParallelSqsEventHandler<TMessage>>();
 
         if (maxDegreeOfParallelism.HasValue)
         {
@@ -87,7 +88,8 @@ public static class ServiceCollectionExtensions
         services.AddOptions();
             
         services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TMessage>>();
-            
+        services.AddTransient<IRequestResponseHandler<SQSEvent, SQSBatchResponse>, SqsEventHandler<TMessage>>();
+
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
 
         services.Add(ServiceDescriptor.Describe(typeof(IMessageHandler<TMessage>), typeof(THandler), lifetime));
