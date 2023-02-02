@@ -1,12 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
+﻿using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Threading.Tasks;
+using static Amazon.Lambda.SQSEvents.SQSBatchResponse;
 
 namespace Kralizek.Lambda;
 
@@ -25,7 +26,7 @@ public class ParallelSqsExecutionOptions
 /// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SQSEvent"/> that processes all the records in parallel.
 /// </summary>
 /// <typeparam name="TMessage">The internal type of the SQS message.</typeparam>
-public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TMessage : class
+public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IRequestResponseHandler<SQSEvent, SQSBatchResponse> where TMessage : class
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
@@ -44,7 +45,28 @@ public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TM
     /// <param name="input">The incoming event.</param>
     /// <param name="context">The execution context.</param>
     /// <exception cref="InvalidOperationException">Thrown if there is no registered implementation of <see cref="IMessageHandler{TMessage}"/>.</exception>
-    public async Task HandleAsync(SQSEvent? input, ILambdaContext context)
+    public async Task HandleAsync(SQSEvent? input, ILambdaContext context) =>
+        await ((IEventHandler<SQSEvent>)this).HandleAsync(input, context);
+
+    async Task IEventHandler<SQSEvent>.HandleAsync(SQSEvent? input, ILambdaContext context) =>
+        await HandleAsync(input, context, null);
+
+    /// <summary>
+    /// Handles the <see cref="SQSEvent"/> by processing each record in parallel.
+    /// Catches any exceptions thrown by the <see cref="IMessageHandler{TMessage}" />, logs them, and reports them as batch response item failures.
+    /// </summary>
+    /// <param name="input">The incoming event.</param>
+    /// <param name="context">The execution context.</param>
+    /// <returns>Object conveying SQS message item failures.</returns>
+    /// <seealso href="https://aws.amazon.com/about-aws/whats-new/2021/11/aws-lambda-partial-batch-response-sqs-event-source/" />
+    async Task<SQSBatchResponse> IRequestResponseHandler<SQSEvent, SQSBatchResponse>.HandleAsync(SQSEvent? input, ILambdaContext context)
+    {
+        var batchItemFailures = new ConcurrentBag<BatchItemFailure>();
+        await HandleAsync(input, context, batchItemFailures);
+        return new(batchItemFailures.ToList());
+    }
+
+    private async Task HandleAsync(SQSEvent? input, ILambdaContext context, ConcurrentBag<BatchItemFailure>? batchItemFailures)
     {
         if (input is { Records.Count: > 0 })
         {
@@ -68,7 +90,15 @@ public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TM
                     throw new InvalidOperationException($"No IMessageHandler<{typeof(TMessage).Name}> could be found.");
                 }
 
-                await messageHandler.HandleAsync(message, context);
+                try
+                {
+                    await messageHandler.HandleAsync(message, context).ConfigureAwait(false);
+                }
+                catch (Exception exc) when (batchItemFailures is not null)
+                {
+                    _logger.LogError(exc, "Recording batch item failure for message {MessageId}", singleSqsMessage.MessageId);
+                    batchItemFailures.Add(new() { ItemIdentifier = singleSqsMessage.MessageId });
+                }
             });
         }
     }
