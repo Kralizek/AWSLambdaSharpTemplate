@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
-using Amazon.Lambda.SNSEvents;
 using Kralizek.Lambda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SnsEventFunction;
 
-public class Function : EventFunction<SNSEvent>
+public class Function : Kralizek.Lambda.SnsEventFunction
 {
     protected override void Configure(IConfigurationBuilder builder)
     {

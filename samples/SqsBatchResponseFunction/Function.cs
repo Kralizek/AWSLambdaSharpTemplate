@@ -2,7 +2,6 @@ using System;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
-using Amazon.Lambda.SQSEvents;
 using Kralizek.Lambda;
 using Kralizek.Lambda.Accessors;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SqsBatchResponseFunction;
 
-public class Function : RequestResponseFunction<SQSEvent, SQSBatchResponse>
+public class Function : Kralizek.Lambda.SqsBatchResponseFunction
 {
     protected override void Configure(IConfigurationBuilder builder)
     {

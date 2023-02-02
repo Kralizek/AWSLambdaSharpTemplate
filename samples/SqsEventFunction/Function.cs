@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SqsEventFunction;
 
-public class Function : EventFunction<SQSEvent>
+public class Function : Kralizek.Lambda.SqsEventFunction
 {
     protected override void Configure(IConfigurationBuilder builder)
     {
