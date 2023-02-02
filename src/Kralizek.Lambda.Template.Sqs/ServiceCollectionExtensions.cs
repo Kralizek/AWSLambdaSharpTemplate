@@ -1,7 +1,8 @@
-using System;
 using Amazon.Lambda.SQSEvents;
+using Kralizek.Lambda.Accessors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
 
 namespace Kralizek.Lambda;
 
@@ -93,6 +94,9 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
 
         services.Add(ServiceDescriptor.Describe(typeof(IMessageHandler<TMessage>), typeof(THandler), lifetime));
+
+        services.TryAddScoped<Accessors.Internal.SqsRecordAccessor>();
+        services.TryAddScoped<ISqsRecordAccessor>(sp => sp.GetRequiredService<Accessors.Internal.SqsRecordAccessor>());
 
         var configurator = new MessageHandlerConfigurator<TMessage>(services);
 

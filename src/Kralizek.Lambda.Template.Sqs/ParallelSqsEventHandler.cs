@@ -1,12 +1,13 @@
-﻿using Amazon.Lambda.Core;
-using Amazon.Lambda.SQSEvents;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon.Lambda.Core;
+using Amazon.Lambda.SQSEvents;
+using Kralizek.Lambda.Accessors;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using static Amazon.Lambda.SQSEvents.SQSBatchResponse;
 
 namespace Kralizek.Lambda;
@@ -73,6 +74,7 @@ public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent>, IReque
             await input.Records.ForEachAsync(_options.MaxDegreeOfParallelism, async singleSqsMessage =>
             {
                 using var scope = _serviceProvider.CreateScope();
+                singleSqsMessage.ExposeViaAccessor(scope);
 
                 var sqsMessage = singleSqsMessage.Body;
                 _logger.LogDebug("Message received: {Message}", sqsMessage);

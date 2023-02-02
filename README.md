@@ -212,6 +212,12 @@ As an alternative to this default behavior, [partial batch support](https://aws.
 
 When partial batch support is enabled, exceptions thrown from the handler are caught, and failed messages are reported to Lambda in the response payload. Only failed messages will be retried (subject to SQS configuration).
 
+### Accessing SQS message details
+
+SQS message handlers (deriving from `IMessageHandler`) are provided with a deserialized message body and `ILambdaContext`. Typically, these facts provide all of the input that a handler needs to do its work. Using the deserialized body as handler input helps to decouple the handler implementation from SQS and Lambda implementation details.
+
+Occasionally, accessing additional information about the SQS message being handled may be useful. This can be accomplished by injecting `ISqsRecordAccessor` into the SQS message handler (or one of its dependencies). The `ISqsRecordAccessor` provides access to the SQS `MessageId`, `ReceiptHandle` (could be used to call [ChangeMessageVisibility](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ChangeMessageVisibility.html) in custom error scenarios), `ApproximateReceiveCount`, and other facts present in the [queue message event conveyed by the Lambda payload](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html).
+
 # Creating a new function
 
 The best way to create a new AWS Lambda that uses this structure is to use the `dotnet new` template provided via NuGet.
