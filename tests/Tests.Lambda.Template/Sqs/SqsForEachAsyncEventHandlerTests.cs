@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
@@ -62,9 +64,18 @@ public class ParallelSqsEventHandlerTests
         _parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
     }
 
-    private ParallelSqsEventHandler<TestMessage> CreateSystemUnderTest()
+    private ParallelSqsEventHandler<TestMessage> CreateSystemUnderTest() =>
+        CreateSystemUnderTest<ParallelSqsEventHandler<TestMessage>>();
+
+    private THandler CreateSystemUnderTest<THandler>() where THandler : class
     {
-        return new ParallelSqsEventHandler<TestMessage>(_mockServiceProvider.Object, _mockLoggerFactory.Object, Options.Create(_parallelExecutionOptions));
+        var handler = new ParallelSqsEventHandler<TestMessage>(_mockServiceProvider.Object, _mockLoggerFactory.Object, Options.Create(_parallelExecutionOptions)) as THandler;
+        if (handler is null)
+        {
+            throw new InvalidOperationException($"system under test {nameof(THandler)} type {typeof(THandler)} not valid");
+        }
+
+        return handler;
     }
 
     [Test]
@@ -254,5 +265,77 @@ public class ParallelSqsEventHandlerTests
         var sut = CreateSystemUnderTest();
 
         Assert.ThrowsAsync<Exception>(() => sut.HandleAsync(sqsEvent, new TestLambdaContext()));
+    }
+
+    [Test]
+    public void HandleAsync_lets_NotificationHandler_exceptions_fly_when_not_using_sqs_batch_response()
+    {
+        _mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
+        _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
+            .Returns(Task.FromException(new InvalidDataException()));
+
+        _mockServiceProvider.Setup(p => p.GetService(typeof(IMessageHandler<TestMessage>)))
+           .Returns(_mockMessageHandler.Object);
+
+        var sqsEvent = new SQSEvent
+        {
+            Records = new List<SQSEvent.SQSMessage>
+            {
+                new SQSEvent.SQSMessage
+                {
+                    Body = "{}"
+                },
+                new SQSEvent.SQSMessage
+                {
+                    Body = "{}"
+                },
+            }
+        };
+
+        var lambdaContext = new TestLambdaContext();
+
+        var sut = CreateSystemUnderTest();
+
+        Assert.ThrowsAsync<InvalidDataException>(() => sut.HandleAsync(sqsEvent, lambdaContext));
+    }
+
+    [Theory]
+    public async Task HandleAsync_provides_sqs_batch_response(bool testErrors)
+    {
+        _mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
+        _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
+            .Returns(testErrors ? Task.FromException(new InvalidDataException()) : Task.CompletedTask);
+
+        _mockServiceProvider.Setup(p => p.GetService(typeof(IMessageHandler<TestMessage>)))
+           .Returns(_mockMessageHandler.Object);
+
+        var sqsEvent = new SQSEvent
+        {
+            Records = new List<SQSEvent.SQSMessage>
+            {
+                new SQSEvent.SQSMessage
+                {
+                    MessageId = "msg1",
+                    Body = "{}"
+                },
+                new SQSEvent.SQSMessage
+                {
+                    MessageId = "msg2",
+                    Body = "{}"
+                },
+            }
+        };
+
+        var lambdaContext = new TestLambdaContext();
+
+        var sut = CreateSystemUnderTest<IRequestResponseHandler<SQSEvent, SQSBatchResponse>>();
+
+        SQSBatchResponse batchResponse = await sut.HandleAsync(sqsEvent, lambdaContext);
+
+        _mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(sqsEvent.Records.Count));
+        Assert.That(batchResponse?.BatchItemFailures, Is.Not.Null);
+
+        var expectedBatchFailures = testErrors ? new string[] { "msg1", "msg2" } : Array.Empty<string>();
+        Assert.That(batchResponse.BatchItemFailures.Select(x => x.ItemIdentifier), Is.EquivalentTo(expectedBatchFailures));
     }
 }

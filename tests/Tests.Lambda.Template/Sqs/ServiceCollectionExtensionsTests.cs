@@ -87,9 +87,17 @@ public class ServiceCollectionExtensionsTests
 
         var serviceProvider = services.BuildServiceProvider();
 
-        var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+        {
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
 
-        Assert.That(handler, Is.InstanceOf<SqsEventHandler<TestMessage>>());
+            Assert.That(handler, Is.InstanceOf<SqsEventHandler<TestMessage>>());
+        }
+
+        {
+            var handler = serviceProvider.GetRequiredService<IRequestResponseHandler<SQSEvent, SQSBatchResponse>>();
+
+            Assert.That(handler, Is.InstanceOf<SqsEventHandler<TestMessage>>());
+        }
     }
 
     [Test]
@@ -103,9 +111,17 @@ public class ServiceCollectionExtensionsTests
 
         var serviceProvider = services.BuildServiceProvider();
 
-        var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
+        {
+            var handler = serviceProvider.GetRequiredService<IEventHandler<SQSEvent>>();
 
-        Assert.That(handler, Is.InstanceOf<ParallelSqsEventHandler<TestMessage>>());
+            Assert.That(handler, Is.InstanceOf<ParallelSqsEventHandler<TestMessage>>());
+        }
+
+        {
+            var handler = serviceProvider.GetRequiredService<IRequestResponseHandler<SQSEvent, SQSBatchResponse>>();
+
+            Assert.That(handler, Is.InstanceOf<ParallelSqsEventHandler<TestMessage>>());
+        }
     }
 
     [Test]
