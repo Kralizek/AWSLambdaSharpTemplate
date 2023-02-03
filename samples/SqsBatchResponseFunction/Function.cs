@@ -12,6 +12,16 @@ using Microsoft.Extensions.Logging;
 
 namespace SqsBatchResponseFunction;
 
+/// <summary>
+/// Deriving the entry point class from <see cref="RequestResponseFunction{SQSEvent, SQSBatchResponse}" />,
+/// rather than <see cref="EventFunction{SQSEvent}" />, facilitates partial batch support by catching
+/// exceptions thrown from the <see cref="IMessageHandler{TMessage}" />, and reporting them to Lambda in
+/// the response payload.
+/// </summary>
+/// <remarks>
+/// Configuring the SQS Event Source (on the AWS side) is critical to partial batch support working properly.
+/// Please refer to the README for further information.
+/// </remarks>
 public class Function : RequestResponseFunction<SQSEvent, SQSBatchResponse>
 {
     protected override void Configure(IConfigurationBuilder builder)
