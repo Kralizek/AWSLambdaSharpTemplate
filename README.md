@@ -235,6 +235,7 @@ Here is a list of all the available templates
 |Lambda Boilerplate RequestResponse Function|lambda-template-requestresponse-boilerplate|Creates a RequestResponse function with some boilerplate added|
 |Lambda SNS Handler Function|lambda-template-sns-event|Creates a function to handle SNS notifications|
 |Lambda SQS Handler Function|lambda-template-sqs-event|Creates a function to handle SQS messages|
+|Lambda SQS Partial Batch Response Function|lambda-template-sqs-partial-batch|Creates a function to handle SQS messages, with partial batch responses|
 
 All the templates support the following parameters
 
