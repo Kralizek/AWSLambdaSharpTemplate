@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
@@ -58,9 +60,18 @@ public class SqsEventHandlerTests
             .Returns(Mock.Of<ILogger>());
     }
 
-    private SqsEventHandler<TestMessage> CreateSystemUnderTest()
+    private SqsEventHandler<TestMessage> CreateSystemUnderTest() =>
+        CreateSystemUnderTest<SqsEventHandler<TestMessage>>();
+
+    private THandler CreateSystemUnderTest<THandler>() where THandler : class
     {
-        return new SqsEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object);
+        var handler = new SqsEventHandler<TestMessage>(mockServiceProvider.Object, mockLoggerFactory.Object) as THandler;
+        if (handler is null)
+        {
+            throw new InvalidOperationException($"system under test {nameof(THandler)} type {typeof(THandler)} not valid");
+        }
+
+        return handler;
     }
 
     [Test]
@@ -172,5 +183,77 @@ public class SqsEventHandlerTests
         var sut = CreateSystemUnderTest();
 
         Assert.ThrowsAsync<InvalidOperationException>(() => sut.HandleAsync(sqsEvent, lambdaContext));
+    }
+
+    [Test]
+    public void HandleAsync_lets_NotificationHandler_exceptions_fly_when_not_using_sqs_batch_response()
+    {
+        mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
+        mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
+            .Returns(Task.FromException(new InvalidDataException()));
+
+        mockServiceProvider.Setup(p => p.GetService(typeof(IMessageHandler<TestMessage>)))
+           .Returns(mockMessageHandler.Object);
+
+        var sqsEvent = new SQSEvent
+        {
+            Records = new List<SQSEvent.SQSMessage>
+            {
+                new SQSEvent.SQSMessage
+                {
+                    Body = "{}"
+                },
+                new SQSEvent.SQSMessage
+                {
+                    Body = "{}"
+                },
+            }
+        };
+
+        var lambdaContext = new TestLambdaContext();
+
+        var sut = CreateSystemUnderTest();
+
+        Assert.ThrowsAsync<InvalidDataException>(() => sut.HandleAsync(sqsEvent, lambdaContext));
+    }
+
+    [Theory]
+    public async Task HandleAsync_provides_sqs_batch_response(bool testErrors)
+    {
+        mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
+        mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
+            .Returns(testErrors ? Task.FromException(new InvalidDataException()) : Task.CompletedTask);
+
+        mockServiceProvider.Setup(p => p.GetService(typeof(IMessageHandler<TestMessage>)))
+           .Returns(mockMessageHandler.Object);
+
+        var sqsEvent = new SQSEvent
+        {
+            Records = new List<SQSEvent.SQSMessage>
+            {
+                new SQSEvent.SQSMessage
+                {
+                    MessageId = "msg1",
+                    Body = "{}"
+                },
+                new SQSEvent.SQSMessage
+                {
+                    MessageId = "msg2",
+                    Body = "{}"
+                },
+            }
+        };
+
+        var lambdaContext = new TestLambdaContext();
+
+        var sut = CreateSystemUnderTest<IRequestResponseHandler<SQSEvent, SQSBatchResponse>>();
+
+        SQSBatchResponse batchResponse = await sut.HandleAsync(sqsEvent, lambdaContext);
+
+        mockServiceScopeFactory.Verify(p => p.CreateScope(), Times.Exactly(sqsEvent.Records.Count));
+        Assert.That(batchResponse?.BatchItemFailures, Is.Not.Null);
+
+        var expectedBatchFailures = testErrors ? new string[] { "msg1", "msg2" } : Array.Empty<string>();
+        Assert.That(batchResponse.BatchItemFailures.Select(x => x.ItemIdentifier), Is.EquivalentTo(expectedBatchFailures));
     }
 }
