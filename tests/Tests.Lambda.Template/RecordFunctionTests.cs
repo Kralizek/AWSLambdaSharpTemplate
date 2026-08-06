@@ -55,6 +55,17 @@ public class RecordFunctionTests
     }
 
     [Test]
+    public void ProcessRecordsAsync_propagates_cancellation()
+    {
+        var sut = new CancellationRecordFunction();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Assert.ThrowsAsync<OperationCanceledException>(() =>
+            sut.InvokeAsync(new[] { "timed-out-record" }, cancellation.Token));
+    }
+
+    [Test]
     public async Task ProcessRecordsParallelAsync_processes_all_records()
     {
         var sut = new SequentialRecordFunction();
@@ -99,6 +110,14 @@ public class RecordFunctionTests
             using var cts = CreateCancellationTokenSource(context);
             return ProcessRecordsAsync(records, cts.Token);
         }
+    }
+
+    public class CancellationRecordFunction : RecordFunction<string[], string, CollectingHandler>
+    {
+        protected override IEnumerable<string> GetRecords(string[] @event) => @event;
+
+        public Task InvokeAsync(string[] records, CancellationToken cancellationToken) =>
+            ProcessRecordsAsync(records, cancellationToken);
     }
 
     public class ScopedRecordFunction : RecordFunction<string[], string, ScopedTrackingHandler>
