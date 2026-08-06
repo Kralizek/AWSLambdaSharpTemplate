@@ -1,0 +1,50 @@
+name: Format repository
+
+on:
+  push:
+    branches: [agent/refresh-repository-setup]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: agent/refresh-repository-setup
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          dotnet-version: 6.0.x
+
+      - name: Generate editorconfig
+        run: |
+          rm .editorconfig
+          dotnet new editorconfig
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Format
+        run: dotnet format --no-restore
+
+      - name: Commit formatting
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Repository is already formatted."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Format repository"
+          git push
