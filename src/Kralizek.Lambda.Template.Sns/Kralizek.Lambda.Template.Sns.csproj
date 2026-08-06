@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.Sns</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sns</PackageTags>
     <Description>Extension to Kralizek.Lambda.Template to better support AWS Lambda functions that respond to SNS notifications.</Description>
@@ -14,15 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.0.0" />
-  </ItemGroup>
-
-  <!-- SNS implementation is being redesigned; files below are excluded pending PR 5 -->
-  <ItemGroup>
-    <Compile Remove="INotificationHandler.cs" />
-    <Compile Remove="INotificationSerializer.cs" />
-    <Compile Remove="ParallelSnsEventHandler.cs" />
-    <Compile Remove="ServiceCollectionExtensions.cs" />
-    <Compile Remove="SnsEventHandler.cs" />
   </ItemGroup>
 
 </Project>
