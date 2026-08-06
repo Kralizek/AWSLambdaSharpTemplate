@@ -86,7 +86,7 @@ public abstract class LambdaFunction
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var scope = ServiceProvider.CreateScope();
+        await using var scope = ServiceProvider.CreateAsyncScope();
         var handler = scope.ServiceProvider.GetRequiredService<THandler>();
 
         Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
@@ -104,7 +104,7 @@ public abstract class LambdaFunction
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var scope = ServiceProvider.CreateScope();
+        await using var scope = ServiceProvider.CreateAsyncScope();
         var handler = scope.ServiceProvider.GetRequiredService<THandler>();
 
         Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
