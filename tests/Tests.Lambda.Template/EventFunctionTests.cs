@@ -41,25 +41,18 @@ public class EventFunctionTests
     }
 
     [Test]
-    public async Task FunctionHandlerAsync_invokes_handler()
+    public async Task FunctionHandlerAsync_invokes_handler_and_passes_context()
     {
         TrackingHandler.Reset();
         var sut = new TrackingHandlerFunction();
+        var lambdaContext = new TestLambdaContext { AwsRequestId = "request-id" };
 
-        await sut.FunctionHandlerAsync("hello", new TestLambdaContext());
+        await sut.FunctionHandlerAsync("expected-value", lambdaContext);
 
         Assert.That(TrackingHandler.WasInvoked, Is.True);
-    }
-
-    [Test]
-    public async Task FunctionHandlerAsync_passes_input_to_handler()
-    {
-        TrackingHandler.Reset();
-        var sut = new TrackingHandlerFunction();
-
-        await sut.FunctionHandlerAsync("expected-value", new TestLambdaContext());
-
         Assert.That(TrackingHandler.ReceivedInput, Is.EqualTo("expected-value"));
+        Assert.That(TrackingHandler.ReceivedContext?.AwsRequestId, Is.EqualTo("request-id"));
+        Assert.That(TrackingHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
     }
 
     [Test]
@@ -70,8 +63,6 @@ public class EventFunctionTests
         Assert.ThrowsAsync<InvalidOperationException>(() =>
             sut.FunctionHandlerAsync("hello", new TestLambdaContext()));
     }
-
-    // --- test function classes ---
 
     public class TestEventFunction : EventFunction<string, NoOpHandler>
     {
@@ -92,35 +83,36 @@ public class EventFunctionTests
 
     public class FailingHandlerFunction : EventFunction<string, ThrowingHandler> { }
 
-    // --- handler classes ---
-
     public class NoOpHandler : IEventHandler<string>
     {
-        public ValueTask HandleAsync(string input, CancellationToken cancellationToken) => ValueTask.CompletedTask;
+        public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
 
     public class TrackingHandler : IEventHandler<string>
     {
         public static bool WasInvoked { get; private set; }
         public static string? ReceivedInput { get; private set; }
+        public static EventContext? ReceivedContext { get; private set; }
 
         public static void Reset()
         {
             WasInvoked = false;
             ReceivedInput = null;
+            ReceivedContext = null;
         }
 
-        public ValueTask HandleAsync(string input, CancellationToken cancellationToken)
+        public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken)
         {
             WasInvoked = true;
             ReceivedInput = input;
+            ReceivedContext = context;
             return ValueTask.CompletedTask;
         }
     }
 
     public class ThrowingHandler : IEventHandler<string>
     {
-        public ValueTask HandleAsync(string input, CancellationToken cancellationToken) =>
+        public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken) =>
             ValueTask.FromException(new InvalidOperationException("boom"));
     }
 }
