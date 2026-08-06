@@ -21,6 +21,8 @@ public class Function : EventFunction<string, StringEventHandler>
 
     protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
     {
+        logging.AddConfiguration(Configuration.GetSection("Logging"));
+
         logging.AddLambdaLogger(new LambdaLoggerOptions
         {
             IncludeCategory = true,
