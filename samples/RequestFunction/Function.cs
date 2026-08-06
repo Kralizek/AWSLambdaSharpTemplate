@@ -21,6 +21,8 @@ public class Function : RequestFunction<string, string, UpperCaseHandler>
 
     protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
     {
+        logging.AddConfiguration(Configuration.GetSection("Logging"));
+
         logging.AddLambdaLogger(new LambdaLoggerOptions
         {
             IncludeCategory = true,
