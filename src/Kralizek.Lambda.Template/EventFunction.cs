@@ -5,7 +5,6 @@ using Amazon.Lambda.Core;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
@@ -27,14 +26,12 @@ public abstract class EventFunction<TInput, THandler> : LambdaFunction
     /// </summary>
     public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        using var scope = ServiceProvider.CreateScope();
         using var cts = CreateCancellationTokenSource(context);
+        var eventContext = new EventContext(context);
 
-        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-
-        Logger.LogInformation("Invoking handler {Handler}", typeof(THandler).Name);
-
-        await handler.HandleAsync(input, cts.Token).ConfigureAwait(false);
+        await InvokeAsync<THandler>(
+            cts.Token,
+            (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
     }
 }
 
@@ -44,5 +41,5 @@ public abstract class EventFunction<TInput, THandler> : LambdaFunction
 /// <typeparam name="TInput">The type of the incoming event.</typeparam>
 public interface IEventHandler<in TInput>
 {
-    ValueTask HandleAsync(TInput input, CancellationToken cancellationToken);
+    ValueTask HandleAsync(TInput input, EventContext context, CancellationToken cancellationToken);
 }
