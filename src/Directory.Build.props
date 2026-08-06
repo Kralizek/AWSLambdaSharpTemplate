@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Kralizek/AWSLambdaSharpTemplate</PackageProjectUrl>
     <NoWarn>NU5105,NU5125</NoWarn>
@@ -17,9 +17,4 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="All"/>
-    <PackageReference Include="SourceLink.Copy.PdbFiles" Version="2.8.3" PrivateAssets="All" /> 
-  </ItemGroup>
 </Project>
