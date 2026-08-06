@@ -7,7 +7,6 @@ using Amazon.Lambda.Core;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
@@ -34,18 +33,13 @@ public abstract class RecordFunction<TEvent, TRecord, THandler> : LambdaFunction
     /// <summary>
     /// Processes all records sequentially, one per dependency-injection scope.
     /// </summary>
-    protected async Task ProcessRecordsAsync(TEvent @event, CancellationToken cancellationToken)
+    protected async Task ProcessRecordsAsync(TEvent @event, RecordContext context, CancellationToken cancellationToken)
     {
         foreach (var record in GetRecords(@event))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var scope = ServiceProvider.CreateScope();
-            var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-
-            Logger.LogDebug("Invoking {Handler} for record", typeof(THandler).Name);
-
-            await handler.HandleAsync(record, cancellationToken).ConfigureAwait(false);
+            await InvokeAsync<THandler>(
+                cancellationToken,
+                (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
         }
     }
 
@@ -53,10 +47,11 @@ public abstract class RecordFunction<TEvent, TRecord, THandler> : LambdaFunction
     /// Processes all records in parallel up to <paramref name="maxDegreeOfParallelism"/>
     /// concurrent handler invocations, one per dependency-injection scope.
     /// </summary>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="maxDegreeOfParallelism"/> is less than 2.
-    /// </exception>
-    protected Task ProcessRecordsParallelAsync(TEvent @event, int maxDegreeOfParallelism, CancellationToken cancellationToken)
+    protected Task ProcessRecordsParallelAsync(
+        TEvent @event,
+        RecordContext context,
+        int maxDegreeOfParallelism,
+        CancellationToken cancellationToken)
     {
         if (maxDegreeOfParallelism < 2)
             throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism), "maxDegreeOfParallelism must be at least 2.");
@@ -69,14 +64,16 @@ public abstract class RecordFunction<TEvent, TRecord, THandler> : LambdaFunction
 
         return Parallel.ForEachAsync(GetRecords(@event), options, async (record, ct) =>
         {
-            using var scope = ServiceProvider.CreateScope();
-            var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-
-            Logger.LogDebug("Invoking {Handler} for record", typeof(THandler).Name);
-
-            await handler.HandleAsync(record, ct).ConfigureAwait(false);
+            await InvokeAsync<THandler>(
+                ct,
+                (handler, recordCancellationToken) => handler.HandleAsync(record, context, recordCancellationToken)).ConfigureAwait(false);
         });
     }
+
+    /// <summary>
+    /// Creates the common record-processing context for an invocation.
+    /// </summary>
+    protected static RecordContext CreateRecordContext(ILambdaContext context) => new(context);
 }
 
 /// <summary>
@@ -85,5 +82,5 @@ public abstract class RecordFunction<TEvent, TRecord, THandler> : LambdaFunction
 /// <typeparam name="TRecord">The individual record type to handle.</typeparam>
 public interface IRecordHandler<in TRecord>
 {
-    ValueTask HandleAsync(TRecord record, CancellationToken cancellationToken);
+    ValueTask HandleAsync(TRecord record, RecordContext context, CancellationToken cancellationToken);
 }
