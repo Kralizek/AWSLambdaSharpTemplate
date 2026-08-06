@@ -6,10 +6,8 @@ using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace RequestResponseFunction;
@@ -23,8 +21,6 @@ public class Function : RequestFunction<string, string, UpperCaseHandler>
 
     protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
     {
-        logging.AddConfiguration(Configuration.GetSection("Logging"));
-
         logging.AddLambdaLogger(new LambdaLoggerOptions
         {
             IncludeCategory = true,
@@ -43,9 +39,9 @@ public class UpperCaseHandler : IRequestHandler<string, string>
         _logger = logger;
     }
 
-    public ValueTask<string> HandleAsync(string input, CancellationToken cancellationToken)
+    public ValueTask<string> HandleAsync(string input, RequestContext context, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Input: {Input}", input);
+        _logger.LogInformation("Input {Input} for request {AwsRequestId}", input, context.AwsRequestId);
         return new ValueTask<string>(input.ToUpperInvariant());
     }
 }
