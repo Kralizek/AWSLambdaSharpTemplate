@@ -21,17 +21,21 @@ public class RecordFunctionTests
     public void SetUp()
     {
         CollectingHandler.Processed.Clear();
+        CollectingHandler.Contexts.Clear();
         ScopedTrackingHandler.CapturedServices.Clear();
     }
 
     [Test]
-    public async Task ProcessRecordsAsync_invokes_handler_for_each_record()
+    public async Task ProcessRecordsAsync_invokes_handler_for_each_record_and_passes_context()
     {
         var sut = new SequentialRecordFunction();
+        var lambdaContext = new TestLambdaContext { AwsRequestId = "request-id" };
 
-        await sut.InvokeAsync(new[] { "a", "b", "c" }, new TestLambdaContext());
+        await sut.InvokeAsync(new[] { "a", "b", "c" }, lambdaContext);
 
         Assert.That(CollectingHandler.Processed, Is.EqualTo(new[] { "a", "b", "c" }));
+        Assert.That(CollectingHandler.Contexts, Has.Count.EqualTo(3));
+        Assert.That(CollectingHandler.Contexts, Has.All.Property(nameof(RecordContext.AwsRequestId)).EqualTo("request-id"));
     }
 
     [Test]
@@ -91,13 +95,13 @@ public class RecordFunctionTests
         public Task InvokeAsync(string[] records, Amazon.Lambda.Core.ILambdaContext context)
         {
             using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, cts.Token);
+            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
         }
 
         public Task InvokeParallelAsync(string[] records, int maxDegreeOfParallelism, Amazon.Lambda.Core.ILambdaContext context)
         {
             using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsParallelAsync(records, maxDegreeOfParallelism, cts.Token);
+            return ProcessRecordsParallelAsync(records, CreateRecordContext(context), maxDegreeOfParallelism, cts.Token);
         }
     }
 
@@ -108,7 +112,7 @@ public class RecordFunctionTests
         public Task InvokeAsync(string[] records, Amazon.Lambda.Core.ILambdaContext context)
         {
             using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, cts.Token);
+            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
         }
     }
 
@@ -117,7 +121,7 @@ public class RecordFunctionTests
         protected override IEnumerable<string> GetRecords(string[] @event) => @event;
 
         public Task InvokeAsync(string[] records, CancellationToken cancellationToken) =>
-            ProcessRecordsAsync(records, cancellationToken);
+            ProcessRecordsAsync(records, CreateRecordContext(new TestLambdaContext()), cancellationToken);
     }
 
     public class ScopedRecordFunction : RecordFunction<string[], string, ScopedTrackingHandler>
@@ -132,24 +136,26 @@ public class RecordFunctionTests
         public Task InvokeAsync(string[] records, Amazon.Lambda.Core.ILambdaContext context)
         {
             using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, cts.Token);
+            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
         }
     }
 
     public class CollectingHandler : IRecordHandler<string>
     {
         public static ConcurrentQueue<string> Processed { get; } = new();
+        public static ConcurrentBag<RecordContext> Contexts { get; } = new();
 
-        public ValueTask HandleAsync(string record, CancellationToken cancellationToken)
+        public ValueTask HandleAsync(string record, RecordContext context, CancellationToken cancellationToken)
         {
             Processed.Enqueue(record);
+            Contexts.Add(context);
             return ValueTask.CompletedTask;
         }
     }
 
     public class ThrowingHandler : IRecordHandler<string>
     {
-        public ValueTask HandleAsync(string record, CancellationToken cancellationToken) =>
+        public ValueTask HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
             ValueTask.FromException(new InvalidOperationException("handler failed"));
     }
 
@@ -164,7 +170,7 @@ public class RecordFunctionTests
             _service = service;
         }
 
-        public ValueTask HandleAsync(string record, CancellationToken cancellationToken)
+        public ValueTask HandleAsync(string record, RecordContext context, CancellationToken cancellationToken)
         {
             CapturedServices.Add(_service);
             return ValueTask.CompletedTask;
