@@ -49,7 +49,6 @@ public class EventFunctionDisposalTests
 
     public class PendingHandler : IEventHandler<string>
     {
-        // static state set before construction to avoid virtual-call-in-constructor pitfalls
         public static TaskCompletionSource<bool>? Tcs { get; set; }
         public static DisposableDependency? Dependency { get; set; }
 
@@ -60,7 +59,7 @@ public class EventFunctionDisposalTests
             _dependency = dependency;
         }
 
-        public async ValueTask HandleAsync(string input, CancellationToken cancellationToken)
+        public async ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken)
             => await Tcs!.Task.ConfigureAwait(false);
     }
 }
