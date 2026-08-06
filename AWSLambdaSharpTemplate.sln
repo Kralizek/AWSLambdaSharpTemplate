@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{3D49
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventFunction", "samples\EventFunction\EventFunction.csproj", "{42D6C3FB-246F-4CF8-9B72-3431FF78C845}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestResponseFunction", "samples\RequestResponseFunction\RequestResponseFunction.csproj", "{71875B94-7313-4F3B-BC05-996DD51A7314}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestFunction", "samples\RequestFunction\RequestFunction.csproj", "{71875B94-7313-4F3B-BC05-996DD51A7314}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AF4300F6-9636-4925-B8D5-F98E1BDC5EF5}"
 EndProject
