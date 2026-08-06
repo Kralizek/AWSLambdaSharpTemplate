@@ -1,7 +1,7 @@
 {
-  "Information" : [
-    "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET Core CLI.",
-    "To learn more about the Lambda commands with the .NET Core CLI execute the following command at the command line in the project root directory.",
+  "Information": [
+    "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET CLI.",
+    "To learn more about the Lambda commands with the .NET CLI execute the following command at the command line in the project root directory.",
 
     "dotnet lambda help",
 
@@ -11,10 +11,10 @@
   "profile": "",
   "region": "eu-west-1",
   "configuration": "Release",
-  "framework": "net6.0",
-  "function-runtime": "dotnetcore2.1",
+  "framework": "net10.0",
+  "function-runtime": "dotnet10",
   "function-name": "test-lambda-template",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "function-handler": "Lambda::Lambda.Function::FunctionHandlerAsync"
+  "function-handler": "EventFunction::EventFunction.Function::FunctionHandlerAsync"
 }
