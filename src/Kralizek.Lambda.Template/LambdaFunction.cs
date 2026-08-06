@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace Kralizek.Lambda;
 
 /// <summary>
-/// The base class for all Lambda function types. Provides dependency injection, configuration, and logging setup.
+/// The base class for all Lambda function types. Provides dependency injection, configuration, logging, and shared invocation infrastructure.
 /// </summary>
 public abstract class LambdaFunction
 {
@@ -76,14 +77,60 @@ public abstract class LambdaFunction
     protected ILogger Logger { get; }
 
     /// <summary>
-    /// Creates a <see cref="CancellationTokenSource"/> that cancels when the Lambda invocation
-    /// has no time remaining, based on <see cref="ILambdaContext.RemainingTime"/>.
+    /// Executes a handler in a fresh dependency-injection scope.
+    /// </summary>
+    protected async ValueTask InvokeAsync<THandler>(
+        CancellationToken cancellationToken,
+        Func<THandler, CancellationToken, ValueTask> invocation)
+        where THandler : notnull
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var scope = ServiceProvider.CreateScope();
+        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
+
+        Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
+
+        await invocation(handler, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Executes a handler in a fresh dependency-injection scope and returns its result.
+    /// </summary>
+    protected async ValueTask<TResult> InvokeAsync<THandler, TResult>(
+        CancellationToken cancellationToken,
+        Func<THandler, CancellationToken, ValueTask<TResult>> invocation)
+        where THandler : notnull
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var scope = ServiceProvider.CreateScope();
+        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
+
+        Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
+
+        return await invocation(handler, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="CancellationTokenSource"/> that is cancelled when the Lambda invocation runs out of time.
     /// </summary>
     protected static CancellationTokenSource CreateCancellationTokenSource(ILambdaContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var cancellationTokenSource = new CancellationTokenSource();
         var remaining = context.RemainingTime;
-        if (remaining <= TimeSpan.Zero || remaining >= TimeSpan.FromMilliseconds(int.MaxValue))
-            return new CancellationTokenSource();
-        return new CancellationTokenSource(remaining);
+
+        if (remaining <= TimeSpan.Zero)
+        {
+            cancellationTokenSource.Cancel();
+        }
+        else if (remaining < TimeSpan.FromMilliseconds(int.MaxValue))
+        {
+            cancellationTokenSource.CancelAfter(remaining);
+        }
+
+        return cancellationTokenSource;
     }
 }
