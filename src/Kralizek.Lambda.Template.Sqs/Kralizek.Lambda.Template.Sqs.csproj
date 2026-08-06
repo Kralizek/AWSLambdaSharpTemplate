@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.Sqs</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sqs</PackageTags>
     <Description>Extension to Kralizek.Lambda.Template to better support AWS Lambda functions that respond to SQS messages.</Description>
@@ -14,6 +14,15 @@
 
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.1.0" />
+  </ItemGroup>
+
+  <!-- SQS implementation is being redesigned; files below are excluded pending PR 3 -->
+  <ItemGroup>
+    <Compile Remove="IMessageHandler.cs" />
+    <Compile Remove="IMessageSerializer.cs" />
+    <Compile Remove="ParallelSqsEventHandler.cs" />
+    <Compile Remove="ServiceCollectionExtensions.cs" />
+    <Compile Remove="SqsEventHandler.cs" />
   </ItemGroup>
 
 </Project>

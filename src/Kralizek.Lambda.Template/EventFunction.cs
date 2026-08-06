@@ -1,63 +1,48 @@
-﻿using System;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
 /// <summary>
-/// A base class used for all Event Functions.
+/// A function base class for handlers that process a single event and produce no meaningful response.
 /// </summary>
-/// <typeparam name="TInput">The type of the incoming request.</typeparam>
-public abstract class EventFunction<TInput> : Function
+/// <typeparam name="TInput">The type of the incoming event.</typeparam>
+/// <typeparam name="THandler">The concrete handler type that processes the event.</typeparam>
+public abstract class EventFunction<TInput, THandler> : LambdaFunction
+    where THandler : class, IEventHandler<TInput>
 {
-    /// <summary>
-    /// The entrypoint used by the Lambda runtime for executing the function. 
-    /// </summary>
-    /// <param name="input">The incoming request.</param>
-    /// <param name="context">A representation of the execution context.</param>
-    /// <exception cref="InvalidOperationException">The exception is thrown if no handler is registered for the incoming input.</exception>
-    public async Task FunctionHandlerAsync(TInput? input, ILambdaContext context)
+    protected override void RegisterHandlers(IServiceCollection services)
     {
-        using var scope = ServiceProvider.CreateScope();
-
-        var handler = scope.ServiceProvider.GetService<IEventHandler<TInput>>();
-
-        if (handler == null)
-        {
-            Logger.LogCritical("No {Handler} could be found", $"IEventHandler<{typeof(TInput).Name}>");
-            throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
-        }
-
-        Logger.LogInformation("Invoking handler");
-        await handler.HandleAsync(input, context).ConfigureAwait(false);
+        services.TryAddTransient<THandler>();
     }
 
     /// <summary>
-    /// Registers the handler for the request ot type <typeparamref name="TInput"/>.
+    /// The entry point called by the Lambda runtime.
     /// </summary>
-    /// <param name="services">The collections of services.</param>
-    /// <param name="lifetime">The lifetime of the handler. Defaults to <see cref="ServiceLifetime.Transient"/>.</param>
-    /// <typeparam name="THandler">The type of the handler for requests of type <typeparamref name="TInput"/>.</typeparam>
-    protected void RegisterHandler<THandler>(IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Transient) where THandler : class, IEventHandler<TInput>
+    public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        services.Add(ServiceDescriptor.Describe(typeof(IEventHandler<TInput>), typeof(THandler), lifetime));
+        using var scope = ServiceProvider.CreateScope();
+        using var cts = CreateCancellationTokenSource(context);
+
+        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
+
+        Logger.LogInformation("Invoking handler {Handler}", typeof(THandler).Name);
+
+        await handler.HandleAsync(input, cts.Token).ConfigureAwait(false);
     }
 }
 
 /// <summary>
-/// An interface that describes an handler for events with inputs of type <typeparamref name="TInput"/>.
+/// The contract for handlers invoked by <see cref="EventFunction{TInput,THandler}"/>.
 /// </summary>
-/// <typeparam name="TInput">The type of the incoming request.</typeparam>
+/// <typeparam name="TInput">The type of the incoming event.</typeparam>
 public interface IEventHandler<in TInput>
 {
-    /// <summary>
-    /// The method used to handle the incoming event.
-    /// </summary>
-    /// <param name="input">The incoming request.</param>
-    /// <param name="context">A representation of the execution context.</param>
-    Task HandleAsync(TInput? input, ILambdaContext context);
+    ValueTask HandleAsync(TInput input, CancellationToken cancellationToken);
 }

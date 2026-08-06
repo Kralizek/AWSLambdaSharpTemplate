@@ -1,4 +1,4 @@
-using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace RequestResponseFunction;
 
-public class Function : RequestResponseFunction<string, string>
+public class Function : RequestFunction<string, string, UpperCaseHandler>
 {
     protected override void Configure(IConfigurationBuilder builder)
     {
@@ -32,25 +32,20 @@ public class Function : RequestResponseFunction<string, string>
             IncludeNewline = true
         });
     }
-
-    protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-    {
-        RegisterHandler<Handler>(services);
-    }
 }
 
-public class Handler : IRequestResponseHandler<string, string>
+public class UpperCaseHandler : IRequestHandler<string, string>
 {
-    private readonly ILogger<Handler> _logger;
+    private readonly ILogger<UpperCaseHandler> _logger;
 
-    public Handler(ILogger<Handler> logger)
+    public UpperCaseHandler(ILogger<UpperCaseHandler> logger)
     {
         _logger = logger;
     }
 
-    public Task<string> HandleAsync(string? input, ILambdaContext context)
+    public ValueTask<string> HandleAsync(string input, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Input: {Input}", input);
-        return Task.FromResult(input?.ToUpper() ?? string.Empty);
+        return new ValueTask<string>(input.ToUpperInvariant());
     }
 }

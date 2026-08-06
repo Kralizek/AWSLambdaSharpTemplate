@@ -1,7 +1,7 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.Core;
 using Amazon.Lambda.TestUtilities;
 
 using Kralizek.Lambda;
@@ -12,41 +12,32 @@ using NUnit.Framework;
 
 namespace Tests.Lambda;
 
+[TestFixture]
 public class EventFunctionDisposalTests
 {
     [Test]
-    public void FunctionHandlerAsync_is_awaited_before_disposal()
+    public void FunctionHandlerAsync_is_awaited_before_scope_disposal()
     {
-        var dependency = new DisposableDependency();
-        var taskCompletionSource = new TaskCompletionSource<string>();
-        var sut = new TestEventFunction(dependency, taskCompletionSource);
+        PendingHandler.Tcs = new TaskCompletionSource<bool>();
+        PendingHandler.Dependency = new DisposableDependency();
 
-        var result = sut.FunctionHandlerAsync("Hi there", new TestLambdaContext());
+        var sut = new TestEventFunction();
+        var task = sut.FunctionHandlerAsync("trigger", new TestLambdaContext());
 
-        Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
-        Assert.That(result.IsCompleted, Is.False, "The task should not be completed");
+        Assert.That(PendingHandler.Dependency.Disposed, Is.False, "Dependency should not be disposed before handler completes");
+        Assert.That(task.IsCompleted, Is.False, "Task should still be in-flight");
 
-        taskCompletionSource.SetResult("done");
+        PendingHandler.Tcs.SetResult(true);
 
-        Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
-        Assert.That(result.IsCompleted, Is.True, "The task should be completed");
+        Assert.That(PendingHandler.Dependency.Disposed, Is.True, "Dependency should be disposed after handler completes");
+        Assert.That(task.IsCompleted, Is.True, "Task should be completed");
     }
 
-    public class TestEventFunction : EventFunction<string>
+    public class TestEventFunction : EventFunction<string, PendingHandler>
     {
-        private readonly DisposableDependency _dependency;
-        private readonly TaskCompletionSource<string> _tcs;
-
-        public TestEventFunction(DisposableDependency dependency, TaskCompletionSource<string> tcs)
-        {
-            _dependency = dependency;
-            _tcs = tcs;
-        }
-
         protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
-            services.AddScoped(_ => _dependency);
-            services.AddTransient<IEventHandler<string>>(s => new TestHandler(s.GetRequiredService<DisposableDependency>(), _tcs));
+            services.AddScoped(_ => PendingHandler.Dependency!);
         }
     }
 
@@ -56,18 +47,20 @@ public class EventFunctionDisposalTests
         public void Dispose() => Disposed = true;
     }
 
-    private class TestHandler : IEventHandler<string>
+    public class PendingHandler : IEventHandler<string>
     {
-        // ReSharper disable once NotAccessedField.Local
-        private readonly DisposableDependency _dependency;
-        private readonly TaskCompletionSource<string> _tcs;
+        // static state set before construction to avoid virtual-call-in-constructor pitfalls
+        public static TaskCompletionSource<bool>? Tcs { get; set; }
+        public static DisposableDependency? Dependency { get; set; }
 
-        public TestHandler(DisposableDependency dependency, TaskCompletionSource<string> tcs)
+        private readonly DisposableDependency _dependency;
+
+        public PendingHandler(DisposableDependency dependency)
         {
             _dependency = dependency;
-            _tcs = tcs;
         }
 
-        public Task HandleAsync(string input, ILambdaContext context) => _tcs.Task;
+        public async ValueTask HandleAsync(string input, CancellationToken cancellationToken)
+            => await Tcs!.Task.ConfigureAwait(false);
     }
 }

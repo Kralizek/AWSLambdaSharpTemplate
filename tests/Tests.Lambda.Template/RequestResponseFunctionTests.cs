@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Amazon.Lambda.TestUtilities;
 
@@ -13,59 +15,101 @@ using NUnit.Framework;
 namespace Tests.Lambda;
 
 [TestFixture]
-public class RequestResponseFunctionTests
+public class RequestFunctionTests
 {
-    private RequestResponseFunction CreateSystemUnderTest()
+    private static TestRequestFunction CreateSystemUnderTest() => new();
+
+    [Test]
+    public void Configure_is_invoked_on_initialization()
     {
-        return new RequestResponseFunction();
+        var sut = CreateSystemUnderTest();
+        Assert.That(sut.IsConfigureInvoked, Is.True);
     }
 
     [Test]
-    public void Configure_should_be_invoked_on_type_initialization()
+    public void ConfigureServices_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-
-        Assert.True(sut.IsConfigureInvoked);
+        Assert.That(sut.IsConfigureServicesInvoked, Is.True);
     }
 
     [Test]
-    public void ConfigureServices_should_be_invoked_on_type_initialization()
+    public void ConfigureLogging_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-
-        Assert.True(sut.IsConfigureServicesInvoked);
+        Assert.That(sut.IsConfigureLoggingInvoked, Is.True);
     }
 
     [Test]
-    public void ConfigureLogging_should_be_invoked_on_type_initialization()
+    public async Task FunctionHandlerAsync_returns_handler_result()
     {
-        var sut = CreateSystemUnderTest();
+        EchoHandler.Suffix = "-result";
+        var sut = new EchoHandlerFunction();
 
-        Assert.True(sut.IsConfigureLoggingInvoked);
+        var result = await sut.FunctionHandlerAsync("hello", new TestLambdaContext());
+
+        Assert.That(result, Is.EqualTo("hello-result"));
     }
 
     [Test]
-    public void FunctionHandlerAsync_throws_if_no_handler_is_registered()
+    public async Task FunctionHandlerAsync_passes_input_to_handler()
     {
-        var sut = CreateSystemUnderTest();
+        EchoHandler.Suffix = string.Empty;
+        var sut = new EchoHandlerFunction();
 
-        var context = new TestLambdaContext();
+        var result = await sut.FunctionHandlerAsync("expected-value", new TestLambdaContext());
 
-        Assert.ThrowsAsync<InvalidOperationException>(() => sut.FunctionHandlerAsync("Hello World", context));
+        Assert.That(result, Is.EqualTo("expected-value"));
     }
 
-    public class RequestResponseFunction : RequestResponseFunction<string, string>
+    [Test]
+    public void FunctionHandlerAsync_propagates_handler_exception()
+    {
+        var sut = new FailingHandlerFunction();
+
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.FunctionHandlerAsync("hello", new TestLambdaContext()));
+    }
+
+    // --- test function classes ---
+
+    public class TestRequestFunction : RequestFunction<string, string, NoOpHandler>
     {
         protected override void Configure(IConfigurationBuilder builder) => IsConfigureInvoked = true;
 
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) => IsConfigureServicesInvoked = true;
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) =>
+            IsConfigureServicesInvoked = true;
 
-        protected override void ConfigureLogging(ILoggingBuilder loggerFactory, IExecutionEnvironment executionEnvironment) => IsConfigureLoggingInvoked = true;
+        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment) =>
+            IsConfigureLoggingInvoked = true;
 
         public bool IsConfigureInvoked { get; private set; }
-
         public bool IsConfigureServicesInvoked { get; private set; }
-
         public bool IsConfigureLoggingInvoked { get; private set; }
+    }
+
+    public class EchoHandlerFunction : RequestFunction<string, string, EchoHandler> { }
+
+    public class FailingHandlerFunction : RequestFunction<string, string, ThrowingHandler> { }
+
+    // --- handler classes ---
+
+    public class NoOpHandler : IRequestHandler<string, string>
+    {
+        public ValueTask<string> HandleAsync(string input, CancellationToken cancellationToken) => new(input);
+    }
+
+    public class EchoHandler : IRequestHandler<string, string>
+    {
+        public static string Suffix { get; set; } = string.Empty;
+
+        public ValueTask<string> HandleAsync(string input, CancellationToken cancellationToken) =>
+            new(input + Suffix);
+    }
+
+    public class ThrowingHandler : IRequestHandler<string, string>
+    {
+        public ValueTask<string> HandleAsync(string input, CancellationToken cancellationToken) =>
+            ValueTask.FromException<string>(new InvalidOperationException("boom"));
     }
 }

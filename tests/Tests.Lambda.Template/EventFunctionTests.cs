@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Amazon.Lambda.TestUtilities;
 
@@ -15,57 +17,110 @@ namespace Tests.Lambda;
 [TestFixture]
 public class EventFunctionTests
 {
-    private TestEventFunction CreateSystemUnderTest()
+    private static TestEventFunction CreateSystemUnderTest() => new();
+
+    [Test]
+    public void Configure_is_invoked_on_initialization()
     {
-        return new TestEventFunction();
+        var sut = CreateSystemUnderTest();
+        Assert.That(sut.IsConfigureInvoked, Is.True);
     }
 
     [Test]
-    public void Configure_should_be_invoked_on_type_initialization()
+    public void ConfigureServices_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-
-        Assert.True(sut.IsConfigureInvoked);
+        Assert.That(sut.IsConfigureServicesInvoked, Is.True);
     }
 
     [Test]
-    public void ConfigureServices_should_be_invoked_on_type_initialization()
+    public void ConfigureLogging_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-
-        Assert.True(sut.IsConfigureServicesInvoked);
+        Assert.That(sut.IsConfigureLoggingInvoked, Is.True);
     }
 
     [Test]
-    public void ConfigureLogging_should_be_invoked_on_type_initialization()
+    public async Task FunctionHandlerAsync_invokes_handler()
     {
-        var sut = CreateSystemUnderTest();
+        TrackingHandler.Reset();
+        var sut = new TrackingHandlerFunction();
 
-        Assert.True(sut.IsConfigureLoggingInvoked);
+        await sut.FunctionHandlerAsync("hello", new TestLambdaContext());
+
+        Assert.That(TrackingHandler.WasInvoked, Is.True);
     }
 
     [Test]
-    public void FunctionHandlerAsync_throws_if_no_handler_is_registered()
+    public async Task FunctionHandlerAsync_passes_input_to_handler()
     {
-        var sut = CreateSystemUnderTest();
+        TrackingHandler.Reset();
+        var sut = new TrackingHandlerFunction();
 
-        var context = new TestLambdaContext();
+        await sut.FunctionHandlerAsync("expected-value", new TestLambdaContext());
 
-        Assert.ThrowsAsync<InvalidOperationException>(() => sut.FunctionHandlerAsync("Hello World", context));
+        Assert.That(TrackingHandler.ReceivedInput, Is.EqualTo("expected-value"));
     }
 
-    public class TestEventFunction : EventFunction<string>
+    [Test]
+    public void FunctionHandlerAsync_propagates_handler_exception()
+    {
+        var sut = new FailingHandlerFunction();
+
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.FunctionHandlerAsync("hello", new TestLambdaContext()));
+    }
+
+    // --- test function classes ---
+
+    public class TestEventFunction : EventFunction<string, NoOpHandler>
     {
         protected override void Configure(IConfigurationBuilder builder) => IsConfigureInvoked = true;
 
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) => IsConfigureServicesInvoked = true;
+        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) =>
+            IsConfigureServicesInvoked = true;
 
-        protected override void ConfigureLogging(ILoggingBuilder loggerFactory, IExecutionEnvironment executionEnvironment) => IsConfigureLoggingInvoked = true;
+        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment) =>
+            IsConfigureLoggingInvoked = true;
 
         public bool IsConfigureInvoked { get; private set; }
-
         public bool IsConfigureServicesInvoked { get; private set; }
-
         public bool IsConfigureLoggingInvoked { get; private set; }
+    }
+
+    public class TrackingHandlerFunction : EventFunction<string, TrackingHandler> { }
+
+    public class FailingHandlerFunction : EventFunction<string, ThrowingHandler> { }
+
+    // --- handler classes ---
+
+    public class NoOpHandler : IEventHandler<string>
+    {
+        public ValueTask HandleAsync(string input, CancellationToken cancellationToken) => ValueTask.CompletedTask;
+    }
+
+    public class TrackingHandler : IEventHandler<string>
+    {
+        public static bool WasInvoked { get; private set; }
+        public static string? ReceivedInput { get; private set; }
+
+        public static void Reset()
+        {
+            WasInvoked = false;
+            ReceivedInput = null;
+        }
+
+        public ValueTask HandleAsync(string input, CancellationToken cancellationToken)
+        {
+            WasInvoked = true;
+            ReceivedInput = input;
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    public class ThrowingHandler : IEventHandler<string>
+    {
+        public ValueTask HandleAsync(string input, CancellationToken cancellationToken) =>
+            ValueTask.FromException(new InvalidOperationException("boom"));
     }
 }

@@ -1,6 +1,5 @@
+using System.Threading;
 using System.Threading.Tasks;
-
-using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
@@ -8,12 +7,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+using Amazon.Lambda.Core;
+
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace EventFunction;
 
-public class Function : EventFunction<string>
+public class Function : EventFunction<string, StringEventHandler>
 {
     protected override void Configure(IConfigurationBuilder builder)
     {
@@ -31,25 +32,20 @@ public class Function : EventFunction<string>
             IncludeNewline = true
         });
     }
-
-    protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
-    {
-        RegisterHandler<EventHandler>(services);
-    }
 }
 
-public class EventHandler : IEventHandler<string>
+public class StringEventHandler : IEventHandler<string>
 {
-    private readonly ILogger<EventHandler> _logger;
+    private readonly ILogger<StringEventHandler> _logger;
 
-    public EventHandler(ILogger<EventHandler> logger)
+    public StringEventHandler(ILogger<StringEventHandler> logger)
     {
         _logger = logger;
     }
 
-    public Task HandleAsync(string? input, ILambdaContext context)
+    public ValueTask HandleAsync(string input, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Input: {Input}", input);
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
