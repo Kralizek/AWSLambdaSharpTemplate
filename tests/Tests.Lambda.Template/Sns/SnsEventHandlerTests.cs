@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using Moq;
+
 using NUnit.Framework;
 
 
@@ -29,7 +34,7 @@ public class SnsEventHandlerTests
     {
         _mockNotificationSerializer = new Mock<INotificationSerializer>();
         _mockNotificationSerializer.Setup(p => p.Deserialize<TestNotification>(It.IsAny<string>())).Returns(() => new TestNotification());
-            
+
         _mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
         _mockNotificationHandler.Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
             .Returns(Task.CompletedTask);
@@ -44,7 +49,7 @@ public class SnsEventHandlerTests
             .Returns(_mockNotificationHandler.Object);
         _mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
             .Returns(_mockServiceScopeFactory.Object);
-            
+
         _mockServiceProvider
             .Setup(p => p.GetService(typeof(INotificationSerializer)))
             .Returns(_mockNotificationSerializer.Object);
@@ -89,7 +94,7 @@ public class SnsEventHandlerTests
         var lambdaContext = new TestLambdaContext();
 
         var sut = CreateSystemUnderTest();
-            
+
         await sut.HandleAsync(snsEvent, lambdaContext);
 
         _mockServiceProvider.Verify(p => p.GetService(typeof(INotificationHandler<TestNotification>)), Times.Exactly(snsEvent.Records.Count));

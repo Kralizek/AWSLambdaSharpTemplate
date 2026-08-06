@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,7 +27,7 @@ public class ParallelSqsExecutionOptions
 /// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SQSEvent"/> that processes all the records in parallel.
 /// </summary>
 /// <typeparam name="TMessage">The internal type of the SQS message.</typeparam>
-public class ParallelSqsEventHandler<TMessage>: IEventHandler<SQSEvent> where TMessage : class
+public class ParallelSqsEventHandler<TMessage> : IEventHandler<SQSEvent> where TMessage : class
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;

@@ -1,6 +1,9 @@
 ﻿using Amazon.Lambda.SQSEvents;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sqs;
@@ -75,7 +78,7 @@ public class ServiceCollectionExtensionsTests
 
         serviceProvider.GetRequiredService<IMessageSerializer>();
     }
-        
+
     [Test]
     public void UseQueueMessageHandler_registers_default_SqsEventHandler()
     {

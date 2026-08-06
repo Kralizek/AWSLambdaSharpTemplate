@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,12 +26,12 @@ public class ParallelSnsExecutionOptions
 /// An implementation of <see cref="IEventHandler{TInput}"/> specialized for <see cref="SNSEvent"/> that processes all the records in parallel.
 /// </summary>
 /// <typeparam name="TNotification">The internal type of the SNS notification.</typeparam>
-public class ParallelSnsEventHandler<TNotification>: IEventHandler<SNSEvent> where TNotification : class
+public class ParallelSnsEventHandler<TNotification> : IEventHandler<SNSEvent> where TNotification : class
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly ParallelSnsExecutionOptions _options;
-    
+
     public ParallelSnsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSnsExecutionOptions> options)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));

@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ public abstract class Function
         var services = new ServiceCollection();
 
         var builder = new ConfigurationBuilder();
-            
+
         Configure(builder);
 
         Configuration = builder.Build();

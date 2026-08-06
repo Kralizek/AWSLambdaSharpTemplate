@@ -1,6 +1,9 @@
 using Amazon.Lambda.SNSEvents;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sns;
@@ -41,7 +44,7 @@ public class ServiceCollectionExtensionsTests
 
         Assert.That(handler, Is.InstanceOf<ParallelSnsEventHandler<TestNotification>>());
     }
-        
+
     [Test]
     public void UseNotificationHandler_registers_ParallelSnsEventHandler_when_parallel_execution_is_enabled()
     {
@@ -71,7 +74,7 @@ public class ServiceCollectionExtensionsTests
 
         serviceProvider.GetRequiredService<INotificationHandler<TestNotification>>();
     }
-        
+
     [Test]
     public void UseNotificationHandler_registers_INotificationSerializer()
     {
@@ -94,13 +97,13 @@ public class ServiceCollectionExtensionsTests
         services.AddLogging();
 
         services.UseNotificationHandler<TestNotification, TestNotificationHandler>();
-                
+
         services.UseCustomNotificationSerializer<TestSerializer>();
 
         var serviceProvider = services.BuildServiceProvider();
 
         var serializer = serviceProvider.GetRequiredService<INotificationSerializer>();
-            
+
         Assert.That(serializer, Is.InstanceOf<TestSerializer>());
     }
 

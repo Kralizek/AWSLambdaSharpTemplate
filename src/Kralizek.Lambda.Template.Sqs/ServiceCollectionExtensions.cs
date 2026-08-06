@@ -1,5 +1,7 @@
 using System;
+
 using Amazon.Lambda.SQSEvents;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -14,7 +16,7 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-        
+
     /// <summary>
     /// Customizes the registration of the <see cref="IMessageHandler{TMessage}"/> to process the records in parallel.
     /// </summary>
@@ -39,7 +41,7 @@ public static class ServiceCollectionExtensions
 
         return configurator;
     }
-        
+
     /// <summary>
     /// Registers a custom serializer for messages.
     /// </summary>
@@ -51,7 +53,7 @@ public static class ServiceCollectionExtensions
         where TSerializer : IMessageSerializer
     {
         ArgumentNullException.ThrowIfNull(services);
-            
+
         services.Add(ServiceDescriptor.Describe(typeof(IMessageSerializer), typeof(TSerializer), lifetime));
 
         return services;
@@ -85,9 +87,9 @@ public static class ServiceCollectionExtensions
         where THandler : class, IMessageHandler<TMessage>
     {
         services.AddOptions();
-            
+
         services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TMessage>>();
-            
+
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
 
         services.Add(ServiceDescriptor.Describe(typeof(IMessageHandler<TMessage>), typeof(THandler), lifetime));
@@ -118,6 +120,6 @@ internal sealed class MessageHandlerConfigurator<TMessage> : IMessageHandlerConf
     {
         Services = services ?? throw new ArgumentNullException(nameof(services));
     }
-        
+
     public IServiceCollection Services { get; }
 }

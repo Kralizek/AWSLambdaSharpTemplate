@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sqs;
@@ -93,11 +97,11 @@ public class SqsEventHandlerDisposalTests
         services.AddTransient<IMessageHandler<TestMessage>,
             TestMessageScopedHandler>(provider =>
             new TestMessageScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
-            
+
         services.AddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
 
         var sp = services.BuildServiceProvider();
-        var sqsEventHandler = new ParallelSqsEventHandler<TestMessage>(sp, new NullLoggerFactory(), Options.Create(new ParallelSqsExecutionOptions{MaxDegreeOfParallelism = 4}));
+        var sqsEventHandler = new ParallelSqsEventHandler<TestMessage>(sp, new NullLoggerFactory(), Options.Create(new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 }));
 
         var task = sqsEventHandler.HandleAsync(sqsEvent, new TestLambdaContext());
 

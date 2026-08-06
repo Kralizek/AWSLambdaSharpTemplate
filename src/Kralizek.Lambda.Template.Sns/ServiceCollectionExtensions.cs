@@ -1,5 +1,7 @@
 using System;
+
 using Amazon.Lambda.SNSEvents;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -51,7 +53,7 @@ public static class ServiceCollectionExtensions
         where TSerializer : INotificationSerializer
     {
         ArgumentNullException.ThrowIfNull(services);
-            
+
         services.Add(ServiceDescriptor.Describe(typeof(INotificationSerializer), typeof(TSerializer), lifetime));
 
         return services;
@@ -85,7 +87,7 @@ public static class ServiceCollectionExtensions
         where THandler : class, INotificationHandler<TNotification>
     {
         services.AddOptions();
-            
+
         services.AddTransient<IEventHandler<SNSEvent>, SnsEventHandler<TNotification>>();
 
         services.TryAddSingleton<INotificationSerializer, DefaultJsonNotificationSerializer>();
@@ -118,6 +120,6 @@ internal sealed class NotificationHandlerConfigurator<TNotification> : INotifica
     {
         Services = services ?? throw new ArgumentNullException(nameof(services));
     }
-        
+
     public IServiceCollection Services { get; }
 }

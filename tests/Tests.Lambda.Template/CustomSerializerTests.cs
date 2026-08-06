@@ -1,10 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
+
 using NUnit.Framework;
 
 
@@ -15,11 +19,11 @@ public class CustomSerializerTests
 {
     private const string RawMessage = "hello world";
     private const string Message = "hello world top secret injection from serializer";
-    
+
     [SetUp]
     public void Initialize()
     {
-            
+
     }
 
     private class SomeEvent
@@ -63,7 +67,7 @@ public class CustomSerializerTests
         protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
         {
             services.UseQueueMessageHandler<SomeEvent, DummyHandler>();
-                
+
             services.AddSingleton<IMessageSerializer, CustomSerializer>();
         }
     }
