@@ -41,6 +41,9 @@ jobs:
       - name: Restore
         run: dotnet restore
 
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes --no-restore
+
       - name: Build
         run: dotnet build --configuration $CONFIGURATION --no-restore --warnaserror
 
