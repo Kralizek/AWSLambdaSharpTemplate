@@ -5,7 +5,6 @@ using Amazon.Lambda.Core;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
@@ -28,14 +27,12 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunctio
     /// </summary>
     public async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        using var scope = ServiceProvider.CreateScope();
         using var cts = CreateCancellationTokenSource(context);
+        var requestContext = new RequestContext(context);
 
-        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-
-        Logger.LogInformation("Invoking handler {Handler}", typeof(THandler).Name);
-
-        return await handler.HandleAsync(input, cts.Token).ConfigureAwait(false);
+        return await InvokeAsync<THandler, TOutput>(
+            cts.Token,
+            (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
     }
 }
 
@@ -46,5 +43,5 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunctio
 /// <typeparam name="TOutput">The type of the response.</typeparam>
 public interface IRequestHandler<in TInput, TOutput>
 {
-    ValueTask<TOutput> HandleAsync(TInput input, CancellationToken cancellationToken);
+    ValueTask<TOutput> HandleAsync(TInput input, RequestContext context, CancellationToken cancellationToken);
 }
