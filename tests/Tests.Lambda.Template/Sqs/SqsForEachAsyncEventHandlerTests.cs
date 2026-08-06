@@ -2,14 +2,19 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sqs;
@@ -33,7 +38,7 @@ public class ParallelSqsEventHandlerTests
         _mockMessageSerializer
             .Setup(p => p.Deserialize<TestMessage>(It.IsAny<string>()))
             .Returns(() => new TestMessage());
-            
+
         _mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
         _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>())).Returns(Task.CompletedTask);
 
@@ -183,9 +188,9 @@ public class ParallelSqsEventHandlerTests
 
         var cq = new ConcurrentQueue<Task>();
 
-        _parallelExecutionOptions = new ParallelSqsExecutionOptions {MaxDegreeOfParallelism = 2};
+        _parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 2 };
         _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
-            .Returns(async ()=>
+            .Returns(async () =>
             {
                 var t = Task.Delay(1);
                 cq.Enqueue(t);
@@ -234,7 +239,7 @@ public class ParallelSqsEventHandlerTests
         };
 
         var cq = new ConcurrentQueue<Task>();
-            
+
         //We are checking if parallelism actually does what it's supposed to do. So we should have more then 2 concurrent processes running
         _parallelExecutionOptions = new ParallelSqsExecutionOptions { MaxDegreeOfParallelism = 4 };
         _mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>()))
@@ -250,7 +255,7 @@ public class ParallelSqsEventHandlerTests
                 await t;
                 cq.TryDequeue(out t);
             });
-            
+
         var sut = CreateSystemUnderTest();
 
         Assert.ThrowsAsync<Exception>(() => sut.HandleAsync(sqsEvent, new TestLambdaContext()));

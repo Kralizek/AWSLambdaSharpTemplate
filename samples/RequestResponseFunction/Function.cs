@@ -1,7 +1,10 @@
 using System;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace RequestResponseFunction;
 
-public class Function : RequestResponseFunction<string ,string>
+public class Function : RequestResponseFunction<string, string>
 {
     protected override void Configure(IConfigurationBuilder builder)
     {

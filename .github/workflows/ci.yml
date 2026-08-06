@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'release' }}
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  CONFIGURATION: Release
+  ARTIFACTS_PATH: ./artifacts
+
+jobs:
+  validate-and-pack:
+    name: Validate and pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          dotnet-version: 6.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build --configuration $CONFIGURATION --no-restore --warnaserror
+
+      - name: Test
+        run: dotnet test --configuration $CONFIGURATION --no-build --logger GitHubActions
+
+      - name: Pack
+        run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: |
+            ${{ env.ARTIFACTS_PATH }}/packages/*.nupkg
+            ${{ env.ARTIFACTS_PATH }}/packages/*.snupkg
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    needs: validate-and-pack
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-packages
+          path: ./artifacts/packages
+
+      - name: Log in to NuGet.org
+        id: nuget-login
+        uses: nuget/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: Kralizek
+
+      - name: Publish to NuGet.org
+        run: >-
+          dotnet nuget push
+          "./artifacts/packages/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          --skip-duplicate
+
+      - name: Attach packages to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release upload "$RELEASE_TAG"
+          ./artifacts/packages/*.nupkg
+          ./artifacts/packages/*.snupkg
+          --repo "${{ github.repository }}"
+          --clobber

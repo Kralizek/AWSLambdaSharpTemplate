@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sns;
@@ -105,7 +109,7 @@ public class SnsEventHandlerDisposalTests
 
         services.AddTransient<INotificationHandler<TestNotification>,
             TestNotificationScopedHandler>(provider => new TestNotificationScopedHandler(provider.GetRequiredService<DisposableDependency>(), tcs));
-            
+
         services.AddSingleton<INotificationSerializer, DefaultJsonNotificationSerializer>();
 
         var sp = services.BuildServiceProvider();
@@ -129,7 +133,7 @@ public class SnsEventHandlerDisposalTests
         public void Dispose() => Disposed = true;
     }
 
-    private class TestNotificationScopedHandler: INotificationHandler<TestNotification>
+    private class TestNotificationScopedHandler : INotificationHandler<TestNotification>
     {
         private readonly DisposableDependency _dependency;
         private readonly TaskCompletionSource<TestNotification> _tcs;

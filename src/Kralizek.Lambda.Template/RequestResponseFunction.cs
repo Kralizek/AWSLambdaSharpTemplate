@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -43,7 +45,7 @@ public abstract class RequestResponseFunction<TInput, TOutput> : Function
     /// <param name="lifetime">The lifetime of the handler. Defaults to <see cref="ServiceLifetime.Transient"/>.</param>
     /// <typeparam name="THandler">The type of the handler for requests of type <typeparamref name="TInput"/>.</typeparam>
     protected void RegisterHandler<THandler>(IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Transient) where THandler : class, IRequestResponseHandler<TInput, TOutput>
-    { 
+    {
         services.Add(ServiceDescriptor.Describe(typeof(IRequestResponseHandler<TInput, TOutput>), typeof(THandler), lifetime));
     }
 }

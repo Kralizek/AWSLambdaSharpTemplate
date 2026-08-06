@@ -2,14 +2,19 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sns;
@@ -30,24 +35,24 @@ public class ParallelSnsEventHandlerTests
     {
         _mockNotificationSerializer = new Mock<INotificationSerializer>();
         _mockNotificationSerializer.Setup(p => p.Deserialize<TestNotification>(It.IsAny<string>())).Returns(() => new TestNotification());
-            
+
         _mockNotificationHandler = new Mock<INotificationHandler<TestNotification>>();
         _mockNotificationHandler
             .Setup(p => p.HandleAsync(It.IsAny<TestNotification>(), It.IsAny<ILambdaContext>()))
             .Returns(Task.CompletedTask);
-            
+
         _mockServiceScope = new Mock<IServiceScope>();
-            
+
         _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         _mockServiceScopeFactory
             .Setup(p => p.CreateScope())
             .Returns(_mockServiceScope.Object);
-            
+
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockServiceProvider
             .Setup(p => p.GetService(typeof(INotificationHandler<TestNotification>)))
             .Returns(_mockNotificationHandler.Object);
-            
+
         _mockServiceProvider
             .Setup(p => p.GetService(typeof(IServiceScopeFactory)))
             .Returns(_mockServiceScopeFactory.Object);
@@ -55,7 +60,7 @@ public class ParallelSnsEventHandlerTests
         _mockServiceProvider
             .Setup(p => p.GetService(typeof(INotificationSerializer)))
             .Returns(_mockNotificationSerializer.Object);
-            
+
         _mockServiceScope
             .Setup(p => p.ServiceProvider)
             .Returns(_mockServiceProvider.Object);
@@ -88,7 +93,7 @@ public class ParallelSnsEventHandlerTests
                     {
                         Message = "{}"
                     }
-                }, 
+                },
                 new SNSEvent.SNSRecord
                 {
                     Sns = new SNSEvent.SNSMessage

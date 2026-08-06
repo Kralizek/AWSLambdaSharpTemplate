@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using Moq;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda.Sqs;
@@ -31,7 +36,7 @@ public class SqsEventHandlerTests
         mockMessageSerializer
             .Setup(p => p.Deserialize<TestMessage>(It.IsAny<string>()))
             .Returns(() => new TestMessage());
-            
+
         mockMessageHandler = new Mock<IMessageHandler<TestMessage>>();
         mockMessageHandler.Setup(p => p.HandleAsync(It.IsAny<TestMessage>(), It.IsAny<ILambdaContext>())).Returns(Task.CompletedTask);
 
@@ -166,7 +171,7 @@ public class SqsEventHandlerTests
 
         mockServiceProvider = new Mock<IServiceProvider>();
         mockServiceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(mockServiceScopeFactory.Object);
-            
+
         mockServiceScope.Setup(p => p.ServiceProvider).Returns(mockServiceProvider.Object);
 
         var sut = CreateSystemUnderTest();

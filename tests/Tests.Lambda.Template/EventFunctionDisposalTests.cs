@@ -1,9 +1,13 @@
 using System;
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Amazon.Lambda.TestUtilities;
+
 using Kralizek.Lambda;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using NUnit.Framework;
 
 namespace Tests.Lambda;
@@ -18,12 +22,12 @@ public class EventFunctionDisposalTests
         var sut = new TestEventFunction(dependency, taskCompletionSource);
 
         var result = sut.FunctionHandlerAsync("Hi there", new TestLambdaContext());
-            
+
         Assert.That(dependency.Disposed, Is.False, "Dependency should not be disposed");
         Assert.That(result.IsCompleted, Is.False, "The task should not be completed");
 
         taskCompletionSource.SetResult("done");
-            
+
         Assert.That(dependency.Disposed, Is.True, "Dependency should be disposed");
         Assert.That(result.IsCompleted, Is.True, "The task should be completed");
     }
@@ -45,7 +49,7 @@ public class EventFunctionDisposalTests
             services.AddTransient<IEventHandler<string>>(s => new TestHandler(s.GetRequiredService<DisposableDependency>(), _tcs));
         }
     }
-        
+
     public class DisposableDependency : IDisposable
     {
         public bool Disposed { get; private set; }

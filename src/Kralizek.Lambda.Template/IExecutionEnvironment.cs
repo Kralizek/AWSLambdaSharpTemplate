@@ -23,7 +23,7 @@ internal class LambdaExecutionEnvironment : IExecutionEnvironment
 {
     internal const string DevelopmentEnvironmentName = "Development";
     internal const string ProductionEnvironmentName = "Production";
-    
+
     public string EnvironmentName { get; init; } = DevelopmentEnvironmentName;
 
     public bool IsLambda { get; init; }
