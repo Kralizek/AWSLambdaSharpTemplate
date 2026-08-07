@@ -78,7 +78,7 @@ public abstract class LambdaFunction
     protected ILogger Logger { get; }
 
     /// <summary>
-    /// Executes a handler in a fresh dependency-injection scope.
+    /// Executes a handler in a fresh invocation scope.
     /// </summary>
     protected async ValueTask InvokeAsync<THandler>(
         CancellationToken cancellationToken,
@@ -87,16 +87,16 @@ public abstract class LambdaFunction
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await using var scope = ServiceProvider.CreateAsyncScope();
-        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
-        Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
-
-        await invocation(handler, cancellationToken).ConfigureAwait(false);
+        await InvokeHandlerAsync(
+            invocationScope.ServiceProvider,
+            cancellationToken,
+            invocation).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Executes a handler in a fresh dependency-injection scope and returns its result.
+    /// Executes a handler in a fresh invocation scope and returns its result.
     /// </summary>
     protected async ValueTask<TResult> InvokeAsync<THandler, TResult>(
         CancellationToken cancellationToken,
@@ -105,8 +105,44 @@ public abstract class LambdaFunction
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await using var scope = ServiceProvider.CreateAsyncScope();
-        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+
+        return await InvokeHandlerAsync<THandler, TResult>(
+            invocationScope.ServiceProvider,
+            cancellationToken,
+            invocation).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Resolves and executes a handler from an existing scope.
+    /// </summary>
+    protected async ValueTask InvokeHandlerAsync<THandler>(
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken,
+        Func<THandler, CancellationToken, ValueTask> invocation)
+        where THandler : notnull
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var handler = serviceProvider.GetRequiredService<THandler>();
+
+        Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
+
+        await invocation(handler, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Resolves and executes a handler from an existing scope and returns its result.
+    /// </summary>
+    protected async ValueTask<TResult> InvokeHandlerAsync<THandler, TResult>(
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken,
+        Func<THandler, CancellationToken, ValueTask<TResult>> invocation)
+        where THandler : notnull
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var handler = serviceProvider.GetRequiredService<THandler>();
 
         Logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
 
