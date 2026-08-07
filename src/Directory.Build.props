@@ -9,7 +9,7 @@
     <MinVerDefaultPreReleaseIdentifiers>preview</MinVerDefaultPreReleaseIdentifiers>
     <MinVerAutoIncrement>minor</MinVerAutoIncrement>
 
-    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Kralizek/AWSLambdaSharpTemplate</PackageProjectUrl>
     <NoWarn>NU5105,NU5125</NoWarn>
