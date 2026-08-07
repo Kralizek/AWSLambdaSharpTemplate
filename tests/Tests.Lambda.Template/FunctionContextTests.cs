@@ -42,6 +42,27 @@ public class FunctionContextTests
         Assert.That(new SpecializedRecordContext(metadata, properties).GetLambdaContext(), Is.SameAs(lambdaContext));
     }
 
+    [Test]
+    public void Specialized_context_snapshots_extensible_property_bag()
+    {
+        var lambdaContext = TestLambdaContexts.Create();
+        var metadata = FunctionContextFactory.CreateMetadata(lambdaContext);
+        var properties = FunctionContextFactory.CreateProperties(lambdaContext);
+        properties["Source"] = "SQS";
+
+        var context = new SpecializedRecordContext(metadata, properties);
+
+        properties["Source"] = "Changed";
+        properties["Later"] = true;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(context.Properties["Source"], Is.EqualTo("SQS"));
+            Assert.That(context.Properties.ContainsKey("Later"), Is.False);
+            Assert.That(context.GetLambdaContext(), Is.SameAs(lambdaContext));
+        });
+    }
+
     private sealed class SpecializedEventContext : EventContext
     {
         public SpecializedEventContext(
