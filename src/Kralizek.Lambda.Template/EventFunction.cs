@@ -12,9 +12,13 @@ namespace Kralizek.Lambda;
 /// A function base class for handlers that process a single event and produce no meaningful response.
 /// </summary>
 /// <typeparam name="TInput">The type of the incoming event.</typeparam>
+/// <typeparam name="TContext">The context type passed to the handler.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the event.</typeparam>
-public abstract class EventFunction<TInput, THandler> : LambdaFunction
-    where THandler : class, IEventHandler<TInput>
+#pragma warning disable S2436 // The generic roles are intentional and make the event contract explicit.
+public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
+#pragma warning restore S2436
+    where TContext : EventContext
+    where THandler : class, IEventHandler<TInput, TContext>
 {
     private protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
@@ -23,12 +27,17 @@ public abstract class EventFunction<TInput, THandler> : LambdaFunction
     }
 
     /// <summary>
+    /// Creates the strongly typed context passed to the event handler.
+    /// </summary>
+    protected abstract TContext CreateContext(TInput input, ILambdaContext context);
+
+    /// <summary>
     /// The entry point called by the Lambda runtime.
     /// </summary>
     public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
         using var cts = CreateCancellationTokenSource(context);
-        var eventContext = new EventContext(context);
+        var eventContext = CreateContext(input, context);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
@@ -40,10 +49,26 @@ public abstract class EventFunction<TInput, THandler> : LambdaFunction
 }
 
 /// <summary>
-/// The contract for handlers invoked by <see cref="EventFunction{TInput,THandler}"/>.
+/// A function base class for handlers that use the standard <see cref="EventContext"/>.
 /// </summary>
-/// <typeparam name="TInput">The type of the incoming event.</typeparam>
-public interface IEventHandler<in TInput>
+public abstract class EventFunction<TInput, THandler> : EventFunction<TInput, EventContext, THandler>
+    where THandler : class, IEventHandler<TInput, EventContext>
 {
-    ValueTask HandleAsync(TInput input, EventContext context, CancellationToken cancellationToken);
+    protected override EventContext CreateContext(TInput input, ILambdaContext context) => new(context);
+}
+
+/// <summary>
+/// The contract for strongly typed event handlers.
+/// </summary>
+public interface IEventHandler<in TInput, in TContext>
+    where TContext : EventContext
+{
+    ValueTask HandleAsync(TInput input, TContext context, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// The contract for event handlers that use the standard <see cref="EventContext"/>.
+/// </summary>
+public interface IEventHandler<in TInput> : IEventHandler<TInput, EventContext>
+{
 }
