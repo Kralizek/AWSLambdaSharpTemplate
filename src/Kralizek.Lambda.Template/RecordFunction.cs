@@ -201,7 +201,9 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 /// <typeparam name="TRecord">The individual record type to handle.</typeparam>
 /// <typeparam name="TRecordResult">The result produced from processing the record.</typeparam>
 /// <typeparam name="TContext">The context available while processing a record.</typeparam>
+#pragma warning disable S2436 // Record, result, and strongly typed context are distinct handler roles by design.
 public interface IRecordHandler<in TRecord, TRecordResult, in TContext>
+#pragma warning restore S2436
     where TContext : RecordContext
 {
     ValueTask<TRecordResult> HandleAsync(TRecord record, TContext context, CancellationToken cancellationToken);
