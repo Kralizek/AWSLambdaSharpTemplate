@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Amazon.Lambda.Core;
 using Amazon.Lambda.TestUtilities;
 
 using Kralizek.Lambda;
@@ -57,6 +58,20 @@ public class EventFunctionTests
     }
 
     [Test]
+    public async Task FunctionHandlerAsync_passes_specialized_context_without_casts()
+    {
+        SpecializedEventHandler.ReceivedContext = null;
+        var sut = new SpecializedEventFunction();
+        var lambdaContext = TestLambdaContexts.Create();
+
+        await sut.FunctionHandlerAsync("expected-value", lambdaContext);
+
+        Assert.That(SpecializedEventHandler.ReceivedContext, Is.Not.Null);
+        Assert.That(SpecializedEventHandler.ReceivedContext?.Input, Is.EqualTo("expected-value"));
+        Assert.That(SpecializedEventHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
+    }
+
+    [Test]
     public void FunctionHandlerAsync_propagates_handler_exception()
     {
         var sut = new FailingHandlerFunction();
@@ -96,6 +111,22 @@ public class EventFunctionTests
 
     public class FailingHandlerFunction : EventFunction<string, ThrowingHandler> { }
 
+    public class SpecializedEventFunction : EventFunction<string, SpecializedEventContext, SpecializedEventHandler>
+    {
+        protected override SpecializedEventContext CreateContext(string input, ILambdaContext context) => new(context, input);
+    }
+
+    public class SpecializedEventContext : EventContext
+    {
+        public SpecializedEventContext(ILambdaContext context, string input)
+            : base(context)
+        {
+            Input = input;
+        }
+
+        public string Input { get; }
+    }
+
     public class NoOpHandler : IEventHandler<string>
     {
         public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken) => ValueTask.CompletedTask;
@@ -118,6 +149,17 @@ public class EventFunctionTests
         {
             WasInvoked = true;
             ReceivedInput = input;
+            ReceivedContext = context;
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    public class SpecializedEventHandler : IEventHandler<string, SpecializedEventContext>
+    {
+        public static SpecializedEventContext? ReceivedContext { get; set; }
+
+        public ValueTask HandleAsync(string input, SpecializedEventContext context, CancellationToken cancellationToken)
+        {
             ReceivedContext = context;
             return ValueTask.CompletedTask;
         }
