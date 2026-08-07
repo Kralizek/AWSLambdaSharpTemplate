@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 
-using Amazon.Lambda.Core;
-
 using Kralizek.Lambda;
 
 using NUnit.Framework;
