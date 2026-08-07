@@ -112,7 +112,11 @@ The standard contexts are:
 - `RequestContext`
 - `RecordContext`
 
-Full generic forms allow source-specific integrations to substitute richer context types without requiring casts in handlers.
+The context and handler contracts live in `Kralizek.Lambda.Template.Abstractions`, which has no dependency on `Amazon.Lambda.Core`. Common Lambda invocation metadata is exposed as strongly typed CLR properties on `FunctionContext`.
+
+This package provides `FunctionContextFactory`, which maps `ILambdaContext` into those source-neutral properties. The original AWS context is retained in the context property bag as an escape hatch and can be retrieved with `GetLambdaContext()` when an application needs runtime data not surfaced directly by the abstraction.
+
+Source-specific integrations can derive richer context types and use `FunctionContextFactory.CreateMetadata(...)` and `CreateProperties(...)` to preserve the same base metadata and runtime escape hatch.
 
 ## Scopes
 
