@@ -5,31 +5,13 @@ using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace RequestFunction;
 
-public class Function : RequestFunction<string, string, UpperCaseHandler>
-{
-    protected override void ConfigureConfiguration(IConfigurationBuilder configuration)
-    {
-        configuration.AddEnvironmentVariables();
-    }
-
-    protected override void ConfigureLogging(ILoggingBuilder logging)
-    {
-        logging.AddConfiguration(Configuration.GetSection("Logging"));
-        logging.AddLambdaLogger(new LambdaLoggerOptions
-        {
-            IncludeCategory = true,
-            IncludeLogLevel = true,
-            IncludeNewline = true
-        });
-    }
-}
+public class Function : RequestFunction<string, string, UpperCaseHandler>;
 
 public class UpperCaseHandler : IRequestHandler<string, string>
 {
