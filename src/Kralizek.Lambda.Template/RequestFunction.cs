@@ -21,7 +21,7 @@ public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : Lam
     where TContext : RequestContext
     where THandler : class, IRequestHandler<TInput, TOutput, TContext>
 {
-    private protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
         services.TryAddScoped<THandler>();
