@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="../eng/Package.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Kralizek.Lambda.Templates</PackageId>
+    <PackageType>Template</PackageType>
+    <Description>Templates for AWS Lambda using Kralizek.Lambda.Template</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <TemplateStagingDirectory>$(IntermediateOutputPath)template-content</TemplateStagingDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None
+      Include="content/**/*"
+      Exclude="content/**/*.csproj"
+      Pack="true"
+      PackagePath="content/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None
+      Include="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj"
+      Pack="true"
+      PackagePath="content/EventFunction/LambdaFunctionProject.csproj" />
+    <None
+      Include="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj"
+      Pack="true"
+      PackagePath="content/RequestFunction/LambdaFunctionProject.csproj" />
+  </ItemGroup>
+
+  <Target Name="PrepareTemplateProjects" BeforeTargets="GenerateNuspec">
+    <MakeDir Directories="$(TemplateStagingDirectory)/EventFunction;$(TemplateStagingDirectory)/RequestFunction" />
+    <Copy
+      SourceFiles="content/EventFunction/LambdaFunctionProject.csproj"
+      DestinationFiles="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" />
+    <Copy
+      SourceFiles="content/RequestFunction/LambdaFunctionProject.csproj"
+      DestinationFiles="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" />
+
+    <XmlPoke
+      XmlInputPath="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj"
+      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version"
+      Value="$(PackageVersion)" />
+    <XmlPoke
+      XmlInputPath="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj"
+      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version"
+      Value="$(PackageVersion)" />
+  </Target>
+
+</Project>
