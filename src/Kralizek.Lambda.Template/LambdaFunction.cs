@@ -68,10 +68,12 @@ public abstract class LambdaFunction
     /// Registers services required by the function model and its specializations.
     /// </summary>
     /// <remarks>
+    /// This extensibility point is intended for framework and third-party function specializations.
+    /// Application-level dependencies should be registered through <see cref="ConfigureServices(IServiceCollection,IConfiguration)"/> instead.
     /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
     /// Overrides must not depend on state initialized by a derived-class constructor.
     /// </remarks>
-    private protected virtual void ConfigureFrameworkServices(IServiceCollection services) { }
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services) { }
 
     /// <summary>
     /// Override to configure additional logging providers and options.
