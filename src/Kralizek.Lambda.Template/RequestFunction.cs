@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -57,23 +56,6 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : RequestFuncti
 #pragma warning restore S2436
     where THandler : class, IRequestHandler<TInput, TOutput, RequestContext>
 {
-    protected override RequestContext CreateContext(TInput input, ILambdaContext context) => new(context);
-}
-
-/// <summary>
-/// The contract for strongly typed request handlers.
-/// </summary>
-#pragma warning disable S2436 // The generic roles are intentional and make the request handler contract explicit.
-public interface IRequestHandler<in TInput, TOutput, in TContext>
-#pragma warning restore S2436
-    where TContext : RequestContext
-{
-    ValueTask<TOutput> HandleAsync(TInput input, TContext context, CancellationToken cancellationToken);
-}
-
-/// <summary>
-/// The contract for request handlers that use the standard <see cref="RequestContext"/>.
-/// </summary>
-public interface IRequestHandler<in TInput, TOutput> : IRequestHandler<TInput, TOutput, RequestContext>
-{
+    protected override RequestContext CreateContext(TInput input, ILambdaContext context) =>
+        FunctionContextFactory.CreateRequestContext(context);
 }
