@@ -30,7 +30,10 @@ public abstract class EventFunction<TInput, THandler> : LambdaFunction
         using var cts = CreateCancellationTokenSource(context);
         var eventContext = new EventContext(context);
 
-        await InvokeAsync<THandler>(
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+
+        await ExecuteHandlerAsync<THandler>(
+            invocationScope.ServiceProvider,
             cts.Token,
             (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
     }
