@@ -27,23 +27,23 @@ public sealed class PlainTextStringPayloadDecoder : IStringPayloadDecoder<string
 /// <typeparam name="TPayload">The application contract type produced by the decoder.</typeparam>
 public sealed class JsonStringPayloadDecoder<TPayload> : IStringPayloadDecoder<TPayload>
 {
-    private readonly JsonSerializerOptions? _options;
-    private readonly JsonTypeInfo<TPayload>? _typeInfo;
+    private readonly JsonPayloadDecoderState<TPayload> _state;
 
     public JsonStringPayloadDecoder()
         : this(JsonSerializerOptions.Default) { }
 
     public JsonStringPayloadDecoder(JsonSerializerOptions options)
-    {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-    }
+        : this(new JsonPayloadDecoderState<TPayload>(options)) { }
 
     public JsonStringPayloadDecoder(JsonSerializerContext context)
-        : this(GetTypeInfo(context)) { }
+        : this(JsonPayloadDecoderState<TPayload>.FromContext(context)) { }
 
     public JsonStringPayloadDecoder(JsonTypeInfo<TPayload> typeInfo)
+        : this(new JsonPayloadDecoderState<TPayload>(typeInfo)) { }
+
+    private JsonStringPayloadDecoder(JsonPayloadDecoderState<TPayload> state)
     {
-        _typeInfo = typeInfo ?? throw new ArgumentNullException(nameof(typeInfo));
+        _state = state;
     }
 
     public ValueTask<TPayload> DecodeAsync(string payload, CancellationToken cancellationToken = default)
@@ -51,6 +51,74 @@ public sealed class JsonStringPayloadDecoder<TPayload> : IStringPayloadDecoder<T
         ArgumentNullException.ThrowIfNull(payload);
         cancellationToken.ThrowIfCancellationRequested();
 
+        return ValueTask.FromResult(_state.Deserialize(payload));
+    }
+}
+
+/// <summary>
+/// Decodes UTF-8 JSON binary payloads using System.Text.Json.
+/// </summary>
+/// <typeparam name="TPayload">The application contract type produced by the decoder.</typeparam>
+public sealed class JsonBinaryPayloadDecoder<TPayload> : IBinaryPayloadDecoder<TPayload>
+{
+    private readonly JsonPayloadDecoderState<TPayload> _state;
+
+    public JsonBinaryPayloadDecoder()
+        : this(JsonSerializerOptions.Default) { }
+
+    public JsonBinaryPayloadDecoder(JsonSerializerOptions options)
+        : this(new JsonPayloadDecoderState<TPayload>(options)) { }
+
+    public JsonBinaryPayloadDecoder(JsonSerializerContext context)
+        : this(JsonPayloadDecoderState<TPayload>.FromContext(context)) { }
+
+    public JsonBinaryPayloadDecoder(JsonTypeInfo<TPayload> typeInfo)
+        : this(new JsonPayloadDecoderState<TPayload>(typeInfo)) { }
+
+    private JsonBinaryPayloadDecoder(JsonPayloadDecoderState<TPayload> state)
+    {
+        _state = state;
+    }
+
+    public ValueTask<TPayload> DecodeAsync(ReadOnlyMemory<byte> payload, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return ValueTask.FromResult(_state.Deserialize(payload.Span));
+    }
+}
+
+internal readonly struct JsonPayloadDecoderState<TPayload>
+{
+    private readonly JsonSerializerOptions? _options;
+    private readonly JsonTypeInfo<TPayload>? _typeInfo;
+
+    public JsonPayloadDecoderState(JsonSerializerOptions options)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _typeInfo = null;
+    }
+
+    public JsonPayloadDecoderState(JsonTypeInfo<TPayload> typeInfo)
+    {
+        _options = null;
+        _typeInfo = typeInfo ?? throw new ArgumentNullException(nameof(typeInfo));
+    }
+
+    public static JsonPayloadDecoderState<TPayload> FromContext(JsonSerializerContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var typeInfo = context.GetTypeInfo(typeof(TPayload)) as JsonTypeInfo<TPayload>
+            ?? throw new ArgumentException(
+                $"The serializer context does not contain metadata for {typeof(TPayload).FullName}.",
+                nameof(context));
+
+        return new JsonPayloadDecoderState<TPayload>(typeInfo);
+    }
+
+    public TPayload Deserialize(string payload)
+    {
         TPayload? result;
 
         if (_typeInfo is not null)
@@ -63,83 +131,35 @@ public sealed class JsonStringPayloadDecoder<TPayload> : IStringPayloadDecoder<T
         }
         else
         {
-            throw new InvalidOperationException("The payload decoder is not configured with JSON serialization metadata.");
+            throw CreateInvalidStateException();
         }
 
-        return ValueTask.FromResult(result ?? throw CreateNullPayloadException());
+        return EnsureResult(result);
     }
 
-    private static JsonTypeInfo<TPayload> GetTypeInfo(JsonSerializerContext context)
+    public TPayload Deserialize(ReadOnlySpan<byte> payload)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
-        return context.GetTypeInfo(typeof(TPayload)) as JsonTypeInfo<TPayload>
-            ?? throw new ArgumentException(
-                $"The serializer context does not contain metadata for {typeof(TPayload).FullName}.",
-                nameof(context));
-    }
-
-    private static JsonException CreateNullPayloadException() =>
-        new($"JSON payload deserialized to null for {typeof(TPayload).FullName}.");
-}
-
-/// <summary>
-/// Decodes UTF-8 JSON binary payloads using System.Text.Json.
-/// </summary>
-/// <typeparam name="TPayload">The application contract type produced by the decoder.</typeparam>
-public sealed class JsonBinaryPayloadDecoder<TPayload> : IBinaryPayloadDecoder<TPayload>
-{
-    private readonly JsonSerializerOptions? _options;
-    private readonly JsonTypeInfo<TPayload>? _typeInfo;
-
-    public JsonBinaryPayloadDecoder()
-        : this(JsonSerializerOptions.Default) { }
-
-    public JsonBinaryPayloadDecoder(JsonSerializerOptions options)
-    {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-
-    public JsonBinaryPayloadDecoder(JsonSerializerContext context)
-        : this(GetTypeInfo(context)) { }
-
-    public JsonBinaryPayloadDecoder(JsonTypeInfo<TPayload> typeInfo)
-    {
-        _typeInfo = typeInfo ?? throw new ArgumentNullException(nameof(typeInfo));
-    }
-
-    public ValueTask<TPayload> DecodeAsync(ReadOnlyMemory<byte> payload, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
         TPayload? result;
 
         if (_typeInfo is not null)
         {
-            result = JsonSerializer.Deserialize(payload.Span, _typeInfo);
+            result = JsonSerializer.Deserialize(payload, _typeInfo);
         }
         else if (_options is not null)
         {
-            result = JsonSerializer.Deserialize<TPayload>(payload.Span, _options);
+            result = JsonSerializer.Deserialize<TPayload>(payload, _options);
         }
         else
         {
-            throw new InvalidOperationException("The payload decoder is not configured with JSON serialization metadata.");
+            throw CreateInvalidStateException();
         }
 
-        return ValueTask.FromResult(result ?? throw CreateNullPayloadException());
+        return EnsureResult(result);
     }
 
-    private static JsonTypeInfo<TPayload> GetTypeInfo(JsonSerializerContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
+    private static TPayload EnsureResult(TPayload? result) =>
+        result ?? throw new JsonException($"JSON payload deserialized to null for {typeof(TPayload).FullName}.");
 
-        return context.GetTypeInfo(typeof(TPayload)) as JsonTypeInfo<TPayload>
-            ?? throw new ArgumentException(
-                $"The serializer context does not contain metadata for {typeof(TPayload).FullName}.",
-                nameof(context));
-    }
-
-    private static JsonException CreateNullPayloadException() =>
-        new($"JSON payload deserialized to null for {typeof(TPayload).FullName}.");
+    private static InvalidOperationException CreateInvalidStateException() =>
+        new("The payload decoder is not configured with JSON serialization metadata.");
 }
