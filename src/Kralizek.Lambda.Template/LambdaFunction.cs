@@ -15,7 +15,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 public abstract class LambdaFunction
 {
-    protected LambdaFunction(params Type[] handlerTypes)
+    protected LambdaFunction()
     {
         var configurationBuilder = new ConfigurationBuilder();
 
@@ -35,11 +35,7 @@ public abstract class LambdaFunction
         services.AddSingleton(Configuration);
         services.AddLogging(ConfigureLogging);
 
-        foreach (var handlerType in handlerTypes)
-        {
-            services.AddTransient(handlerType);
-        }
-
+        ConfigureFrameworkServices(services);
         ConfigureServices(services, Configuration);
 
         ServiceProvider = services.BuildServiceProvider();
@@ -50,6 +46,11 @@ public abstract class LambdaFunction
     /// Override to add configuration sources used by the function.
     /// </summary>
     protected virtual void ConfigureConfiguration(IConfigurationBuilder configuration) { }
+
+    /// <summary>
+    /// Registers services required by the function model and its specializations.
+    /// </summary>
+    private protected virtual void ConfigureFrameworkServices(IServiceCollection services) { }
 
     /// <summary>
     /// Override to configure logging providers.
