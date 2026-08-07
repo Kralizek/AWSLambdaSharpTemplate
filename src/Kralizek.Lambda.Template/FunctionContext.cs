@@ -37,20 +37,20 @@ public abstract class FunctionContext
 }
 
 /// <summary>
-/// Invocation context for completion-only event functions.
+/// Invocation context for completion-only event functions and source-specific event contexts.
 /// </summary>
 public class EventContext : FunctionContext
 {
-    internal EventContext(ILambdaContext lambdaContext)
+    protected internal EventContext(ILambdaContext lambdaContext)
         : base(lambdaContext) { }
 }
 
 /// <summary>
-/// Invocation context for request/response functions.
+/// Invocation context for request/response functions and source-specific request contexts.
 /// </summary>
 public class RequestContext : FunctionContext
 {
-    internal RequestContext(ILambdaContext lambdaContext)
+    protected internal RequestContext(ILambdaContext lambdaContext)
         : base(lambdaContext) { }
 }
 
