@@ -51,9 +51,20 @@ public sealed class JsonStringPayloadDecoder<TPayload> : IStringPayloadDecoder<T
         ArgumentNullException.ThrowIfNull(payload);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = _typeInfo is not null
-            ? JsonSerializer.Deserialize(payload, _typeInfo)
-            : JsonSerializer.Deserialize<TPayload>(payload, _options!);
+        TPayload? result;
+
+        if (_typeInfo is not null)
+        {
+            result = JsonSerializer.Deserialize(payload, _typeInfo);
+        }
+        else if (_options is not null)
+        {
+            result = JsonSerializer.Deserialize<TPayload>(payload, _options);
+        }
+        else
+        {
+            throw new InvalidOperationException("The payload decoder is not configured with JSON serialization metadata.");
+        }
 
         return ValueTask.FromResult(result ?? throw CreateNullPayloadException());
     }
@@ -101,9 +112,20 @@ public sealed class JsonBinaryPayloadDecoder<TPayload> : IBinaryPayloadDecoder<T
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = _typeInfo is not null
-            ? JsonSerializer.Deserialize(payload.Span, _typeInfo)
-            : JsonSerializer.Deserialize<TPayload>(payload.Span, _options!);
+        TPayload? result;
+
+        if (_typeInfo is not null)
+        {
+            result = JsonSerializer.Deserialize(payload.Span, _typeInfo);
+        }
+        else if (_options is not null)
+        {
+            result = JsonSerializer.Deserialize<TPayload>(payload.Span, _options);
+        }
+        else
+        {
+            throw new InvalidOperationException("The payload decoder is not configured with JSON serialization metadata.");
+        }
 
         return ValueTask.FromResult(result ?? throw CreateNullPayloadException());
     }
