@@ -22,7 +22,7 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunctio
     private protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.TryAddTransient<THandler>();
+        services.TryAddScoped<THandler>();
     }
 
     /// <summary>
