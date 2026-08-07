@@ -15,7 +15,7 @@ namespace Tests.Lambda;
 public class EventFunctionDisposalTests
 {
     [Test]
-    public void FunctionHandlerAsync_is_awaited_before_scope_disposal()
+    public async Task FunctionHandlerAsync_is_awaited_before_scope_disposal()
     {
         PendingHandler.Tcs = new TaskCompletionSource<bool>();
         PendingHandler.Dependency = new DisposableDependency();
@@ -27,9 +27,9 @@ public class EventFunctionDisposalTests
         Assert.That(task.IsCompleted, Is.False, "Task should still be in-flight");
 
         PendingHandler.Tcs.SetResult(true);
+        await task;
 
         Assert.That(PendingHandler.Dependency.Disposed, Is.True, "Dependency should be disposed after handler completes");
-        Assert.That(task.IsCompleted, Is.True, "Task should be completed");
     }
 
     public class TestEventFunction : EventFunction<string, PendingHandler>
