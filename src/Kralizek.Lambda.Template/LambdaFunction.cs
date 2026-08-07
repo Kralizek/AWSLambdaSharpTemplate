@@ -27,7 +27,7 @@ public abstract class LambdaFunction
         var executionEnvironment = new LambdaExecutionEnvironment
         {
             EnvironmentName = Configuration["Environment"] ?? LambdaExecutionEnvironment.DevelopmentEnvironmentName,
-            IsLambda = Configuration["LAMBDA_RUNTIME_DIR"] != null
+            IsLambda = Environment.GetEnvironmentVariable("LAMBDA_RUNTIME_DIR") != null
         };
 
         var services = new ServiceCollection();
