@@ -1,9 +1,52 @@
 # Kralizek.Lambda.Template.Sqs
 
-Source-specific support for AWS Lambda functions triggered by Amazon SQS.
+SQS specialization for `Kralizek.Lambda.Template`.
 
-This package is being migrated to the new `RecordFunction` programming model introduced by the next major version of `Kralizek.Lambda.Template`.
+```csharp
+public sealed class Function
+    : SqsFunction<OrderCreated, OrderCreatedHandler>;
+```
 
-The SQS project is intentionally not part of the active solution in the core-model slice. Its public API and examples will be updated in the dedicated SQS implementation pull request before the package is released with the new major version.
+Handlers receive the decoded message together with an `SqsMessageContext` exposing the raw SQS record and the common invocation metadata.
 
-Until that migration is complete, refer to the latest stable package documentation for the currently released API.
+```csharp
+public sealed class OrderCreatedHandler : ISqsMessageHandler<OrderCreated>
+{
+    public ValueTask HandleAsync(
+        OrderCreated message,
+        SqsMessageContext context,
+        CancellationToken cancellationToken)
+    {
+        // process message
+        return ValueTask.CompletedTask;
+    }
+}
+```
+
+Messages are decoded through `IStringPayloadDecoder<TMessage>`. JSON is the default:
+
+```text
+SQSEvent.SQSMessage.Body
+        ↓
+IStringPayloadDecoder<TMessage>
+        ↓
+TMessage
+```
+
+To select another decoder, register it from `ConfigureServices`:
+
+```csharp
+protected override void ConfigureServices(
+    IServiceCollection services,
+    IConfiguration configuration)
+{
+    services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
+        new JsonStringPayloadDecoder<OrderCreated>(AppJsonContext.Default.OrderCreated));
+}
+```
+
+Use `PlainTextStringPayloadDecoder` explicitly when an SQS body should be treated as raw text.
+
+`SqsFunction<TMessage,THandler>` processes records sequentially. `ParallelSqsFunction<TMessage,THandler>` uses bounded parallel processing. Both create an invocation scope plus an independent nested scope for each SQS record.
+
+Handler or decoder failures are returned through `SQSBatchResponse.batchItemFailures`. Invocation cancellation is not converted into a partial failure; it aborts the invocation so AWS can retry the batch.

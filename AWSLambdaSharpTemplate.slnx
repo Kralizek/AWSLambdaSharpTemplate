@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Kralizek.Lambda.Template.Abstractions/Kralizek.Lambda.Template.Abstractions.csproj" />
+    <Project Path="src/Kralizek.Lambda.Template.Sqs/Kralizek.Lambda.Template.Sqs.csproj" />
     <Project Path="src/Kralizek.Lambda.Template/Kralizek.Lambda.Template.csproj" />
   </Folder>
   <Folder Name="/templates/">
