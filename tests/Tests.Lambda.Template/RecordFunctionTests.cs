@@ -28,81 +28,81 @@ public class RecordFunctionTests
     }
 
     [Test]
-    public async Task ProcessRecordsAsync_invokes_handler_for_each_record_and_passes_context()
+    public async Task FunctionHandlerAsync_invokes_handler_for_each_record_and_passes_typed_context()
     {
         var sut = new SequentialRecordFunction();
         var lambdaContext = TestLambdaContexts.Create();
         lambdaContext.AwsRequestId = "request-id";
 
-        var response = await sut.InvokeAsync(new[] { "a", "b", "c" }, lambdaContext);
+        var response = await sut.FunctionHandlerAsync(new[] { "a", "b", "c" }, lambdaContext);
 
         Assert.That(response, Is.EqualTo(3));
         Assert.That(CollectingHandler.Processed, Is.EqualTo(new[] { "a", "b", "c" }));
         Assert.That(CollectingHandler.Contexts, Has.Count.EqualTo(3));
         Assert.That(CollectingHandler.Contexts, Has.All.Property(nameof(RecordContext.AwsRequestId)).EqualTo("request-id"));
+        Assert.That(CollectingHandler.Contexts, Has.All.Property(nameof(TestRecordContext.Source)).EqualTo("test"));
     }
 
     [Test]
-    public async Task ProcessRecordsAsync_preserves_record_identity_for_response_generation()
+    public async Task FunctionHandlerAsync_preserves_record_identity_for_response_generation()
     {
         var sut = new IdentityRecordFunction();
 
-        var response = await sut.InvokeAsync(new[] { "a", "b" }, TestLambdaContexts.Create());
+        var response = await sut.FunctionHandlerAsync(new[] { "a", "b" }, TestLambdaContexts.Create());
 
         Assert.That(response, Is.EqualTo(new[] { "a:A", "b:B" }));
     }
 
     [Test]
-    public async Task ProcessRecordsAsync_creates_new_scope_per_record()
+    public async Task FunctionHandlerAsync_creates_new_scope_per_record()
     {
         var sut = new ScopedRecordFunction();
 
-        await sut.InvokeAsync(new[] { "x", "y" }, TestLambdaContexts.Create());
+        await sut.FunctionHandlerAsync(new[] { "x", "y" }, TestLambdaContexts.Create());
 
         Assert.That(ScopedTrackingHandler.CapturedServices, Has.Count.EqualTo(2));
         Assert.That(ScopedTrackingHandler.CapturedServices, Is.Unique);
     }
 
     [Test]
-    public void ProcessRecordsAsync_propagates_handler_exception_by_default()
+    public void FunctionHandlerAsync_propagates_handler_exception_by_default()
     {
         var sut = new FailingRecordFunction();
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.InvokeAsync(new[] { "bad-record" }, TestLambdaContexts.Create()));
+            sut.FunctionHandlerAsync(new[] { "bad-record" }, TestLambdaContexts.Create()));
     }
 
     [Test]
-    public async Task ProcessRecordsAsync_allows_specialization_to_translate_handler_exception()
+    public async Task FunctionHandlerAsync_allows_specialization_to_translate_handler_exception()
     {
         var sut = new TranslatingFailureRecordFunction();
 
-        var response = await sut.InvokeAsync(new[] { "good", "bad", "also-good" }, TestLambdaContexts.Create());
+        var response = await sut.FunctionHandlerAsync(new[] { "good", "bad", "also-good" }, TestLambdaContexts.Create());
 
         Assert.That(response, Is.EqualTo(new[] { "good:True", "bad:False", "also-good:True" }));
         Assert.That(sut.TranslatedException, Is.TypeOf<InvalidOperationException>());
     }
 
     [Test]
-    public void ProcessRecordsAsync_propagates_cancellation_without_translating_it()
+    public void FunctionHandlerAsync_propagates_cancellation_without_translating_it()
     {
         var sut = new CancellationRecordFunction();
-        using var cancellation = new CancellationTokenSource();
-        cancellation.Cancel();
+        var lambdaContext = TestLambdaContexts.Create();
+        lambdaContext.RemainingTime = TimeSpan.Zero;
 
         Assert.ThrowsAsync<OperationCanceledException>(() =>
-            sut.InvokeAsync(new[] { "timed-out-record" }, cancellation.Token));
+            sut.FunctionHandlerAsync(new[] { "timed-out-record" }, lambdaContext));
         Assert.That(sut.ExceptionWasTranslated, Is.False);
     }
 
     [Test]
-    public async Task ProcessRecordsParallelAsync_processes_all_records()
+    public async Task FunctionHandlerAsync_can_use_bounded_parallel_record_processing()
     {
-        var sut = new SequentialRecordFunction();
+        var sut = new SequentialRecordFunction { MaximumDegreeOfParallelism = 2 };
 
-        var response = await sut.InvokeParallelAsync(
+        var response = await sut.FunctionHandlerAsync(
             new[] { "p1", "p2", "p3" },
-            maxDegreeOfParallelism: 2,
             TestLambdaContexts.Create());
 
         Assert.That(response, Is.EqualTo(3));
@@ -110,13 +110,12 @@ public class RecordFunctionTests
     }
 
     [Test]
-    public async Task ProcessRecordsParallelAsync_creates_new_scope_per_record()
+    public async Task Bounded_parallel_processing_creates_new_scope_per_record()
     {
-        var sut = new ScopedRecordFunction();
+        var sut = new ScopedRecordFunction { MaximumDegreeOfParallelism = 2 };
 
-        await sut.InvokeParallelAsync(
+        await sut.FunctionHandlerAsync(
             new[] { "p1", "p2", "p3" },
-            maxDegreeOfParallelism: 2,
             TestLambdaContexts.Create());
 
         Assert.That(ScopedTrackingHandler.CapturedServices, Has.Count.EqualTo(3));
@@ -124,73 +123,62 @@ public class RecordFunctionTests
     }
 
     [Test]
-    public void ProcessRecordsParallelAsync_throws_when_parallelism_less_than_2()
+    public void Bounded_parallel_processing_throws_when_parallelism_less_than_2()
     {
-        var sut = new SequentialRecordFunction();
+        var sut = new SequentialRecordFunction { MaximumDegreeOfParallelism = 1 };
 
         Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
-            sut.InvokeParallelAsync(
-                new[] { "record" },
-                maxDegreeOfParallelism: 1,
-                TestLambdaContexts.Create()));
+            sut.FunctionHandlerAsync(new[] { "record" }, TestLambdaContexts.Create()));
     }
 
-    public class SequentialRecordFunction : RecordFunction<string[], string, bool, int, CollectingHandler>
+    public class SequentialRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, CollectingHandler>
     {
+        public int? MaximumDegreeOfParallelism { get; init; }
+
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
+
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
         protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
 
-        public Task<int> InvokeAsync(string[] records, ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
-        }
-
-        public Task<int> InvokeParallelAsync(
-            string[] records,
-            int maxDegreeOfParallelism,
-            ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsParallelAsync(
-                records,
-                CreateRecordContext(context),
-                maxDegreeOfParallelism,
-                cts.Token);
-        }
+        protected override Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
+            string[] envelope,
+            TestRecordContext context,
+            IServiceProvider invocationServices,
+            CancellationToken cancellationToken) =>
+            MaximumDegreeOfParallelism is { } degree
+                ? ProcessRecordsParallelAsync(envelope, context, invocationServices, degree, cancellationToken)
+                : base.ProcessRecordsAsync(envelope, context, invocationServices, cancellationToken);
     }
 
-    public class IdentityRecordFunction : RecordFunction<string[], string, string, string[], EchoRecordHandler>
+    public class IdentityRecordFunction : RecordFunction<string[], string, string, string[], TestRecordContext, EchoRecordHandler>
     {
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
+
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
         protected override string[] CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
             results.Select(result => $"{result.Record}:{result.Result}").ToArray();
-
-        public Task<string[]> InvokeAsync(string[] records, ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
-        }
     }
 
-    public class FailingRecordFunction : RecordFunction<string[], string, bool, int, ThrowingHandler>
+    public class FailingRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, ThrowingHandler>
     {
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
+
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
         protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
-
-        public Task<int> InvokeAsync(string[] records, ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
-        }
     }
 
-    public class TranslatingFailureRecordFunction : RecordFunction<string[], string, bool, string[], ConditionalThrowingHandler>
+    public class TranslatingFailureRecordFunction : RecordFunction<string[], string, bool, string[], TestRecordContext, ConditionalThrowingHandler>
     {
         public Exception? TranslatedException { get; private set; }
+
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
 
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
@@ -200,23 +188,20 @@ public class RecordFunctionTests
         protected override ValueTask<bool> HandleRecordExceptionAsync(
             string record,
             Exception exception,
-            RecordContext context,
+            TestRecordContext context,
             CancellationToken cancellationToken)
         {
             TranslatedException = exception;
             return ValueTask.FromResult(false);
         }
-
-        public Task<string[]> InvokeAsync(string[] records, ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
-        }
     }
 
-    public class CancellationRecordFunction : RecordFunction<string[], string, bool, int, CollectingHandler>
+    public class CancellationRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, CollectingHandler>
     {
         public bool ExceptionWasTranslated { get; private set; }
+
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
 
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
@@ -225,54 +210,57 @@ public class RecordFunctionTests
         protected override ValueTask<bool> HandleRecordExceptionAsync(
             string record,
             Exception exception,
-            RecordContext context,
+            TestRecordContext context,
             CancellationToken cancellationToken)
         {
             ExceptionWasTranslated = true;
             return ValueTask.FromResult(false);
         }
-
-        public Task<int> InvokeAsync(string[] records, CancellationToken cancellationToken) =>
-            ProcessRecordsAsync(records, CreateRecordContext(TestLambdaContexts.Create()), cancellationToken);
     }
 
-    public class ScopedRecordFunction : RecordFunction<string[], string, bool, int, ScopedTrackingHandler>
+    public class ScopedRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, ScopedTrackingHandler>
     {
+        public int? MaximumDegreeOfParallelism { get; init; }
+
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
+
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
         protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
+
+        protected override Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
+            string[] envelope,
+            TestRecordContext context,
+            IServiceProvider invocationServices,
+            CancellationToken cancellationToken) =>
+            MaximumDegreeOfParallelism is { } degree
+                ? ProcessRecordsParallelAsync(envelope, context, invocationServices, degree, cancellationToken)
+                : base.ProcessRecordsAsync(envelope, context, invocationServices, cancellationToken);
 
         protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<ScopedService>();
         }
-
-        public Task<int> InvokeAsync(string[] records, ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
-        }
-
-        public Task<int> InvokeParallelAsync(
-            string[] records,
-            int maxDegreeOfParallelism,
-            ILambdaContext context)
-        {
-            using var cts = CreateCancellationTokenSource(context);
-            return ProcessRecordsParallelAsync(
-                records,
-                CreateRecordContext(context),
-                maxDegreeOfParallelism,
-                cts.Token);
-        }
     }
 
-    public class CollectingHandler : IRecordHandler<string, bool>
+    public sealed class TestRecordContext : RecordContext
+    {
+        public TestRecordContext(ILambdaContext lambdaContext, string source)
+            : base(lambdaContext)
+        {
+            Source = source;
+        }
+
+        public string Source { get; }
+    }
+
+    public class CollectingHandler : IRecordHandler<string, bool, TestRecordContext>
     {
         public static ConcurrentQueue<string> Processed { get; } = new();
-        public static ConcurrentBag<RecordContext> Contexts { get; } = new();
+        public static ConcurrentBag<TestRecordContext> Contexts { get; } = new();
 
-        public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken)
+        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken)
         {
             Processed.Enqueue(record);
             Contexts.Add(context);
@@ -280,27 +268,27 @@ public class RecordFunctionTests
         }
     }
 
-    public class EchoRecordHandler : IRecordHandler<string, string>
+    public class EchoRecordHandler : IRecordHandler<string, string, TestRecordContext>
     {
-        public ValueTask<string> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
+        public ValueTask<string> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
             ValueTask.FromResult(record.ToUpperInvariant());
     }
 
-    public class ThrowingHandler : IRecordHandler<string, bool>
+    public class ThrowingHandler : IRecordHandler<string, bool, TestRecordContext>
     {
-        public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
+        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
             ValueTask.FromException<bool>(new InvalidOperationException("handler failed"));
     }
 
-    public class ConditionalThrowingHandler : IRecordHandler<string, bool>
+    public class ConditionalThrowingHandler : IRecordHandler<string, bool, TestRecordContext>
     {
-        public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
+        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
             record == "bad"
                 ? ValueTask.FromException<bool>(new InvalidOperationException("handler failed"))
                 : ValueTask.FromResult(true);
     }
 
-    public class ScopedTrackingHandler : IRecordHandler<string, bool>
+    public class ScopedTrackingHandler : IRecordHandler<string, bool, TestRecordContext>
     {
         public static ConcurrentBag<ScopedService> CapturedServices { get; } = new();
 
@@ -311,7 +299,7 @@ public class RecordFunctionTests
             _service = service;
         }
 
-        public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken)
+        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken)
         {
             CapturedServices.Add(_service);
             return ValueTask.FromResult(true);
