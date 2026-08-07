@@ -6,6 +6,7 @@ using Amazon.Lambda.TestUtilities;
 
 using Kralizek.Lambda;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using NUnit.Framework;
@@ -35,7 +36,7 @@ public class EventFunctionDisposalTests
 
     public class TestEventFunction : EventFunction<string, PendingHandler>
     {
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
+        protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped(_ => PendingHandler.Dependency!);
         }

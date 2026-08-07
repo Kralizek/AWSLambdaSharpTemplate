@@ -20,10 +20,10 @@ public class EventFunctionTests
     private static TestEventFunction CreateSystemUnderTest() => new();
 
     [Test]
-    public void Configure_is_invoked_on_initialization()
+    public void ConfigureConfiguration_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-        Assert.That(sut.IsConfigureInvoked, Is.True);
+        Assert.That(sut.IsConfigureConfigurationInvoked, Is.True);
     }
 
     [Test]
@@ -78,15 +78,15 @@ public class EventFunctionTests
 
     public class TestEventFunction : EventFunction<string, NoOpHandler>
     {
-        protected override void Configure(IConfigurationBuilder builder) => IsConfigureInvoked = true;
+        protected override void ConfigureConfiguration(IConfigurationBuilder configuration) => IsConfigureConfigurationInvoked = true;
 
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) =>
+        protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration) =>
             IsConfigureServicesInvoked = true;
 
-        protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment) =>
+        protected override void ConfigureLogging(ILoggingBuilder logging) =>
             IsConfigureLoggingInvoked = true;
 
-        public bool IsConfigureInvoked { get; private set; }
+        public bool IsConfigureConfigurationInvoked { get; private set; }
         public bool IsConfigureServicesInvoked { get; private set; }
         public bool IsConfigureLoggingInvoked { get; private set; }
     }
