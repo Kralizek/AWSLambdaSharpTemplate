@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/EventFunction/EventFunction.csproj" />
+    <Project Path="samples/RequestFunction/RequestFunction.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Kralizek.Lambda.Template/Kralizek.Lambda.Template.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tests.Lambda.Template/Tests.Lambda.Template.csproj" />
+  </Folder>
+</Solution>
