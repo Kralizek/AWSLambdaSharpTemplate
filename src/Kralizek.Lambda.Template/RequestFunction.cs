@@ -13,11 +13,13 @@ namespace Kralizek.Lambda;
 /// </summary>
 /// <typeparam name="TInput">The type of the incoming request.</typeparam>
 /// <typeparam name="TOutput">The type of the response.</typeparam>
+/// <typeparam name="TContext">The context type passed to the handler.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the request.</typeparam>
-#pragma warning disable S2436 // The three generic roles are intentional and make the request contract explicit.
-public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunction
+#pragma warning disable S2436 // The generic roles are intentional and make the request contract explicit.
+public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : LambdaFunction
 #pragma warning restore S2436
-    where THandler : class, IRequestHandler<TInput, TOutput>
+    where TContext : RequestContext
+    where THandler : class, IRequestHandler<TInput, TOutput, TContext>
 {
     private protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
@@ -26,12 +28,17 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunctio
     }
 
     /// <summary>
+    /// Creates the strongly typed context passed to the request handler.
+    /// </summary>
+    protected abstract TContext CreateContext(TInput input, ILambdaContext context);
+
+    /// <summary>
     /// The entry point called by the Lambda runtime.
     /// </summary>
     public async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
         using var cts = CreateCancellationTokenSource(context);
-        var requestContext = new RequestContext(context);
+        var requestContext = CreateContext(input, context);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
@@ -43,11 +50,30 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunctio
 }
 
 /// <summary>
-/// The contract for handlers invoked by <see cref="RequestFunction{TInput,TOutput,THandler}"/>.
+/// A function base class for handlers that use the standard <see cref="RequestContext"/>.
 /// </summary>
-/// <typeparam name="TInput">The type of the incoming request.</typeparam>
-/// <typeparam name="TOutput">The type of the response.</typeparam>
-public interface IRequestHandler<in TInput, TOutput>
+#pragma warning disable S2436 // The three public roles intentionally hide the standard context type.
+public abstract class RequestFunction<TInput, TOutput, THandler> : RequestFunction<TInput, TOutput, RequestContext, THandler>
+#pragma warning restore S2436
+    where THandler : class, IRequestHandler<TInput, TOutput, RequestContext>
 {
-    ValueTask<TOutput> HandleAsync(TInput input, RequestContext context, CancellationToken cancellationToken);
+    protected override RequestContext CreateContext(TInput input, ILambdaContext context) => new(context);
+}
+
+/// <summary>
+/// The contract for strongly typed request handlers.
+/// </summary>
+#pragma warning disable S2436 // The generic roles are intentional and make the request handler contract explicit.
+public interface IRequestHandler<in TInput, TOutput, in TContext>
+#pragma warning restore S2436
+    where TContext : RequestContext
+{
+    ValueTask<TOutput> HandleAsync(TInput input, TContext context, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// The contract for request handlers that use the standard <see cref="RequestContext"/>.
+/// </summary>
+public interface IRequestHandler<in TInput, TOutput> : IRequestHandler<TInput, TOutput, RequestContext>
+{
 }
