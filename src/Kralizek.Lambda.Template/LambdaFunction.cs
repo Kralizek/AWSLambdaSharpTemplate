@@ -15,6 +15,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 public abstract class LambdaFunction
 {
+#pragma warning disable S1699 // Configuration hooks intentionally execute during base construction. Overrides must not depend on derived-constructor state.
     protected LambdaFunction()
     {
         var configurationBuilder = new ConfigurationBuilder();
@@ -41,25 +42,42 @@ public abstract class LambdaFunction
         ServiceProvider = services.BuildServiceProvider();
         Logger = ServiceProvider.GetRequiredService<ILogger<LambdaFunction>>();
     }
+#pragma warning restore S1699
 
     /// <summary>
     /// Override to add configuration sources used by the function.
     /// </summary>
+    /// <remarks>
+    /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
+    /// Overrides must not depend on state initialized by a derived-class constructor.
+    /// </remarks>
     protected virtual void ConfigureConfiguration(IConfigurationBuilder configuration) { }
 
     /// <summary>
     /// Registers services required by the function model and its specializations.
     /// </summary>
+    /// <remarks>
+    /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
+    /// Overrides must not depend on state initialized by a derived-class constructor.
+    /// </remarks>
     private protected virtual void ConfigureFrameworkServices(IServiceCollection services) { }
 
     /// <summary>
     /// Override to configure logging providers.
     /// </summary>
+    /// <remarks>
+    /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
+    /// Overrides must not depend on state initialized by a derived-class constructor.
+    /// </remarks>
     protected virtual void ConfigureLogging(ILoggingBuilder logging) { }
 
     /// <summary>
     /// Override to register application services.
     /// </summary>
+    /// <remarks>
+    /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
+    /// Overrides must not depend on state initialized by a derived-class constructor.
+    /// </remarks>
     protected virtual void ConfigureServices(IServiceCollection services, IConfiguration configuration) { }
 
     /// <summary>
