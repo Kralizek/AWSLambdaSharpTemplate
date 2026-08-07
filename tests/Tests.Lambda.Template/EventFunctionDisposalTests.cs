@@ -2,8 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.TestUtilities;
-
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Configuration;
@@ -23,7 +21,7 @@ public class EventFunctionDisposalTests
         PendingHandler.Dependency = new DisposableDependency();
 
         var sut = new TestEventFunction();
-        var task = sut.FunctionHandlerAsync("trigger", new TestLambdaContext());
+        var task = sut.FunctionHandlerAsync("trigger", TestLambdaContexts.Create());
 
         Assert.That(PendingHandler.Dependency.Disposed, Is.False, "Dependency should not be disposed before handler completes");
         Assert.That(task.IsCompleted, Is.False, "Task should still be in-flight");
