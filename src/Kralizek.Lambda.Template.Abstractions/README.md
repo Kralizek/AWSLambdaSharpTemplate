@@ -1,8 +1,37 @@
 # Kralizek.Lambda.Template.Abstractions
 
-`Kralizek.Lambda.Template.Abstractions` contains lightweight contracts that can be implemented without referencing the full Lambda runtime package.
+`Kralizek.Lambda.Template.Abstractions` contains the consumer-facing contracts shared by the Lambda programming model and source-specific integrations.
 
-The package intentionally has no dependency on AWS Lambda runtime types, dependency injection, configuration, logging, or JSON serialization.
+The package intentionally has no dependency on AWS Lambda runtime types, dependency injection, configuration, logging, or JSON serialization. Libraries can implement handlers, contexts, and payload decoders without loading the full runtime package.
+
+## Handler contracts
+
+The package defines the handler contracts used by the semantic function roots:
+
+- `IEventHandler<TInput>` and `IEventHandler<TInput, TContext>`
+- `IRequestHandler<TInput, TOutput>` and `IRequestHandler<TInput, TOutput, TContext>`
+- `IRecordHandler<TRecord, TRecordResult, TContext>`
+
+The compact forms use the standard `EventContext` and `RequestContext`. Full forms allow source-specific integrations to expose richer context types.
+
+## Function contexts
+
+`FunctionContext` exposes common invocation metadata through strongly typed, source-neutral properties:
+
+- `AwsRequestId`
+- `FunctionName`
+- `FunctionVersion`
+- `InvokedFunctionArn`
+- `MemoryLimitInMB`
+- `RemainingTime`
+- `LogGroupName`
+- `LogStreamName`
+
+The standard semantic contexts are `EventContext`, `RequestContext`, and `RecordContext`.
+
+Contexts also expose a `Properties` bag for runtime-specific data that is not represented by the strongly typed contract. The abstractions package does not interpret those values or depend on the runtime types stored in the bag.
+
+`Kralizek.Lambda.Template` maps the AWS `ILambdaContext` into the strongly typed metadata and preserves the original runtime context in this bag. Applications that reference the main package can retrieve it through `GetLambdaContext()` when they need information not surfaced by the abstractions.
 
 ## Payload decoders
 
@@ -32,9 +61,9 @@ public interface IBinaryPayloadDecoder<TPayload>
 
 A decoder is deliberately unaware of SQS, SNS, Kinesis, or any other event source. Glue packages decide which raw representation they consume and depend only on the matching abstraction.
 
-## Custom decoder packages
+## Lightweight extension packages
 
-A custom decoder can reference only this package:
+A custom handler, context, or decoder library can reference only this package:
 
 ```xml
 <PackageReference Include="Kralizek.Lambda.Template.Abstractions" Version="..." />
