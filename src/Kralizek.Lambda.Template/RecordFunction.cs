@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     private protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.TryAddTransient<THandler>();
+        services.TryAddScoped<THandler>();
     }
 
     /// <summary>
@@ -40,23 +41,79 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected abstract TResponse CreateResponse(IReadOnlyCollection<TRecordResult> results);
 
     /// <summary>
-    /// Processes all records sequentially, one per dependency-injection scope.
+    /// Processes all records sequentially within an invocation scope and creates one scope per record.
     /// </summary>
     protected async Task<TResponse> ProcessRecordsAsync(
         TEnvelope envelope,
         RecordContext context,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
         var results = new List<TRecordResult>();
 
         foreach (var record in GetRecords(envelope))
         {
-            var result = await InvokeAsync<THandler, TRecordResult>(
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await using var recordScope = invocationScope.ServiceProvider.CreateAsyncScope();
+
+            var result = await InvokeHandlerAsync<THandler, TRecordResult>(
+                recordScope.ServiceProvider,
                 cancellationToken,
                 (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
 
             results.Add(result);
         }
+
+        return CreateResponse(results);
+    }
+
+    /// <summary>
+    /// Processes records with bounded parallelism within an invocation scope and creates one scope per record.
+    /// </summary>
+    protected async Task<TResponse> ProcessRecordsParallelAsync(
+        TEnvelope envelope,
+        RecordContext context,
+        int maxDegreeOfParallelism,
+        CancellationToken cancellationToken)
+    {
+        if (maxDegreeOfParallelism < 2)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                "maxDegreeOfParallelism must be at least 2.");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var records = GetRecords(envelope).ToArray();
+        var results = new TRecordResult[records.Length];
+
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+
+        var options = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = maxDegreeOfParallelism,
+            CancellationToken = cancellationToken
+        };
+
+        await Parallel.ForEachAsync(
+            Enumerable.Range(0, records.Length),
+            options,
+            async (index, ct) =>
+            {
+                await using var recordScope = invocationScope.ServiceProvider.CreateAsyncScope();
+
+                results[index] = await InvokeHandlerAsync<THandler, TRecordResult>(
+                    recordScope.ServiceProvider,
+                    ct,
+                    (handler, recordCancellationToken) => handler.HandleAsync(
+                        records[index],
+                        context,
+                        recordCancellationToken)).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
         return CreateResponse(results);
     }
