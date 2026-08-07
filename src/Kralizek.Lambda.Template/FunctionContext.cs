@@ -9,7 +9,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 public abstract class FunctionContext
 {
-    protected internal FunctionContext(ILambdaContext lambdaContext)
+    protected FunctionContext(ILambdaContext lambdaContext)
     {
         LambdaContext = lambdaContext ?? throw new ArgumentNullException(nameof(lambdaContext));
     }
@@ -41,7 +41,7 @@ public abstract class FunctionContext
 /// </summary>
 public class EventContext : FunctionContext
 {
-    protected internal EventContext(ILambdaContext lambdaContext)
+    internal EventContext(ILambdaContext lambdaContext)
         : base(lambdaContext) { }
 }
 
@@ -50,12 +50,12 @@ public class EventContext : FunctionContext
 /// </summary>
 public class RequestContext : FunctionContext
 {
-    protected internal RequestContext(ILambdaContext lambdaContext)
+    internal RequestContext(ILambdaContext lambdaContext)
         : base(lambdaContext) { }
 }
 
 /// <summary>
-/// Invocation context shared by record-oriented functions.
+/// Invocation context shared by record-oriented functions and source-specific contexts.
 /// </summary>
 public class RecordContext : FunctionContext
 {
