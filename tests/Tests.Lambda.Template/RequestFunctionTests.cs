@@ -53,7 +53,7 @@ public class RequestFunctionTests
 
         Assert.That(result, Is.EqualTo("hello-result"));
         Assert.That(EchoHandler.ReceivedContext?.AwsRequestId, Is.EqualTo("request-id"));
-        Assert.That(EchoHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
+        Assert.That(EchoHandler.ReceivedContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
     }
 
     [Test]
@@ -68,7 +68,7 @@ public class RequestFunctionTests
         Assert.That(result, Is.EqualTo("hello:context"));
         Assert.That(SpecializedRequestHandler.ReceivedContext, Is.Not.Null);
         Assert.That(SpecializedRequestHandler.ReceivedContext?.Input, Is.EqualTo("hello"));
-        Assert.That(SpecializedRequestHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
+        Assert.That(SpecializedRequestHandler.ReceivedContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
     }
 
     [Test]
@@ -107,7 +107,7 @@ public class RequestFunctionTests
     public class SpecializedRequestContext : RequestContext
     {
         public SpecializedRequestContext(ILambdaContext context, string input)
-            : base(context)
+            : base(FunctionContextFactory.CreateMetadata(context), FunctionContextFactory.CreateProperties(context))
         {
             Input = input;
         }
