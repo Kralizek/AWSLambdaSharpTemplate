@@ -52,7 +52,14 @@ public sealed class ToUpperStringRequestHandler
 
 Source-specific integrations can extract a raw text or binary payload and delegate contract deserialization through the lightweight decoder contracts from `Kralizek.Lambda.Template.Abstractions`.
 
-This package provides System.Text.Json implementations for both representations:
+For text payloads that should be passed to a handler unchanged, use the plain-text decoder:
+
+```csharp
+IStringPayloadDecoder<string> decoder =
+    new PlainTextStringPayloadDecoder();
+```
+
+This package also provides System.Text.Json implementations for both representations:
 
 ```csharp
 IStringPayloadDecoder<OrderCreated> stringDecoder =
@@ -62,7 +69,14 @@ IBinaryPayloadDecoder<OrderCreated> binaryDecoder =
     new JsonBinaryPayloadDecoder<OrderCreated>();
 ```
 
-Both decoders accept an optional `JsonSerializerOptions` instance when applications need custom naming policies or converters. Glue packages decide which decoder abstraction they consume and how the default implementation is registered.
+The JSON decoders support both reflection-based configuration through `JsonSerializerOptions` and source-generated serialization metadata for Native AOT. Pass either a `JsonSerializerContext` or the corresponding `JsonTypeInfo<TPayload>`:
+
+```csharp
+var decoder = new JsonStringPayloadDecoder<OrderCreated>(
+    ApplicationJsonContext.Default);
+```
+
+Glue packages decide which decoder abstraction they consume and how the default implementation is registered.
 
 Custom decoder packages can depend on `Kralizek.Lambda.Template.Abstractions` without referencing the full runtime package.
 
