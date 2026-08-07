@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
-using Amazon.Lambda.TestUtilities;
 
 using Kralizek.Lambda;
 
@@ -31,7 +30,8 @@ public class RecordFunctionTests
     public async Task ProcessRecordsAsync_invokes_handler_for_each_record_and_passes_context()
     {
         var sut = new SequentialRecordFunction();
-        var lambdaContext = new TestLambdaContext { AwsRequestId = "request-id" };
+        var lambdaContext = TestLambdaContexts.Create();
+        lambdaContext.AwsRequestId = "request-id";
 
         var response = await sut.InvokeAsync(new[] { "a", "b", "c" }, lambdaContext);
 
@@ -46,7 +46,7 @@ public class RecordFunctionTests
     {
         var sut = new ScopedRecordFunction();
 
-        await sut.InvokeAsync(new[] { "x", "y" }, new TestLambdaContext());
+        await sut.InvokeAsync(new[] { "x", "y" }, TestLambdaContexts.Create());
 
         Assert.That(ScopedTrackingHandler.CapturedServices, Has.Count.EqualTo(2));
         Assert.That(ScopedTrackingHandler.CapturedServices, Is.Unique);
@@ -58,7 +58,7 @@ public class RecordFunctionTests
         var sut = new FailingRecordFunction();
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.InvokeAsync(new[] { "bad-record" }, new TestLambdaContext()));
+            sut.InvokeAsync(new[] { "bad-record" }, TestLambdaContexts.Create()));
     }
 
     [Test]
@@ -80,7 +80,7 @@ public class RecordFunctionTests
         var response = await sut.InvokeParallelAsync(
             new[] { "p1", "p2", "p3" },
             maxDegreeOfParallelism: 2,
-            new TestLambdaContext());
+            TestLambdaContexts.Create());
 
         Assert.That(response, Is.EqualTo(3));
         Assert.That(CollectingHandler.Processed, Is.EquivalentTo(new[] { "p1", "p2", "p3" }));
@@ -94,7 +94,7 @@ public class RecordFunctionTests
         await sut.InvokeParallelAsync(
             new[] { "p1", "p2", "p3" },
             maxDegreeOfParallelism: 2,
-            new TestLambdaContext());
+            TestLambdaContexts.Create());
 
         Assert.That(ScopedTrackingHandler.CapturedServices, Has.Count.EqualTo(3));
         Assert.That(ScopedTrackingHandler.CapturedServices, Is.Unique);
@@ -109,7 +109,7 @@ public class RecordFunctionTests
             sut.InvokeParallelAsync(
                 new[] { "record" },
                 maxDegreeOfParallelism: 1,
-                new TestLambdaContext()));
+                TestLambdaContexts.Create()));
     }
 
     public class SequentialRecordFunction : RecordFunction<string[], string, bool, int, CollectingHandler>
@@ -158,7 +158,7 @@ public class RecordFunctionTests
         protected override int CreateResponse(IReadOnlyCollection<bool> results) => results.Count;
 
         public Task<int> InvokeAsync(string[] records, CancellationToken cancellationToken) =>
-            ProcessRecordsAsync(records, CreateRecordContext(new TestLambdaContext()), cancellationToken);
+            ProcessRecordsAsync(records, CreateRecordContext(TestLambdaContexts.Create()), cancellationToken);
     }
 
     public class ScopedRecordFunction : RecordFunction<string[], string, bool, int, ScopedTrackingHandler>
