@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 namespace Kralizek.Lambda;
 
 /// <summary>
@@ -13,8 +16,11 @@ namespace Kralizek.Lambda;
 public abstract class EventFunction<TInput, THandler> : LambdaFunction
     where THandler : class, IEventHandler<TInput>
 {
-    protected EventFunction()
-        : base(typeof(THandler)) { }
+    private protected override void ConfigureFrameworkServices(IServiceCollection services)
+    {
+        base.ConfigureFrameworkServices(services);
+        services.TryAddTransient<THandler>();
+    }
 
     /// <summary>
     /// The entry point called by the Lambda runtime.
