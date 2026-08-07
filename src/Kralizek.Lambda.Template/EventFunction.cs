@@ -19,7 +19,7 @@ public abstract class EventFunction<TInput, THandler> : LambdaFunction
     private protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.TryAddTransient<THandler>();
+        services.TryAddScoped<THandler>();
     }
 
     /// <summary>
