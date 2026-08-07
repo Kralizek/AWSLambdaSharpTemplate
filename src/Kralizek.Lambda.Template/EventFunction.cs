@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -54,21 +53,6 @@ public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
 public abstract class EventFunction<TInput, THandler> : EventFunction<TInput, EventContext, THandler>
     where THandler : class, IEventHandler<TInput, EventContext>
 {
-    protected override EventContext CreateContext(TInput input, ILambdaContext context) => new(context);
-}
-
-/// <summary>
-/// The contract for strongly typed event handlers.
-/// </summary>
-public interface IEventHandler<in TInput, in TContext>
-    where TContext : EventContext
-{
-    ValueTask HandleAsync(TInput input, TContext context, CancellationToken cancellationToken);
-}
-
-/// <summary>
-/// The contract for event handlers that use the standard <see cref="EventContext"/>.
-/// </summary>
-public interface IEventHandler<in TInput> : IEventHandler<TInput, EventContext>
-{
+    protected override EventContext CreateContext(TInput input, ILambdaContext context) =>
+        FunctionContextFactory.CreateEventContext(context);
 }
