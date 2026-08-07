@@ -7,6 +7,7 @@
     <PackageId>Kralizek.Lambda.Templates</PackageId>
     <PackageType>Template</PackageType>
     <Description>Templates for AWS Lambda using Kralizek.Lambda.Template</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
@@ -15,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
     <None
       Include="content/**/*"
       Exclude="content/**/*.csproj"
