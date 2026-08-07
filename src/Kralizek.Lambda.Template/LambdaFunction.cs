@@ -107,45 +107,9 @@ public abstract class LambdaFunction
     protected ILogger Logger { get; }
 
     /// <summary>
-    /// Executes a handler in a fresh invocation scope.
+    /// Resolves and executes a handler from the supplied service provider.
     /// </summary>
-    protected async ValueTask InvokeAsync<THandler>(
-        CancellationToken cancellationToken,
-        Func<THandler, CancellationToken, ValueTask> invocation)
-        where THandler : notnull
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
-
-        await InvokeHandlerAsync(
-            invocationScope.ServiceProvider,
-            cancellationToken,
-            invocation).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Executes a handler in a fresh invocation scope and returns its result.
-    /// </summary>
-    protected async ValueTask<TResult> InvokeAsync<THandler, TResult>(
-        CancellationToken cancellationToken,
-        Func<THandler, CancellationToken, ValueTask<TResult>> invocation)
-        where THandler : notnull
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
-
-        return await InvokeHandlerAsync<THandler, TResult>(
-            invocationScope.ServiceProvider,
-            cancellationToken,
-            invocation).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Resolves and executes a handler from an existing scope.
-    /// </summary>
-    protected async ValueTask InvokeHandlerAsync<THandler>(
+    protected async ValueTask ExecuteHandlerAsync<THandler>(
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken,
         Func<THandler, CancellationToken, ValueTask> invocation)
@@ -161,9 +125,9 @@ public abstract class LambdaFunction
     }
 
     /// <summary>
-    /// Resolves and executes a handler from an existing scope and returns its result.
+    /// Resolves and executes a handler from the supplied service provider and returns its result.
     /// </summary>
-    protected async ValueTask<TResult> InvokeHandlerAsync<THandler, TResult>(
+    protected async ValueTask<TResult> ExecuteHandlerAsync<THandler, TResult>(
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken,
         Func<THandler, CancellationToken, ValueTask<TResult>> invocation)
