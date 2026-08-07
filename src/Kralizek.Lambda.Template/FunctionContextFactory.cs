@@ -49,9 +49,9 @@ public static class FunctionContextFactory
     }
 
     /// <summary>
-    /// Creates the runtime-specific property bag for a function context.
+    /// Creates a mutable runtime-specific property bag that source integrations can extend before constructing a context.
     /// </summary>
-    public static IReadOnlyDictionary<string, object?> CreateProperties(ILambdaContext lambdaContext)
+    public static Dictionary<string, object?> CreateProperties(ILambdaContext lambdaContext)
     {
         ArgumentNullException.ThrowIfNull(lambdaContext);
 
