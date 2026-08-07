@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 namespace Kralizek.Lambda;
 
 /// <summary>
@@ -20,8 +23,11 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 #pragma warning restore S2436
     where THandler : class, IRecordHandler<TRecord, TRecordResult>
 {
-    protected RecordFunction()
-        : base(typeof(THandler)) { }
+    private protected override void ConfigureFrameworkServices(IServiceCollection services)
+    {
+        base.ConfigureFrameworkServices(services);
+        services.TryAddTransient<THandler>();
+    }
 
     /// <summary>
     /// Extracts the individual records from the envelope.
