@@ -101,11 +101,14 @@ jobs:
         shell: bash
         run: |
           runtime_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.[0-9]*.nupkg)
+          sqs_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.Sqs.*.nupkg)
           template_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Templates.*.nupkg)
 
           runtime_version=$(basename "$runtime_package" | sed -E 's/^Kralizek\.Lambda\.Template\.(.*)\.nupkg$/\1/')
+          sqs_version=$(basename "$sqs_package" | sed -E 's/^Kralizek\.Lambda\.Template\.Sqs\.(.*)\.nupkg$/\1/')
           template_version=$(basename "$template_package" | sed -E 's/^Kralizek\.Lambda\.Templates\.(.*)\.nupkg$/\1/')
 
+          test "$runtime_version" = "$sqs_version"
           test "$runtime_version" = "$template_version"
 
       - name: Cache smoke-test packages
@@ -130,6 +133,9 @@ jobs:
           - name: Request
             short-name: lambda-template-request
             project-name: SmokeRequest
+          - name: SQS
+            short-name: lambda-template-sqs
+            project-name: SmokeSqs
 
     steps:
       - name: Checkout
@@ -153,11 +159,14 @@ jobs:
         shell: bash
         run: |
           runtime_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.[0-9]*.nupkg)
+          sqs_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.Sqs.*.nupkg)
           template_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Templates.*.nupkg)
 
           runtime_version=$(basename "$runtime_package" | sed -E 's/^Kralizek\.Lambda\.Template\.(.*)\.nupkg$/\1/')
+          sqs_version=$(basename "$sqs_package" | sed -E 's/^Kralizek\.Lambda\.Template\.Sqs\.(.*)\.nupkg$/\1/')
           template_version=$(basename "$template_package" | sed -E 's/^Kralizek\.Lambda\.Templates\.(.*)\.nupkg$/\1/')
 
+          test "$runtime_version" = "$sqs_version"
           test "$runtime_version" = "$template_version"
           echo "PACKAGE_VERSION=$runtime_version" >> "$GITHUB_ENV"
           echo "TEMPLATE_PACKAGE=$template_package" >> "$GITHUB_ENV"

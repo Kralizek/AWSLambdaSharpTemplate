@@ -2,6 +2,7 @@
   <Folder Name="/samples/">
     <Project Path="samples/EventFunction/EventFunction.csproj" />
     <Project Path="samples/RequestFunction/RequestFunction.csproj" />
+    <Project Path="samples/SqsFunction/SqsFunction.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Kralizek.Lambda.Template.Abstractions/Kralizek.Lambda.Template.Abstractions.csproj" />

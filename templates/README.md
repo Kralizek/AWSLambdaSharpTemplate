@@ -2,7 +2,7 @@
 
 Project templates for building AWS Lambda functions with `Kralizek.Lambda.Template`.
 
-The package contains `dotnet new` templates that start from the semantic function model provided by the runtime library. The template package and runtime package are versioned together, and generated projects reference the matching runtime package version.
+The package contains `dotnet new` templates that start from the semantic function model provided by the runtime library. The template package and runtime packages are versioned together, and generated projects reference the matching runtime package version.
 
 ## Install
 
@@ -22,8 +22,7 @@ dotnet new list lambda-template
 | --- | --- | --- |
 | Event Function | `lambda-template-event` | The Lambda handles an input and does not return an application result. |
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
-
-The package is designed to grow with additional AWS source-specific templates. New templates will be added to this catalog as their integrations become available, while the generic Event and Request templates remain the starting point when no source-specific behavior is required.
+| SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
 
 ## Create a function
 
@@ -39,7 +38,13 @@ Create a request function:
 dotnet new lambda-template-request --name MyRequestFunction
 ```
 
-Both templates support the AWS Lambda deployment settings exposed by the template package:
+Create an SQS function:
+
+```bash
+dotnet new lambda-template-sqs --name MySqsFunction
+```
+
+All templates support the AWS Lambda deployment settings exposed by the template package:
 
 - `--profile` for the AWS credential profile used by the Lambda tools.
 - `--region` for the AWS region.
@@ -48,8 +53,8 @@ Both templates support the AWS Lambda deployment settings exposed by the templat
 For example:
 
 ```bash
-dotnet new lambda-template-event \
-  --name MyEventFunction \
+dotnet new lambda-template-sqs \
+  --name MySqsFunction \
   --profile my-profile \
   --region eu-north-1 \
   --role my-lambda-role
@@ -75,10 +80,16 @@ public class Function : RequestFunction<string, string, ToUpperStringRequestHand
 }
 ```
 
-Generated functions also expose the framework's consumer customization hooks for configuration, logging, and dependency injection. The primary handler is registered automatically by the framework.
+An SQS Function derives from `SqsFunction<TMessage, THandler>`. The framework decodes each SQS body to `TMessage`, creates an `SqsMessageContext`, and invokes the consumer's `ISqsMessageHandler<TMessage>`:
+
+```csharp
+public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>;
+```
+
+The default SQS payload decoder uses `System.Text.Json`. Applications can replace `IStringPayloadDecoder<TMessage>` through the normal dependency-injection customization hook when a different payload representation or source-generated JSON metadata is required.
 
 ## Package compatibility
 
-`Kralizek.Lambda.Templates` and `Kralizek.Lambda.Template` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
 For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.
