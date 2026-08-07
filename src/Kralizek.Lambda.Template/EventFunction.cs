@@ -20,7 +20,7 @@ public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
     where TContext : EventContext
     where THandler : class, IEventHandler<TInput, TContext>
 {
-    private protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
         services.TryAddScoped<THandler>();
