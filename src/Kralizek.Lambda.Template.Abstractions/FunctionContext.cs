@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Kralizek.Lambda;
 
@@ -35,7 +36,12 @@ public abstract class FunctionContext
         RemainingTime = metadata.RemainingTime;
         LogGroupName = metadata.LogGroupName;
         LogStreamName = metadata.LogStreamName;
-        Properties = properties ?? new Dictionary<string, object?>();
+
+        var propertySnapshot = properties is null
+            ? new Dictionary<string, object?>()
+            : new Dictionary<string, object?>(properties);
+
+        Properties = new ReadOnlyDictionary<string, object?>(propertySnapshot);
     }
 
     public string AwsRequestId { get; }
