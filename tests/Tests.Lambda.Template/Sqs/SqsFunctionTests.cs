@@ -31,6 +31,18 @@ public class SqsFunctionTests
         var @event = CreateEvent(
             ("first", "{\"value\":\"one\"}"),
             ("second", "{\"value\":\"two\"}"));
+        @event.Records[1].ReceiptHandle = "receipt";
+        @event.Records[1].EventSource = "aws:sqs";
+        @event.Records[1].EventSourceArn = "arn:aws:sqs:eu-north-1:123456789012:orders";
+        @event.Records[1].AwsRegion = "eu-north-1";
+        @event.Records[1].Attributes = new Dictionary<string, string>
+        {
+            ["ApproximateReceiveCount"] = "2"
+        };
+        @event.Records[1].MessageAttributes = new Dictionary<string, SQSEvent.MessageAttribute>
+        {
+            ["tenant"] = new() { StringValue = "example" }
+        };
 
         var response = await function.FunctionHandlerAsync(@event, lambdaContext);
 
@@ -38,7 +50,14 @@ public class SqsFunctionTests
         {
             Assert.That(response.BatchItemFailures, Is.Empty);
             Assert.That(TestHandler.Messages.Select(message => message.Value), Is.EquivalentTo(new[] { "one", "two" }));
-            Assert.That(TestHandler.LastContext?.Record.MessageId, Is.EqualTo("second"));
+            Assert.That(TestHandler.LastContext?.MessageId, Is.EqualTo("second"));
+            Assert.That(TestHandler.LastContext?.ReceiptHandle, Is.EqualTo("receipt"));
+            Assert.That(TestHandler.LastContext?.EventSource, Is.EqualTo("aws:sqs"));
+            Assert.That(TestHandler.LastContext?.EventSourceArn, Is.EqualTo("arn:aws:sqs:eu-north-1:123456789012:orders"));
+            Assert.That(TestHandler.LastContext?.AwsRegion, Is.EqualTo("eu-north-1"));
+            Assert.That(TestHandler.LastContext?.Attributes["ApproximateReceiveCount"], Is.EqualTo("2"));
+            Assert.That(TestHandler.LastContext?.MessageAttributes["tenant"].StringValue, Is.EqualTo("example"));
+            Assert.That(TestHandler.LastContext?.GetSqsMessage(), Is.SameAs(@event.Records[1]));
             Assert.That(TestHandler.LastContext?.AwsRequestId, Is.EqualTo(lambdaContext.AwsRequestId));
             Assert.That(TestHandler.LastContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
         });
