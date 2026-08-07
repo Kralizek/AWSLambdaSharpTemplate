@@ -84,4 +84,4 @@ public sealed class MyDecoder : IStringPayloadDecoder<OrderCreated>
 }
 ```
 
-`Kralizek.Lambda.Template` provides ready-to-use System.Text.Json implementations for both string and binary payloads.
+`Kralizek.Lambda.Template` provides `PlainTextStringPayloadDecoder` for unchanged text payloads and System.Text.Json implementations for both string and binary payloads. The JSON decoders support `JsonSerializerOptions` as well as source-generated `JsonSerializerContext` / `JsonTypeInfo<TPayload>` metadata for Native AOT scenarios.
