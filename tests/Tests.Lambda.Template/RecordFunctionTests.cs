@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,6 +43,16 @@ public class RecordFunctionTests
     }
 
     [Test]
+    public async Task ProcessRecordsAsync_preserves_record_identity_for_response_generation()
+    {
+        var sut = new IdentityRecordFunction();
+
+        var response = await sut.InvokeAsync(new[] { "a", "b" }, TestLambdaContexts.Create());
+
+        Assert.That(response, Is.EqualTo(new[] { "a:A", "b:B" }));
+    }
+
+    [Test]
     public async Task ProcessRecordsAsync_creates_new_scope_per_record()
     {
         var sut = new ScopedRecordFunction();
@@ -53,7 +64,7 @@ public class RecordFunctionTests
     }
 
     [Test]
-    public void ProcessRecordsAsync_propagates_handler_exception()
+    public void ProcessRecordsAsync_propagates_handler_exception_by_default()
     {
         var sut = new FailingRecordFunction();
 
@@ -62,7 +73,18 @@ public class RecordFunctionTests
     }
 
     [Test]
-    public void ProcessRecordsAsync_propagates_cancellation()
+    public async Task ProcessRecordsAsync_allows_specialization_to_translate_handler_exception()
+    {
+        var sut = new TranslatingFailureRecordFunction();
+
+        var response = await sut.InvokeAsync(new[] { "good", "bad", "also-good" }, TestLambdaContexts.Create());
+
+        Assert.That(response, Is.EqualTo(new[] { "good:True", "bad:False", "also-good:True" }));
+        Assert.That(sut.TranslatedException, Is.TypeOf<InvalidOperationException>());
+    }
+
+    [Test]
+    public void ProcessRecordsAsync_propagates_cancellation_without_translating_it()
     {
         var sut = new CancellationRecordFunction();
         using var cancellation = new CancellationTokenSource();
@@ -70,6 +92,7 @@ public class RecordFunctionTests
 
         Assert.ThrowsAsync<OperationCanceledException>(() =>
             sut.InvokeAsync(new[] { "timed-out-record" }, cancellation.Token));
+        Assert.That(sut.ExceptionWasTranslated, Is.False);
     }
 
     [Test]
@@ -116,7 +139,7 @@ public class RecordFunctionTests
     {
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
-        protected override int CreateResponse(IReadOnlyCollection<bool> results) => results.Count;
+        protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
 
         public Task<int> InvokeAsync(string[] records, ILambdaContext context)
         {
@@ -138,11 +161,25 @@ public class RecordFunctionTests
         }
     }
 
+    public class IdentityRecordFunction : RecordFunction<string[], string, string, string[], EchoRecordHandler>
+    {
+        protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
+
+        protected override string[] CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
+            results.Select(result => $"{result.Record}:{result.Result}").ToArray();
+
+        public Task<string[]> InvokeAsync(string[] records, ILambdaContext context)
+        {
+            using var cts = CreateCancellationTokenSource(context);
+            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
+        }
+    }
+
     public class FailingRecordFunction : RecordFunction<string[], string, bool, int, ThrowingHandler>
     {
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
-        protected override int CreateResponse(IReadOnlyCollection<bool> results) => results.Count;
+        protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
 
         public Task<int> InvokeAsync(string[] records, ILambdaContext context)
         {
@@ -151,11 +188,49 @@ public class RecordFunctionTests
         }
     }
 
-    public class CancellationRecordFunction : RecordFunction<string[], string, bool, int, CollectingHandler>
+    public class TranslatingFailureRecordFunction : RecordFunction<string[], string, bool, string[], ConditionalThrowingHandler>
     {
+        public Exception? TranslatedException { get; private set; }
+
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
-        protected override int CreateResponse(IReadOnlyCollection<bool> results) => results.Count;
+        protected override string[] CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
+            results.Select(result => $"{result.Record}:{result.Result}").ToArray();
+
+        protected override ValueTask<bool> HandleRecordExceptionAsync(
+            string record,
+            Exception exception,
+            RecordContext context,
+            CancellationToken cancellationToken)
+        {
+            TranslatedException = exception;
+            return ValueTask.FromResult(false);
+        }
+
+        public Task<string[]> InvokeAsync(string[] records, ILambdaContext context)
+        {
+            using var cts = CreateCancellationTokenSource(context);
+            return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
+        }
+    }
+
+    public class CancellationRecordFunction : RecordFunction<string[], string, bool, int, CollectingHandler>
+    {
+        public bool ExceptionWasTranslated { get; private set; }
+
+        protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
+
+        protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
+
+        protected override ValueTask<bool> HandleRecordExceptionAsync(
+            string record,
+            Exception exception,
+            RecordContext context,
+            CancellationToken cancellationToken)
+        {
+            ExceptionWasTranslated = true;
+            return ValueTask.FromResult(false);
+        }
 
         public Task<int> InvokeAsync(string[] records, CancellationToken cancellationToken) =>
             ProcessRecordsAsync(records, CreateRecordContext(TestLambdaContexts.Create()), cancellationToken);
@@ -165,7 +240,7 @@ public class RecordFunctionTests
     {
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
-        protected override int CreateResponse(IReadOnlyCollection<bool> results) => results.Count;
+        protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
 
         protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
@@ -201,14 +276,28 @@ public class RecordFunctionTests
         {
             Processed.Enqueue(record);
             Contexts.Add(context);
-            return new ValueTask<bool>(true);
+            return ValueTask.FromResult(true);
         }
+    }
+
+    public class EchoRecordHandler : IRecordHandler<string, string>
+    {
+        public ValueTask<string> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
+            ValueTask.FromResult(record.ToUpperInvariant());
     }
 
     public class ThrowingHandler : IRecordHandler<string, bool>
     {
         public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
             ValueTask.FromException<bool>(new InvalidOperationException("handler failed"));
+    }
+
+    public class ConditionalThrowingHandler : IRecordHandler<string, bool>
+    {
+        public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken) =>
+            record == "bad"
+                ? ValueTask.FromException<bool>(new InvalidOperationException("handler failed"))
+                : ValueTask.FromResult(true);
     }
 
     public class ScopedTrackingHandler : IRecordHandler<string, bool>
@@ -225,7 +314,7 @@ public class RecordFunctionTests
         public ValueTask<bool> HandleAsync(string record, RecordContext context, CancellationToken cancellationToken)
         {
             CapturedServices.Add(_service);
-            return new ValueTask<bool>(true);
+            return ValueTask.FromResult(true);
         }
     }
 
