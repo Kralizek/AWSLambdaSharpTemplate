@@ -36,9 +36,24 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected abstract IEnumerable<TRecord> GetRecords(TEnvelope envelope);
 
     /// <summary>
-    /// Creates the final source-specific response from the processed record results.
+    /// Creates the final source-specific response from the processed records and their results.
     /// </summary>
-    protected abstract TResponse CreateResponse(IReadOnlyCollection<TRecordResult> results);
+    protected abstract TResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results);
+
+    /// <summary>
+    /// Translates a record-handler exception into a source-specific record result.
+    /// </summary>
+    /// <remarks>
+    /// The default implementation rethrows the exception. Source-specific specializations may override
+    /// this method to produce a failed record result used for partial-batch or checkpoint responses.
+    /// Invocation cancellation bypasses this method and always aborts the invocation.
+    /// </remarks>
+    protected virtual ValueTask<TRecordResult> HandleRecordExceptionAsync(
+        TRecord record,
+        Exception exception,
+        RecordContext context,
+        CancellationToken cancellationToken) =>
+        ValueTask.FromException<TRecordResult>(exception);
 
     /// <summary>
     /// Processes all records sequentially within an invocation scope and creates one scope per record.
@@ -51,20 +66,19 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         cancellationToken.ThrowIfCancellationRequested();
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
-        var results = new List<TRecordResult>();
+        var results = new List<RecordProcessingResult>();
 
         foreach (var record in GetRecords(envelope))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await using var recordScope = invocationScope.ServiceProvider.CreateAsyncScope();
+            var result = await ProcessRecordAsync(
+                invocationScope.ServiceProvider,
+                record,
+                context,
+                cancellationToken).ConfigureAwait(false);
 
-            var result = await InvokeHandlerAsync<THandler, TRecordResult>(
-                recordScope.ServiceProvider,
-                cancellationToken,
-                (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
-
-            results.Add(result);
+            results.Add(new RecordProcessingResult(record, result));
         }
 
         return CreateResponse(results);
@@ -89,7 +103,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         cancellationToken.ThrowIfCancellationRequested();
 
         var records = GetRecords(envelope).ToArray();
-        var results = new TRecordResult[records.Length];
+        var results = new RecordProcessingResult[records.Length];
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
@@ -104,15 +118,14 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
             options,
             async (index, ct) =>
             {
-                await using var recordScope = invocationScope.ServiceProvider.CreateAsyncScope();
+                var record = records[index];
+                var result = await ProcessRecordAsync(
+                    invocationScope.ServiceProvider,
+                    record,
+                    context,
+                    ct).ConfigureAwait(false);
 
-                results[index] = await InvokeHandlerAsync<THandler, TRecordResult>(
-                    recordScope.ServiceProvider,
-                    ct,
-                    (handler, recordCancellationToken) => handler.HandleAsync(
-                        records[index],
-                        context,
-                        recordCancellationToken)).ConfigureAwait(false);
+                results[index] = new RecordProcessingResult(record, result);
             }).ConfigureAwait(false);
 
         return CreateResponse(results);
@@ -122,6 +135,40 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     /// Creates the common record-processing context for an invocation.
     /// </summary>
     protected static RecordContext CreateRecordContext(ILambdaContext context) => new(context);
+
+    private async ValueTask<TRecordResult> ProcessRecordAsync(
+        IServiceProvider invocationServices,
+        TRecord record,
+        RecordContext context,
+        CancellationToken cancellationToken)
+    {
+        await using var recordScope = invocationServices.CreateAsyncScope();
+
+        try
+        {
+            return await InvokeHandlerAsync<THandler, TRecordResult>(
+                recordScope.ServiceProvider,
+                cancellationToken,
+                (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            return await HandleRecordExceptionAsync(
+                record,
+                exception,
+                context,
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Associates an original record with the result produced while processing it.
+    /// </summary>
+    protected readonly record struct RecordProcessingResult(TRecord Record, TRecordResult Result);
 }
 
 /// <summary>
