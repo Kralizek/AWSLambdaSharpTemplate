@@ -34,7 +34,17 @@ public abstract class LambdaFunction
 
         services.AddSingleton<IExecutionEnvironment>(executionEnvironment);
         services.AddSingleton(Configuration);
-        services.AddLogging(ConfigureLogging);
+        services.AddLogging(logging =>
+        {
+            logging.AddLambdaLogger(new LambdaLoggerOptions
+            {
+                IncludeCategory = true,
+                IncludeLogLevel = true,
+                IncludeNewline = true
+            });
+
+            ConfigureLogging(logging);
+        });
 
         ConfigureFrameworkServices(services);
         ConfigureServices(services, Configuration);
@@ -63,11 +73,12 @@ public abstract class LambdaFunction
     private protected virtual void ConfigureFrameworkServices(IServiceCollection services) { }
 
     /// <summary>
-    /// Override to configure logging providers.
+    /// Override to configure additional logging providers and options.
     /// </summary>
     /// <remarks>
-    /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
-    /// Overrides must not depend on state initialized by a derived-class constructor.
+    /// Lambda-compatible logging is configured by default. This method is invoked while the
+    /// <see cref="LambdaFunction"/> base constructor is executing. Overrides must not depend on
+    /// state initialized by a derived-class constructor.
     /// </remarks>
     protected virtual void ConfigureLogging(ILoggingBuilder logging) { }
 
