@@ -247,7 +247,7 @@ public class RecordFunctionTests
     public sealed class TestRecordContext : RecordContext
     {
         public TestRecordContext(ILambdaContext lambdaContext, string source)
-            : base(lambdaContext)
+            : base(FunctionContextFactory.CreateMetadata(lambdaContext), FunctionContextFactory.CreateProperties(lambdaContext))
         {
             Source = source;
         }
