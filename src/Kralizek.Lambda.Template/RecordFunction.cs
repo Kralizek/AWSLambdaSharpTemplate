@@ -26,7 +26,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     where TContext : RecordContext
     where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
 {
-    private protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
         services.TryAddScoped<THandler>();
