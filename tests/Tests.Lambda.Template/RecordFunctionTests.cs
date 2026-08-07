@@ -48,8 +48,8 @@ public class RecordFunctionTests
 
         await sut.InvokeAsync(new[] { "x", "y" }, new TestLambdaContext());
 
-        Assert.That(ScopedTrackingHandler.CapturedServices.Count, Is.EqualTo(2));
-        Assert.That(ScopedTrackingHandler.CapturedServices[0], Is.Not.SameAs(ScopedTrackingHandler.CapturedServices[1]));
+        Assert.That(ScopedTrackingHandler.CapturedServices, Has.Count.EqualTo(2));
+        Assert.That(ScopedTrackingHandler.CapturedServices, Is.Unique);
     }
 
     [Test]
@@ -72,6 +72,46 @@ public class RecordFunctionTests
             sut.InvokeAsync(new[] { "timed-out-record" }, cancellation.Token));
     }
 
+    [Test]
+    public async Task ProcessRecordsParallelAsync_processes_all_records()
+    {
+        var sut = new SequentialRecordFunction();
+
+        var response = await sut.InvokeParallelAsync(
+            new[] { "p1", "p2", "p3" },
+            maxDegreeOfParallelism: 2,
+            new TestLambdaContext());
+
+        Assert.That(response, Is.EqualTo(3));
+        Assert.That(CollectingHandler.Processed, Is.EquivalentTo(new[] { "p1", "p2", "p3" }));
+    }
+
+    [Test]
+    public async Task ProcessRecordsParallelAsync_creates_new_scope_per_record()
+    {
+        var sut = new ScopedRecordFunction();
+
+        await sut.InvokeParallelAsync(
+            new[] { "p1", "p2", "p3" },
+            maxDegreeOfParallelism: 2,
+            new TestLambdaContext());
+
+        Assert.That(ScopedTrackingHandler.CapturedServices, Has.Count.EqualTo(3));
+        Assert.That(ScopedTrackingHandler.CapturedServices, Is.Unique);
+    }
+
+    [Test]
+    public void ProcessRecordsParallelAsync_throws_when_parallelism_less_than_2()
+    {
+        var sut = new SequentialRecordFunction();
+
+        Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            sut.InvokeParallelAsync(
+                new[] { "record" },
+                maxDegreeOfParallelism: 1,
+                new TestLambdaContext()));
+    }
+
     public class SequentialRecordFunction : RecordFunction<string[], string, bool, int, CollectingHandler>
     {
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
@@ -82,6 +122,19 @@ public class RecordFunctionTests
         {
             using var cts = CreateCancellationTokenSource(context);
             return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
+        }
+
+        public Task<int> InvokeParallelAsync(
+            string[] records,
+            int maxDegreeOfParallelism,
+            ILambdaContext context)
+        {
+            using var cts = CreateCancellationTokenSource(context);
+            return ProcessRecordsParallelAsync(
+                records,
+                CreateRecordContext(context),
+                maxDegreeOfParallelism,
+                cts.Token);
         }
     }
 
@@ -124,6 +177,19 @@ public class RecordFunctionTests
             using var cts = CreateCancellationTokenSource(context);
             return ProcessRecordsAsync(records, CreateRecordContext(context), cts.Token);
         }
+
+        public Task<int> InvokeParallelAsync(
+            string[] records,
+            int maxDegreeOfParallelism,
+            ILambdaContext context)
+        {
+            using var cts = CreateCancellationTokenSource(context);
+            return ProcessRecordsParallelAsync(
+                records,
+                CreateRecordContext(context),
+                maxDegreeOfParallelism,
+                cts.Token);
+        }
     }
 
     public class CollectingHandler : IRecordHandler<string, bool>
@@ -147,7 +213,7 @@ public class RecordFunctionTests
 
     public class ScopedTrackingHandler : IRecordHandler<string, bool>
     {
-        public static List<ScopedService> CapturedServices { get; } = new();
+        public static ConcurrentBag<ScopedService> CapturedServices { get; } = new();
 
         private readonly ScopedService _service;
 
