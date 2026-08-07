@@ -2,8 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.TestUtilities;
-
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Configuration;
@@ -46,7 +44,8 @@ public class RequestFunctionTests
         EchoHandler.Reset();
         EchoHandler.Suffix = "-result";
         var sut = new EchoHandlerFunction();
-        var lambdaContext = new TestLambdaContext { AwsRequestId = "request-id" };
+        var lambdaContext = TestLambdaContexts.Create();
+        lambdaContext.AwsRequestId = "request-id";
 
         var result = await sut.FunctionHandlerAsync("hello", lambdaContext);
 
@@ -61,7 +60,7 @@ public class RequestFunctionTests
         var sut = new FailingHandlerFunction();
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.FunctionHandlerAsync("hello", new TestLambdaContext()));
+            sut.FunctionHandlerAsync("hello", TestLambdaContexts.Create()));
     }
 
     public class TestRequestFunction : RequestFunction<string, string, NoOpHandler>
