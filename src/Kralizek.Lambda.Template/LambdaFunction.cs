@@ -33,6 +33,7 @@ public abstract class LambdaFunction
         var services = new ServiceCollection();
 
         services.AddSingleton<IExecutionEnvironment>(executionEnvironment);
+        services.AddSingleton<IConfiguration>(Configuration);
         services.AddSingleton(Configuration);
         services.AddLogging(logging =>
         {
