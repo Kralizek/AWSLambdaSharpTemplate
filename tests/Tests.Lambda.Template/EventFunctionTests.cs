@@ -45,7 +45,8 @@ public class EventFunctionTests
     {
         TrackingHandler.Reset();
         var sut = new TrackingHandlerFunction();
-        var lambdaContext = new TestLambdaContext { AwsRequestId = "request-id" };
+        var lambdaContext = TestLambdaContexts.Create();
+        lambdaContext.AwsRequestId = "request-id";
 
         await sut.FunctionHandlerAsync("expected-value", lambdaContext);
 
@@ -61,7 +62,7 @@ public class EventFunctionTests
         var sut = new FailingHandlerFunction();
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.FunctionHandlerAsync("hello", new TestLambdaContext()));
+            sut.FunctionHandlerAsync("hello", TestLambdaContexts.Create()));
     }
 
     [Test]
