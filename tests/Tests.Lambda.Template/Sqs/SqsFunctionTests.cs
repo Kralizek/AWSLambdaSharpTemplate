@@ -29,8 +29,8 @@ public class SqsFunctionTests
         var function = new TestFunction();
         var lambdaContext = TestLambdaContexts.Create();
         var @event = CreateEvent(
-            ("first", "{\"Value\":\"one\"}"),
-            ("second", "{\"Value\":\"two\"}"));
+            ("first", "{\"value\":\"one\"}"),
+            ("second", "{\"value\":\"two\"}"));
 
         var response = await function.FunctionHandlerAsync(@event, lambdaContext);
 
@@ -49,8 +49,8 @@ public class SqsFunctionTests
     {
         var function = new TestFunction();
         var @event = CreateEvent(
-            ("ok", "{\"Value\":\"ok\"}"),
-            ("failed", "{\"Value\":\"fail\"}"));
+            ("ok", "{\"value\":\"ok\"}"),
+            ("failed", "{\"value\":\"fail\"}"));
 
         var response = await function.FunctionHandlerAsync(@event, TestLambdaContexts.Create());
 
@@ -79,7 +79,7 @@ public class SqsFunctionTests
     {
         var function = new TestFunction();
         var context = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
-        var @event = CreateEvent(("first", "{\"Value\":\"one\"}"));
+        var @event = CreateEvent(("first", "{\"value\":\"one\"}"));
 
         Assert.That(
             async () => await function.FunctionHandlerAsync(@event, context),
@@ -91,9 +91,9 @@ public class SqsFunctionTests
     {
         var function = new TestParallelFunction();
         var @event = CreateEvent(
-            ("first", "{\"Value\":\"one\"}"),
-            ("second", "{\"Value\":\"two\"}"),
-            ("third", "{\"Value\":\"three\"}"));
+            ("first", "{\"value\":\"one\"}"),
+            ("second", "{\"value\":\"two\"}"),
+            ("third", "{\"value\":\"three\"}"));
 
         var response = await function.FunctionHandlerAsync(@event, TestLambdaContexts.Create());
 
