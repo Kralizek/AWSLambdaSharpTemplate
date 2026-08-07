@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 namespace Kralizek.Lambda;
 
 /// <summary>
@@ -11,11 +14,16 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TInput">The type of the incoming request.</typeparam>
 /// <typeparam name="TOutput">The type of the response.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the request.</typeparam>
+#pragma warning disable S2436 // The three generic roles are intentional and make the request contract explicit.
 public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunction
+#pragma warning restore S2436
     where THandler : class, IRequestHandler<TInput, TOutput>
 {
-    protected RequestFunction()
-        : base(typeof(THandler)) { }
+    private protected override void ConfigureFrameworkServices(IServiceCollection services)
+    {
+        base.ConfigureFrameworkServices(services);
+        services.TryAddTransient<THandler>();
+    }
 
     /// <summary>
     /// The entry point called by the Lambda runtime.
