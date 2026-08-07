@@ -33,7 +33,10 @@ public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunctio
         using var cts = CreateCancellationTokenSource(context);
         var requestContext = new RequestContext(context);
 
-        return await InvokeAsync<THandler, TOutput>(
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+
+        return await ExecuteHandlerAsync<THandler, TOutput>(
+            invocationScope.ServiceProvider,
             cts.Token,
             (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
     }
