@@ -3,9 +3,6 @@ using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
 namespace Kralizek.Lambda;
 
 /// <summary>
@@ -17,10 +14,8 @@ namespace Kralizek.Lambda;
 public abstract class RequestFunction<TInput, TOutput, THandler> : LambdaFunction
     where THandler : class, IRequestHandler<TInput, TOutput>
 {
-    protected override void RegisterHandlers(IServiceCollection services)
-    {
-        services.TryAddTransient<THandler>();
-    }
+    protected RequestFunction()
+        : base(typeof(THandler)) { }
 
     /// <summary>
     /// The entry point called by the Lambda runtime.

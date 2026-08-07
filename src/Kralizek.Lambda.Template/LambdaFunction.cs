@@ -15,14 +15,13 @@ namespace Kralizek.Lambda;
 /// </summary>
 public abstract class LambdaFunction
 {
-    protected LambdaFunction()
+    protected LambdaFunction(params Type[] handlerTypes)
     {
-        var services = new ServiceCollection();
-        var builder = new ConfigurationBuilder();
+        var configurationBuilder = new ConfigurationBuilder();
 
-        Configure(builder);
+        ConfigureConfiguration(configurationBuilder);
 
-        Configuration = builder.Build();
+        Configuration = configurationBuilder.Build();
 
         var executionEnvironment = new LambdaExecutionEnvironment
         {
@@ -30,44 +29,45 @@ public abstract class LambdaFunction
             IsLambda = Configuration["LAMBDA_RUNTIME_DIR"] != null
         };
 
+        var services = new ServiceCollection();
+
         services.AddSingleton<IExecutionEnvironment>(executionEnvironment);
         services.AddSingleton(Configuration);
-        services.AddLogging(logging => ConfigureLogging(logging, executionEnvironment));
+        services.AddLogging(ConfigureLogging);
 
-        RegisterHandlers(services);
-        ConfigureServices(services, executionEnvironment);
+        foreach (var handlerType in handlerTypes)
+        {
+            services.AddTransient(handlerType);
+        }
+
+        ConfigureServices(services, Configuration);
 
         ServiceProvider = services.BuildServiceProvider();
         Logger = ServiceProvider.GetRequiredService<ILogger<LambdaFunction>>();
     }
 
     /// <summary>
-    /// Override to register the application configuration sources.
+    /// Override to add configuration sources used by the function.
     /// </summary>
-    protected virtual void Configure(IConfigurationBuilder builder) { }
-
-    /// <summary>
-    /// Override to register handler types. Called before <see cref="ConfigureServices"/>.
-    /// </summary>
-    protected virtual void RegisterHandlers(IServiceCollection services) { }
-
-    /// <summary>
-    /// Override to register application services.
-    /// </summary>
-    protected virtual void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) { }
+    protected virtual void ConfigureConfiguration(IConfigurationBuilder configuration) { }
 
     /// <summary>
     /// Override to configure logging providers.
     /// </summary>
-    protected virtual void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment) { }
+    protected virtual void ConfigureLogging(ILoggingBuilder logging) { }
 
     /// <summary>
-    /// The root configuration built during initialization.
+    /// Override to register application services.
+    /// </summary>
+    protected virtual void ConfigureServices(IServiceCollection services, IConfiguration configuration) { }
+
+    /// <summary>
+    /// The configuration built during function initialization.
     /// </summary>
     protected IConfigurationRoot Configuration { get; }
 
     /// <summary>
-    /// The root service provider built during initialization.
+    /// The root service provider built during function initialization.
     /// </summary>
     protected IServiceProvider ServiceProvider { get; }
 

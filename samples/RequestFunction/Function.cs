@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
@@ -14,15 +13,14 @@ namespace RequestFunction;
 
 public class Function : RequestFunction<string, string, UpperCaseHandler>
 {
-    protected override void Configure(IConfigurationBuilder builder)
+    protected override void ConfigureConfiguration(IConfigurationBuilder configuration)
     {
-        builder.AddEnvironmentVariables();
+        configuration.AddEnvironmentVariables();
     }
 
-    protected override void ConfigureLogging(ILoggingBuilder logging, IExecutionEnvironment executionEnvironment)
+    protected override void ConfigureLogging(ILoggingBuilder logging)
     {
         logging.AddConfiguration(Configuration.GetSection("Logging"));
-
         logging.AddLambdaLogger(new LambdaLoggerOptions
         {
             IncludeCategory = true,
