@@ -18,17 +18,43 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TRecord">The individual record type extracted from the envelope.</typeparam>
 /// <typeparam name="TRecordResult">The result produced by processing one record.</typeparam>
 /// <typeparam name="TResponse">The infrastructure response produced from the record results.</typeparam>
+/// <typeparam name="TContext">The context passed to record handlers.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes each record.</typeparam>
-#pragma warning disable S2436 // The five generic roles are intentional and mirror the record-processing model from ADR #30.
-public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TResponse, THandler> : LambdaFunction
+#pragma warning disable S2436 // The six generic roles are intentional and mirror the record-processing model from ADR #30.
+public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TResponse, TContext, THandler> : LambdaFunction
 #pragma warning restore S2436
-    where THandler : class, IRecordHandler<TRecord, TRecordResult>
+    where TContext : RecordContext
+    where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
 {
     private protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
         services.TryAddScoped<THandler>();
     }
+
+    /// <summary>
+    /// The entry point called by the Lambda runtime.
+    /// </summary>
+    public async Task<TResponse> FunctionHandlerAsync(TEnvelope envelope, ILambdaContext lambdaContext)
+    {
+        using var cts = CreateCancellationTokenSource(lambdaContext);
+        var context = CreateRecordContext(envelope, lambdaContext);
+
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+
+        var results = await ProcessRecordsAsync(
+            envelope,
+            context,
+            invocationScope.ServiceProvider,
+            cts.Token).ConfigureAwait(false);
+
+        return CreateResponse(results);
+    }
+
+    /// <summary>
+    /// Creates the source-specific context used while processing this invocation.
+    /// </summary>
+    protected abstract TContext CreateRecordContext(TEnvelope envelope, ILambdaContext lambdaContext);
 
     /// <summary>
     /// Extracts the individual records from the envelope.
@@ -51,29 +77,33 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected virtual ValueTask<TRecordResult> HandleRecordExceptionAsync(
         TRecord record,
         Exception exception,
-        RecordContext context,
+        TContext context,
         CancellationToken cancellationToken) =>
         ValueTask.FromException<TRecordResult>(exception);
 
     /// <summary>
-    /// Processes all records sequentially within an invocation scope and creates one scope per record.
+    /// Processes all records sequentially and creates one scope per record.
     /// </summary>
-    protected async Task<TResponse> ProcessRecordsAsync(
+    /// <remarks>
+    /// Source-specific specializations may override this method to select another scheduling policy,
+    /// such as bounded parallelism, while retaining the invocation scope owned by <see cref="FunctionHandlerAsync"/>.
+    /// </remarks>
+    protected virtual async Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
         TEnvelope envelope,
-        RecordContext context,
+        TContext context,
+        IServiceProvider invocationServices,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
         var results = new List<RecordProcessingResult>();
 
         foreach (var record in GetRecords(envelope))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var result = await ProcessRecordAsync(
-                invocationScope.ServiceProvider,
+            var result = await ExecuteRecordAsync(
+                invocationServices,
                 record,
                 context,
                 cancellationToken).ConfigureAwait(false);
@@ -81,15 +111,16 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
             results.Add(new RecordProcessingResult(record, result));
         }
 
-        return CreateResponse(results);
+        return results;
     }
 
     /// <summary>
-    /// Processes records with bounded parallelism within an invocation scope and creates one scope per record.
+    /// Processes records with bounded parallelism and creates one scope per record.
     /// </summary>
-    protected async Task<TResponse> ProcessRecordsParallelAsync(
+    protected async Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsParallelAsync(
         TEnvelope envelope,
-        RecordContext context,
+        TContext context,
+        IServiceProvider invocationServices,
         int maxDegreeOfParallelism,
         CancellationToken cancellationToken)
     {
@@ -105,8 +136,6 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         var records = GetRecords(envelope).ToArray();
         var results = new RecordProcessingResult[records.Length];
 
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
-
         var options = new ParallelOptions
         {
             MaxDegreeOfParallelism = maxDegreeOfParallelism,
@@ -119,8 +148,8 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
             async (index, ct) =>
             {
                 var record = records[index];
-                var result = await ProcessRecordAsync(
-                    invocationScope.ServiceProvider,
+                var result = await ExecuteRecordAsync(
+                    invocationServices,
                     record,
                     context,
                     ct).ConfigureAwait(false);
@@ -128,25 +157,20 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
                 results[index] = new RecordProcessingResult(record, result);
             }).ConfigureAwait(false);
 
-        return CreateResponse(results);
+        return results;
     }
 
-    /// <summary>
-    /// Creates the common record-processing context for an invocation.
-    /// </summary>
-    protected static RecordContext CreateRecordContext(ILambdaContext context) => new(context);
-
-    private async ValueTask<TRecordResult> ProcessRecordAsync(
+    private async ValueTask<TRecordResult> ExecuteRecordAsync(
         IServiceProvider invocationServices,
         TRecord record,
-        RecordContext context,
+        TContext context,
         CancellationToken cancellationToken)
     {
         await using var recordScope = invocationServices.CreateAsyncScope();
 
         try
         {
-            return await InvokeHandlerAsync<THandler, TRecordResult>(
+            return await ExecuteHandlerAsync<THandler, TRecordResult>(
                 recordScope.ServiceProvider,
                 cancellationToken,
                 (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
@@ -172,11 +196,13 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 }
 
 /// <summary>
-/// The contract for handlers invoked by <see cref="RecordFunction{TEnvelope,TRecord,TRecordResult,TResponse,THandler}"/>.
+/// The contract for handlers invoked by <see cref="RecordFunction{TEnvelope,TRecord,TRecordResult,TResponse,TContext,THandler}"/>.
 /// </summary>
 /// <typeparam name="TRecord">The individual record type to handle.</typeparam>
 /// <typeparam name="TRecordResult">The result produced from processing the record.</typeparam>
-public interface IRecordHandler<in TRecord, TRecordResult>
+/// <typeparam name="TContext">The context available while processing a record.</typeparam>
+public interface IRecordHandler<in TRecord, TRecordResult, in TContext>
+    where TContext : RecordContext
 {
-    ValueTask<TRecordResult> HandleAsync(TRecord record, RecordContext context, CancellationToken cancellationToken);
+    ValueTask<TRecordResult> HandleAsync(TRecord record, TContext context, CancellationToken cancellationToken);
 }
