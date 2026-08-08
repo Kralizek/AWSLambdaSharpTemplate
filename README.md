@@ -37,23 +37,23 @@ dotnet new install Kralizek.Lambda.Templates
 
 ### Available templates
 
-| Template | Short name |
-| --- | --- |
-| Event Function | `lambda-template-event` |
-| Request Function | `lambda-template-request` |
-| SNS Function | `lambda-template-sns` |
-| SQS Function | `lambda-template-sqs` |
-| Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` |
-| Cognito Post Confirmation | `lambda-template-cognito-post-confirmation` |
-| Cognito Pre Authentication | `lambda-template-cognito-pre-authentication` |
-| Cognito Post Authentication | `lambda-template-cognito-post-authentication` |
-| Cognito Define Auth Challenge | `lambda-template-cognito-define-auth-challenge` |
-| Cognito Create Auth Challenge | `lambda-template-cognito-create-auth-challenge` |
-| Cognito Verify Auth Challenge | `lambda-template-cognito-verify-auth-challenge` |
-| Cognito Custom Message | `lambda-template-cognito-custom-message` |
-| Cognito User Migration | `lambda-template-cognito-user-migration` |
-| Cognito Custom Email Sender | `lambda-template-cognito-custom-email-sender` |
-| Cognito Custom SMS Sender | `lambda-template-cognito-custom-sms-sender` |
-| Cognito Pre Token Generation | `lambda-template-cognito-pre-token-generation` (`--version v1|v2`) |
+| Template | Short name | Use when |
+| --- | --- | --- |
+| Event Function | `lambda-template-event` | The Lambda handles an input and does not return an application result. |
+| Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
+| SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
+| SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
+| Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` | The Lambda validates or modifies a user-pool sign-up request before Cognito creates the user. |
+| Cognito Post Confirmation | `lambda-template-cognito-post-confirmation` | The Lambda reacts after a user confirms registration or a password recovery flow. |
+| Cognito Pre Authentication | `lambda-template-cognito-pre-authentication` | The Lambda validates an authentication attempt before Cognito proceeds. |
+| Cognito Post Authentication | `lambda-template-cognito-post-authentication` | The Lambda reacts after Cognito authenticates a user. |
+| Cognito Define Auth Challenge | `lambda-template-cognito-define-auth-challenge` | The Lambda controls the state machine for a custom authentication flow. |
+| Cognito Create Auth Challenge | `lambda-template-cognito-create-auth-challenge` | The Lambda creates a challenge for a custom authentication flow. |
+| Cognito Verify Auth Challenge | `lambda-template-cognito-verify-auth-challenge` | The Lambda verifies the user's response to a custom authentication challenge. |
+| Cognito Custom Message | `lambda-template-cognito-custom-message` | The Lambda customizes Cognito-generated email and SMS message content. |
+| Cognito User Migration | `lambda-template-cognito-user-migration` | The Lambda migrates users from an existing identity store during sign-in or password reset. |
+| Cognito Custom Email Sender | `lambda-template-cognito-custom-email-sender` | The Lambda delivers Cognito email messages through a custom sender. |
+| Cognito Custom SMS Sender | `lambda-template-cognito-custom-sms-sender` | The Lambda delivers Cognito SMS messages through a custom sender. |
+| Cognito Pre Token Generation | `lambda-template-cognito-pre-token-generation` | The Lambda customizes claims and scopes before Cognito issues tokens. Supports `--version v1|v2`. |
 
 Run `dotnet new list lambda-template` to list the installed templates. Generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.
