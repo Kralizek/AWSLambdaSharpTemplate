@@ -18,7 +18,7 @@ public sealed class DynamoDbStreamItem
         OldImage = Copy(record.OldImage);
         SequenceNumber = record.SequenceNumber;
         SizeBytes = record.SizeBytes;
-        StreamViewType = record.StreamViewType;
+        StreamViewType = MapStreamViewType(record.StreamViewType);
     }
 
     public DateTime? ApproximateCreationDateTime { get; }
@@ -33,7 +33,7 @@ public sealed class DynamoDbStreamItem
 
     public long? SizeBytes { get; }
 
-    public string? StreamViewType { get; }
+    public DynamoDbStreamViewType StreamViewType { get; }
 
     internal static DynamoDbStreamItem Create(DynamoDBEvent.DynamodbStreamRecord record)
     {
@@ -43,6 +43,16 @@ public sealed class DynamoDbStreamItem
             record.Dynamodb ?? throw new InvalidOperationException(
                 "The DynamoDB Streams record does not contain DynamoDB stream data."));
     }
+
+    private static DynamoDbStreamViewType MapStreamViewType(string? streamViewType) =>
+        streamViewType switch
+        {
+            "KEYS_ONLY" => DynamoDbStreamViewType.KeysOnly,
+            "NEW_IMAGE" => DynamoDbStreamViewType.NewImage,
+            "OLD_IMAGE" => DynamoDbStreamViewType.OldImage,
+            "NEW_AND_OLD_IMAGES" => DynamoDbStreamViewType.NewAndOldImages,
+            _ => DynamoDbStreamViewType.Unknown
+        };
 
     private static IReadOnlyDictionary<string, DynamoDBEvent.AttributeValue> Copy(
         IDictionary<string, DynamoDBEvent.AttributeValue>? source) =>
