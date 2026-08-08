@@ -79,6 +79,21 @@ public class SqsFunctionTests
     }
 
     [Test]
+    public async Task Function_treats_null_records_as_empty_batch()
+    {
+        var function = new TestFunction();
+        var @event = new SQSEvent { Records = null! };
+
+        var response = await function.FunctionHandlerAsync(@event, TestLambdaContexts.Create());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.BatchItemFailures, Is.Empty);
+            Assert.That(TestHandler.Messages, Is.Empty);
+        });
+    }
+
+    [Test]
     public async Task Consumer_can_replace_default_decoder()
     {
         var function = new PlainTextFunction();
