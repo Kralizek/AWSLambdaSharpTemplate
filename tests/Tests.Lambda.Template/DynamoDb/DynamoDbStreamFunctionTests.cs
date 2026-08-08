@@ -20,7 +20,7 @@ public class DynamoDbStreamFunctionTests
     public void SetUp() => TestRecordHandler.Reset();
 
     [Test]
-    public async Task Function_forwards_record_and_context()
+    public async Task Function_forwards_item_and_context()
     {
         var function = new TestFunction();
         var lambdaContext = TestLambdaContexts.Create();
@@ -32,16 +32,18 @@ public class DynamoDbStreamFunctionTests
 
         var response = await function.FunctionHandlerAsync(@event, lambdaContext);
 
+        var item = TestRecordHandler.Items.Single();
+
         Assert.Multiple(() =>
         {
             Assert.That(response.BatchItemFailures, Is.Empty);
-            Assert.That(TestRecordHandler.Records.Single(), Is.SameAs(record));
+            Assert.That(item.SequenceNumber, Is.EqualTo("101"));
+            Assert.That(item.StreamViewType, Is.EqualTo("NEW_AND_OLD_IMAGES"));
+            Assert.That(item.Keys["orderId"].S, Is.EqualTo("order-123"));
+            Assert.That(item.NewImage["status"].S, Is.EqualTo("paid"));
+            Assert.That(item.OldImage["status"].S, Is.EqualTo("pending"));
             Assert.That(TestRecordHandler.LastContext?.EventId, Is.EqualTo("event-1"));
             Assert.That(TestRecordHandler.LastContext?.EventName, Is.EqualTo("MODIFY"));
-            Assert.That(TestRecordHandler.LastContext?.SequenceNumber, Is.EqualTo("101"));
-            Assert.That(TestRecordHandler.LastContext?.Keys["orderId"].S, Is.EqualTo("order-123"));
-            Assert.That(TestRecordHandler.LastContext?.NewImage["status"].S, Is.EqualTo("paid"));
-            Assert.That(TestRecordHandler.LastContext?.OldImage["status"].S, Is.EqualTo("pending"));
             Assert.That(TestRecordHandler.LastContext?.GetDynamoDbStreamRecord(), Is.SameAs(record));
             Assert.That(TestRecordHandler.LastContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
         });
@@ -87,8 +89,8 @@ public class DynamoDbStreamFunctionTests
         {
             Assert.That(response.BatchItemFailures, Is.Empty);
             Assert.That(
-                TestRecordHandler.Records.Select(record => record.EventID),
-                Is.EquivalentTo(new[] { "event-1", "event-2", "event-3" }));
+                TestRecordHandler.Items.Select(item => item.SequenceNumber),
+                Is.EquivalentTo(new[] { "101", "102", "103" }));
         });
     }
 
@@ -131,32 +133,32 @@ public class DynamoDbStreamFunctionTests
 
     private sealed class TestRecordHandler : IDynamoDbStreamRecordHandler
     {
-        private static readonly ConcurrentQueue<DynamoDBEvent.DynamodbStreamRecord> ReceivedRecords = new();
+        private static readonly ConcurrentQueue<DynamoDbStreamItem> ReceivedItems = new();
 
-        public static IReadOnlyCollection<DynamoDBEvent.DynamodbStreamRecord> Records => ReceivedRecords.ToArray();
+        public static IReadOnlyCollection<DynamoDbStreamItem> Items => ReceivedItems.ToArray();
 
         public static DynamoDbStreamRecordContext? LastContext { get; private set; }
 
         public static void Reset()
         {
-            ReceivedRecords.Clear();
+            ReceivedItems.Clear();
             LastContext = null;
         }
 
         public ValueTask HandleAsync(
-            DynamoDBEvent.DynamodbStreamRecord record,
+            DynamoDbStreamItem item,
             DynamoDbStreamRecordContext context,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             LastContext = context;
 
-            if (record.EventName == "FAIL")
+            if (context.EventName == "FAIL")
             {
                 throw new InvalidOperationException("Expected test failure.");
             }
 
-            ReceivedRecords.Enqueue(record);
+            ReceivedItems.Enqueue(item);
             return ValueTask.CompletedTask;
         }
     }
