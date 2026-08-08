@@ -8,43 +8,24 @@ The current programming model is organized around three semantic function roots:
 - `RequestFunction<TInput, TOutput, THandler>` for request/response handlers.
 - `RecordFunction<...>` for integrations that process multiple independent records per invocation.
 
-Source-specific packages build on those roots. `Kralizek.Lambda.Template.Sqs` provides SQS record processing with payload decoding and partial-batch failure handling, while `Kralizek.Lambda.Template.Sns` provides SNS notification processing with decoded or raw records and whole-invocation failure semantics.
+Source-specific packages build on those roots. SQS and SNS specialize record processing, while `Kralizek.Lambda.Template.Cognito` provides strongly typed request-function specializations for Amazon Cognito user-pool Lambda triggers.
 
 ## Packages
 
 - `Kralizek.Lambda.Template.Abstractions` contains the source-neutral handler, context, and payload-decoder contracts.
 - `Kralizek.Lambda.Template` contains the runtime implementation and generic function roots.
+- `Kralizek.Lambda.Template.Cognito` contains the Cognito trigger specializations.
 - `Kralizek.Lambda.Template.Sns` contains the SNS specialization.
 - `Kralizek.Lambda.Template.Sqs` contains the SQS specialization.
 - `Kralizek.Lambda.Templates` contains the `dotnet new` project templates.
 
-## Generic event function
+## Cognito function
 
 ```csharp
-public sealed class Function : EventFunction<string, StringEventHandler>;
+public sealed class Function : CognitoPreSignUpFunction<PreSignUpHandler>;
 ```
 
-## Generic request function
-
-```csharp
-public sealed class Function : RequestFunction<string, string, ToUpperStringRequestHandler>;
-```
-
-## SNS function
-
-```csharp
-public sealed class Function : SnsFunction<OrderCreated, OrderCreatedHandler>;
-```
-
-The SNS specialization decodes each SNS `Message` to `OrderCreated` and invokes `ISnsNotificationHandler<OrderCreated>` in an isolated per-record scope. SNS does not support partial-batch responses, so a failure in any notification fails the whole Lambda invocation. Raw SNS records and bounded-parallel processing are also supported.
-
-## SQS function
-
-```csharp
-public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>;
-```
-
-The SQS specialization decodes each SQS message body to `OrderCreated`, invokes `ISqsMessageHandler<OrderCreated>` in an isolated per-record scope, and returns an AWS partial-batch response containing only failed message IDs.
+Each Cognito trigger has a dedicated function base and handler interface so the AWS event contract is fixed by the glue package and application code supplies only the handler. Pre-token-generation V1 and V2 are exposed as separate runtime bases and a single template with a `--version` option.
 
 ## Project templates
 
@@ -54,13 +35,4 @@ Install the template package with:
 dotnet new install Kralizek.Lambda.Templates
 ```
 
-Available templates include:
-
-```bash
-dotnet new lambda-template-event --name MyEventFunction
-dotnet new lambda-template-request --name MyRequestFunction
-dotnet new lambda-template-sns --name MySnsFunction
-dotnet new lambda-template-sqs --name MySqsFunction
-```
-
-The generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.
+Run `dotnet new list lambda-template` to see the generic, SNS, SQS, and Cognito trigger templates. Generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.

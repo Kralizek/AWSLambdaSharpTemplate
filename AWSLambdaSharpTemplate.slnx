@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/samples/">
+    <Project Path="samples/CognitoPreSignUpFunction/CognitoPreSignUpFunction.csproj" />
     <Project Path="samples/EventFunction/EventFunction.csproj" />
     <Project Path="samples/RawSnsFunction/RawSnsFunction.csproj" />
     <Project Path="samples/RawSqsFunction/RawSqsFunction.csproj" />
@@ -9,6 +10,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Kralizek.Lambda.Template.Abstractions/Kralizek.Lambda.Template.Abstractions.csproj" />
+    <Project Path="src/Kralizek.Lambda.Template.Cognito/Kralizek.Lambda.Template.Cognito.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sns/Kralizek.Lambda.Template.Sns.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sqs/Kralizek.Lambda.Template.Sqs.csproj" />
     <Project Path="src/Kralizek.Lambda.Template/Kralizek.Lambda.Template.csproj" />
