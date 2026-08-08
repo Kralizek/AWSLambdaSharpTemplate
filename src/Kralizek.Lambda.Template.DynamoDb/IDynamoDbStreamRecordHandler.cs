@@ -1,17 +1,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.DynamoDBEvents;
-
 namespace Kralizek.Lambda;
 
 /// <summary>
-/// Handles one Amazon DynamoDB Streams record.
+/// Handles one Amazon DynamoDB Streams item change.
 /// </summary>
 public interface IDynamoDbStreamRecordHandler
 {
     ValueTask HandleAsync(
-        DynamoDBEvent.DynamodbStreamRecord record,
+        DynamoDbStreamItem item,
         DynamoDbStreamRecordContext context,
         CancellationToken cancellationToken);
 }
