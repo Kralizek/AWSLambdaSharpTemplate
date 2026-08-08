@@ -7,16 +7,23 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: Create a GitHub prerelease and attach packages
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'release' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.event_name != 'release' }}
 
 env:
   DOTNET_NOLOGO: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   CONFIGURATION: Release
   ARTIFACTS_PATH: ./artifacts
+  MinVerDefaultPreReleaseIdentifiers: ${{ github.event_name == 'workflow_dispatch' && 'alpha' || 'preview' }}
 
 jobs:
   validate-and-pack:
@@ -57,7 +64,7 @@ jobs:
         run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
 
       - name: Upload packages
-        if: github.event_name == 'release'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
         uses: actions/upload-artifact@v7
         with:
           name: nuget-packages
@@ -134,7 +141,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.ARTIFACTS_PATH }}/packages
-          key: smoke-packages-${{ runner.os }}-${{ github.sha }}
+          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}
 
   template-smoke-test:
     name: Template smoke test (${{ matrix.name }})
@@ -215,7 +222,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.ARTIFACTS_PATH }}/packages
-          key: smoke-packages-${{ runner.os }}-${{ github.sha }}
+          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}
           fail-on-cache-miss: true
 
       - name: Read package metadata
@@ -295,26 +302,77 @@ jobs:
   publish:
     name: Publish
     needs: [validate-and-pack, template-smoke-test]
-    if: github.event_name == 'release'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
       id-token: write
 
     steps:
+      - name: Validate manual release source
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+        run: |
+          echo "Manual releases must be dispatched from master."
+          exit 1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
       - name: Download packages
         uses: actions/download-artifact@v8
         with:
           name: nuget-packages
           path: ./artifacts/packages
 
+      - name: Read release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package=$(ls ./artifacts/packages/Kralizek.Lambda.Templates.*.nupkg)
+          nuspec=$(unzip -p "$package" '*.nuspec')
+          package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
+
+          if [ -z "$package_version" ]; then
+            echo "Could not determine the package version."
+            exit 1
+          fi
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            release_tag="v$package_version"
+          else
+            release_tag="${{ github.event.release.tag_name }}"
+            tag_version="${release_tag#v}"
+
+            if [ "$tag_version" != "$package_version" ]; then
+              echo "Release tag version $tag_version does not match packed version $package_version."
+              exit 1
+            fi
+          fi
+
+          echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
+
+      - name: Publish to GitHub Packages
+        run: >-
+          dotnet nuget push
+          "./artifacts/packages/*.nupkg"
+          --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          --api-key "${{ github.token }}"
+          --skip-duplicate
+
       - name: Log in to NuGet.org
+        if: github.event_name == 'release'
         id: nuget-login
         uses: nuget/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: Kralizek
 
       - name: Publish to NuGet.org
+        if: github.event_name == 'release'
         run: >-
           dotnet nuget push
           "./artifacts/packages/*.nupkg"
@@ -322,10 +380,22 @@ jobs:
           --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
 
-      - name: Attach packages to the GitHub release
+      - name: Create alpha GitHub prerelease
+        if: github.event_name == 'workflow_dispatch' && inputs.create_release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release create "$RELEASE_TAG"
+          --repo "${{ github.repository }}"
+          --target "$GITHUB_SHA"
+          --title "$RELEASE_TAG"
+          --generate-notes
+          --prerelease
+
+      - name: Attach packages to the GitHub release
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: >-
           gh release upload "$RELEASE_TAG"
           ./artifacts/packages/*.nupkg
