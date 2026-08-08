@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.DynamoDBEvents;
-
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Logging;
@@ -13,11 +11,11 @@ public sealed class OrderChangeHandler(ILogger<OrderChangeHandler> logger)
     : IDynamoDbStreamRecordHandler
 {
     public ValueTask HandleAsync(
-        DynamoDBEvent.DynamodbStreamRecord record,
+        DynamoDbStreamItem item,
         DynamoDbStreamRecordContext context,
         CancellationToken cancellationToken)
     {
-        var orderId = context.Keys.TryGetValue("orderId", out var orderIdAttribute)
+        var orderId = item.Keys.TryGetValue("orderId", out var orderIdAttribute)
             ? orderIdAttribute.S
             : null;
 
@@ -25,7 +23,7 @@ public sealed class OrderChangeHandler(ILogger<OrderChangeHandler> logger)
             "Processing DynamoDB {EventName} for order {OrderId} at sequence {SequenceNumber}",
             context.EventName,
             orderId,
-            context.SequenceNumber);
+            item.SequenceNumber);
 
         return ValueTask.CompletedTask;
     }
