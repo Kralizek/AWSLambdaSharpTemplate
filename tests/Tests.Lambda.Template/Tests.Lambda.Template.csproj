@@ -15,12 +15,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template\Kralizek.Lambda.Template.csproj" />
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sns\Kralizek.Lambda.Template.Sns.csproj" />
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sqs\Kralizek.Lambda.Template.Sqs.csproj" />
   </ItemGroup>
 
-  <!-- SNS tests move to their own PR -->
   <ItemGroup>
-    <Compile Remove="Sns\**" />
     <Compile Remove="CustomSerializerTests.cs" />
   </ItemGroup>
 

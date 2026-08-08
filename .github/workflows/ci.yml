@@ -152,6 +152,9 @@ jobs:
           - name: Request
             short-name: lambda-template-request
             project-name: SmokeRequest
+          - name: SNS
+            short-name: lambda-template-sns
+            project-name: SmokeSns
           - name: SQS
             short-name: lambda-template-sqs
             project-name: SmokeSqs
