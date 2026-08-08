@@ -35,7 +35,11 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-          dotnet-version: 6.0.x
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.props
+            **/*.targets
 
       - name: Restore
         run: dotnet restore
@@ -53,6 +57,7 @@ jobs:
         run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
 
       - name: Upload packages
+        if: github.event_name == 'release'
         uses: actions/upload-artifact@v7
         with:
           name: nuget-packages
@@ -61,9 +66,172 @@ jobs:
             ${{ env.ARTIFACTS_PATH }}/packages/*.snupkg
           if-no-files-found: error
 
+  smoke-pack:
+    name: Pack for template smoke tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.props
+            **/*.targets
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration $CONFIGURATION --no-restore --warnaserror
+
+      - name: Pack locally
+        run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
+
+      - name: Verify package versions
+        shell: bash
+        run: |
+          runtime_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.[0-9]*.nupkg)
+          template_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Templates.*.nupkg)
+
+          runtime_version=$(basename "$runtime_package" | sed -E 's/^Kralizek\.Lambda\.Template\.(.*)\.nupkg$/\1/')
+          template_version=$(basename "$template_package" | sed -E 's/^Kralizek\.Lambda\.Templates\.(.*)\.nupkg$/\1/')
+
+          test "$runtime_version" = "$template_version"
+
+      - name: Cache smoke-test packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ARTIFACTS_PATH }}/packages
+          key: smoke-packages-${{ runner.os }}-${{ github.sha }}
+
+  template-smoke-test:
+    name: Template smoke test (${{ matrix.name }})
+    needs: smoke-pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Event
+            short-name: lambda-template-event
+            project-name: SmokeEvent
+          - name: Request
+            short-name: lambda-template-request
+            project-name: SmokeRequest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore smoke-test packages
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.ARTIFACTS_PATH }}/packages
+          key: smoke-packages-${{ runner.os }}-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Read package versions
+        shell: bash
+        run: |
+          runtime_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.[0-9]*.nupkg)
+          template_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Templates.*.nupkg)
+
+          runtime_version=$(basename "$runtime_package" | sed -E 's/^Kralizek\.Lambda\.Template\.(.*)\.nupkg$/\1/')
+          template_version=$(basename "$template_package" | sed -E 's/^Kralizek\.Lambda\.Templates\.(.*)\.nupkg$/\1/')
+
+          test "$runtime_version" = "$template_version"
+          echo "PACKAGE_VERSION=$runtime_version" >> "$GITHUB_ENV"
+          echo "TEMPLATE_PACKAGE=$template_package" >> "$GITHUB_ENV"
+
+      - name: Install packaged templates
+        run: |
+          dotnet new install "$TEMPLATE_PACKAGE"
+          dotnet new list "${{ matrix.short-name }}"
+
+      - name: Instantiate ${{ matrix.name }} template
+        run: |
+          mkdir -p $ARTIFACTS_PATH/smoke
+          dotnet new "${{ matrix.short-name }}" \
+            --name "${{ matrix.project-name }}" \
+            --output "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}" \
+            --profile SmokeProfile \
+            --region eu-north-1 \
+            --role SmokeRole
+
+      - name: Verify generated content
+        shell: bash
+        run: |
+          project="$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          grep -q 'SmokeProfile' "$project/aws-lambda-tools-defaults.json"
+          grep -q 'eu-north-1' "$project/aws-lambda-tools-defaults.json"
+          grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
+          grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.project-name }}.csproj"
+          ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
+
+      - name: Configure smoke-test package sources
+        shell: bash
+        run: |
+          local_feed=$(realpath $ARTIFACTS_PATH/packages)
+          cat > $ARTIFACTS_PATH/smoke/NuGet.config <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="local" value="$local_feed" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="local">
+                <package pattern="Kralizek.Lambda.*" />
+              </packageSource>
+              <packageSource key="nuget.org">
+                <package pattern="Amazon.*" />
+                <package pattern="Microsoft.*" />
+                <package pattern="System.*" />
+                <package pattern="runtime.*" />
+                <package pattern="NETStandard.Library" />
+              </packageSource>
+            </packageSourceMapping>
+          </configuration>
+          EOF
+
+      - name: Restore generated project
+        run: >-
+          dotnet restore
+          "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          --configfile $ARTIFACTS_PATH/smoke/NuGet.config
+          --packages $ARTIFACTS_PATH/smoke/packages
+
+      - name: Build generated project
+        run: >-
+          dotnet build
+          "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          --configuration $CONFIGURATION
+          --no-restore
+          --warnaserror
+
   publish:
     name: Publish
-    needs: validate-and-pack
+    needs: [validate-and-pack, template-smoke-test]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
