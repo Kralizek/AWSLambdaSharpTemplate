@@ -88,6 +88,6 @@ Likewise, the original Lambda runtime context can be retrieved with `context.Get
 
 ## Processing and failures
 
-`SqsFunction<THandler>` and `SqsFunction<TMessage,THandler>` process records sequentially. Their `ParallelSqsFunction` counterparts use bounded parallel processing. All variants create an invocation scope plus an independent nested scope for each SQS record.
+`SqsFunction<THandler>` and `SqsFunction<TMessage,THandler>` process records sequentially. `ParallelSqsFunction<THandler>` and `ParallelSqsFunction<TMessage,THandler>` use bounded parallel processing. All variants create an invocation scope plus an independent nested scope for each SQS record.
 
 Handler or decoder failures are returned through `SQSBatchResponse.batchItemFailures`. Invocation cancellation is not converted into a partial failure; it aborts the invocation so AWS can retry the batch.
