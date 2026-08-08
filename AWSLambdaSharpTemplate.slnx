@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/samples/">
     <Project Path="samples/EventFunction/EventFunction.csproj" />
+    <Project Path="samples/RawSqsFunction/RawSqsFunction.csproj" />
     <Project Path="samples/RequestFunction/RequestFunction.csproj" />
     <Project Path="samples/SqsFunction/SqsFunction.csproj" />
   </Folder>

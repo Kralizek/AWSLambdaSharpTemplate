@@ -15,7 +15,7 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
         logger.LogInformation(
             "Processing order {OrderId} from SQS message {MessageId}",
             message.OrderId,
-            context.Record.MessageId);
+            context.MessageId);
 
         return ValueTask.CompletedTask;
     }
