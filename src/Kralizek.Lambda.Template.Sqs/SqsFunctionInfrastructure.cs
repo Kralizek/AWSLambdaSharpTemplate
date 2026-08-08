@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,41 +8,92 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
-internal static class SqsFunctionInfrastructure
+/// <summary>
+/// Infrastructure base for SQS function specializations.
+/// </summary>
+/// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
+[EditorBrowsable(EditorBrowsableState.Never)]
+public abstract class SqsFunctionBase<TRecordHandler>
+    : RecordFunction<
+        SQSEvent,
+        SQSEvent.SQSMessage,
+        bool,
+        SQSBatchResponse,
+        RecordContext,
+        TRecordHandler>
+    where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, bool, RecordContext>
 {
-    public static RecordContext CreateRecordContext(ILambdaContext lambdaContext) =>
+    protected override RecordContext CreateRecordContext(SQSEvent envelope, ILambdaContext lambdaContext) =>
         FunctionContextFactory.CreateRecordContext(lambdaContext);
 
-    public static IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) => envelope.Records;
+    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) => envelope.Records;
 
-    public static SQSBatchResponse CreateResponse<TRecordProcessingResult>(
-        IReadOnlyCollection<TRecordProcessingResult> results,
-        Func<TRecordProcessingResult, SQSEvent.SQSMessage> getRecord,
-        Func<TRecordProcessingResult, bool> getResult)
+    protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = results
-            .Where(result => !getResult(result))
+            .Where(result => !result.Result)
             .Select(result => new SQSBatchResponse.BatchItemFailure
             {
-                ItemIdentifier = getRecord(result).MessageId
+                ItemIdentifier = result.Record.MessageId
             })
             .ToList();
 
         return new SQSBatchResponse(failures);
     }
 
-    public static ValueTask<bool> HandleRecordExceptionAsync(
+    protected override ValueTask<bool> HandleRecordExceptionAsync(
         SQSEvent.SQSMessage record,
         Exception exception,
-        ILogger logger)
+        RecordContext context,
+        CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
+        Logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
         return ValueTask.FromResult(false);
     }
+}
 
-    public static int DefaultMaxDegreeOfParallelism => Math.Max(2, Environment.ProcessorCount);
+/// <summary>
+/// Infrastructure base for SQS functions that process records with bounded parallelism.
+/// </summary>
+/// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
+[EditorBrowsable(EditorBrowsableState.Never)]
+public abstract class ParallelSqsFunctionBase<TRecordHandler> : SqsFunctionBase<TRecordHandler>
+    where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, bool, RecordContext>
+{
+    /// <summary>
+    /// Gets the maximum number of SQS records processed concurrently.
+    /// </summary>
+    protected virtual int MaxDegreeOfParallelism => Math.Max(2, Environment.ProcessorCount);
+
+    protected override Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
+        SQSEvent envelope,
+        RecordContext context,
+        IServiceProvider invocationServices,
+        CancellationToken cancellationToken) =>
+        ProcessRecordsParallelAsync(
+            envelope,
+            context,
+            invocationServices,
+            MaxDegreeOfParallelism,
+            cancellationToken);
+}
+
+internal static class SqsServiceRegistration
+{
+    public static void AddRawHandler<THandler>(IServiceCollection services)
+        where THandler : class, ISqsRecordHandler =>
+        services.TryAddScoped<THandler>();
+
+    public static void AddDecodedHandler<TMessage, THandler>(IServiceCollection services)
+        where THandler : class, ISqsMessageHandler<TMessage>
+    {
+        services.TryAddScoped<THandler>();
+        services.TryAddSingleton<IStringPayloadDecoder<TMessage>, JsonStringPayloadDecoder<TMessage>>();
+    }
 }
