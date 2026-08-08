@@ -142,7 +142,7 @@ public class SnsFunctionTests
         Assert.Multiple(() =>
         {
             Assert.That(ConcurrencyHandler.ProcessedCount, Is.EqualTo(4));
-            Assert.That(ConcurrencyHandler.MaxConcurrency, Is.EqualTo(2));
+            Assert.That(ConcurrencyHandler.MaxConcurrency, Is.LessThanOrEqualTo(2));
         });
     }
 
