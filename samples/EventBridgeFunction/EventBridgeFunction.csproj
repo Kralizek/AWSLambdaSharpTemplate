@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.EventBridge\Kralizek.Lambda.Template.EventBridge.csproj" />
+  </ItemGroup>
+
+</Project>
