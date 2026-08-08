@@ -31,19 +31,26 @@
       Pack="true"
       PackagePath="content/RequestFunction/LambdaFunctionProject.csproj" />
     <None
+      Include="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj"
+      Pack="true"
+      PackagePath="content/SnsFunction/LambdaFunctionProject.csproj" />
+    <None
       Include="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj"
       Pack="true"
       PackagePath="content/SqsFunction/LambdaFunctionProject.csproj" />
   </ItemGroup>
 
   <Target Name="PrepareTemplateProjects" BeforeTargets="GenerateNuspec">
-    <MakeDir Directories="$(TemplateStagingDirectory)/EventFunction;$(TemplateStagingDirectory)/RequestFunction;$(TemplateStagingDirectory)/SqsFunction" />
+    <MakeDir Directories="$(TemplateStagingDirectory)/EventFunction;$(TemplateStagingDirectory)/RequestFunction;$(TemplateStagingDirectory)/SnsFunction;$(TemplateStagingDirectory)/SqsFunction" />
     <Copy
       SourceFiles="content/EventFunction/LambdaFunctionProject.csproj"
       DestinationFiles="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" />
     <Copy
       SourceFiles="content/RequestFunction/LambdaFunctionProject.csproj"
       DestinationFiles="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" />
+    <Copy
+      SourceFiles="content/SnsFunction/LambdaFunctionProject.csproj"
+      DestinationFiles="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj" />
     <Copy
       SourceFiles="content/SqsFunction/LambdaFunctionProject.csproj"
       DestinationFiles="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj" />
@@ -55,6 +62,10 @@
     <XmlPoke
       XmlInputPath="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj"
       Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version"
+      Value="$(PackageVersion)" />
+    <XmlPoke
+      XmlInputPath="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj"
+      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Sns']/@Version"
       Value="$(PackageVersion)" />
     <XmlPoke
       XmlInputPath="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj"

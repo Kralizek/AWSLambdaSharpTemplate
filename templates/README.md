@@ -22,6 +22,7 @@ dotnet new list lambda-template
 | --- | --- | --- |
 | Event Function | `lambda-template-event` | The Lambda handles an input and does not return an application result. |
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
+| SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
 | SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
 
 ## Create a function
@@ -36,6 +37,12 @@ Create a request function:
 
 ```bash
 dotnet new lambda-template-request --name MyRequestFunction
+```
+
+Create an SNS function:
+
+```bash
+dotnet new lambda-template-sns --name MySnsFunction
 ```
 
 Create an SQS function:
@@ -53,8 +60,8 @@ All templates support the AWS Lambda deployment settings exposed by the template
 For example:
 
 ```bash
-dotnet new lambda-template-sqs \
-  --name MySqsFunction \
+dotnet new lambda-template-sns \
+  --name MySnsFunction \
   --profile my-profile \
   --region eu-north-1 \
   --role my-lambda-role
@@ -80,6 +87,14 @@ public class Function : RequestFunction<string, string, ToUpperStringRequestHand
 }
 ```
 
+An SNS Function derives from `SnsFunction<TNotification, THandler>`. The framework decodes each SNS `Message` to `TNotification`, creates an `SnsNotificationContext`, and invokes the consumer's `ISnsNotificationHandler<TNotification>`:
+
+```csharp
+public sealed class Function : SnsFunction<OrderCreated, OrderCreatedHandler>;
+```
+
+SNS processes records sequentially by default and fails the whole Lambda invocation if any notification fails. Applications that need bounded concurrency can derive from `ParallelSnsFunction<...>` instead. The default SNS payload decoder uses `System.Text.Json` and can be replaced through `IStringPayloadDecoder<TNotification>`.
+
 An SQS Function derives from `SqsFunction<TMessage, THandler>`. The framework decodes each SQS body to `TMessage`, creates an `SqsMessageContext`, and invokes the consumer's `ISqsMessageHandler<TMessage>`:
 
 ```csharp
@@ -90,6 +105,6 @@ The default SQS payload decoder uses `System.Text.Json`. Applications can replac
 
 ## Package compatibility
 
-`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Sns` and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
 For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.
