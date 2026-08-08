@@ -316,6 +316,11 @@ jobs:
           echo "Manual releases must be dispatched from master."
           exit 1
 
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -356,11 +361,20 @@ jobs:
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
 
+      - name: Configure GitHub Packages source
+        run: >-
+          dotnet nuget add source
+          "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          --name github
+          --username "${{ github.actor }}"
+          --password "${{ github.token }}"
+          --store-password-in-clear-text
+
       - name: Publish to GitHub Packages
         run: >-
           dotnet nuget push
           "./artifacts/packages/*.nupkg"
-          --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          --source github
           --api-key "${{ github.token }}"
           --skip-duplicate
 
@@ -380,17 +394,25 @@ jobs:
           --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
 
-      - name: Create alpha GitHub prerelease
+      - name: Ensure alpha GitHub prerelease exists
         if: github.event_name == 'workflow_dispatch' && inputs.create_release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "$RELEASE_TAG"
-          --repo "${{ github.repository }}"
-          --target "$GITHUB_SHA"
-          --title "$RELEASE_TAG"
-          --generate-notes
-          --prerelease
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists."
+            exit 0
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            --repo "${{ github.repository }}" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TAG" \
+            --generate-notes \
+            --prerelease
 
       - name: Attach packages to the GitHub release
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.create_release)
