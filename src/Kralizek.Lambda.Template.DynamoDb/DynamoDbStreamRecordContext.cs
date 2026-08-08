@@ -21,13 +21,6 @@ public sealed class DynamoDbStreamRecordContext : RecordContext
         EventSource = record.EventSource;
         EventSourceArn = record.EventSourceArn;
         AwsRegion = record.AwsRegion;
-        SequenceNumber = record.Dynamodb?.SequenceNumber;
-        StreamViewType = record.Dynamodb?.StreamViewType;
-        ApproximateCreationDateTime = record.Dynamodb?.ApproximateCreationDateTime;
-        SizeBytes = record.Dynamodb?.SizeBytes;
-        Keys = Copy(record.Dynamodb?.Keys);
-        NewImage = Copy(record.Dynamodb?.NewImage);
-        OldImage = Copy(record.Dynamodb?.OldImage);
     }
 
     public string? EventId { get; }
@@ -39,20 +32,6 @@ public sealed class DynamoDbStreamRecordContext : RecordContext
     public string? EventSourceArn { get; }
 
     public string? AwsRegion { get; }
-
-    public string? SequenceNumber { get; }
-
-    public string? StreamViewType { get; }
-
-    public DateTime? ApproximateCreationDateTime { get; }
-
-    public long? SizeBytes { get; }
-
-    public IReadOnlyDictionary<string, DynamoDBEvent.AttributeValue> Keys { get; }
-
-    public IReadOnlyDictionary<string, DynamoDBEvent.AttributeValue> NewImage { get; }
-
-    public IReadOnlyDictionary<string, DynamoDBEvent.AttributeValue> OldImage { get; }
 
     internal static DynamoDbStreamRecordContext Create(
         RecordContext invocationContext,
@@ -78,12 +57,6 @@ public sealed class DynamoDbStreamRecordContext : RecordContext
 
         return new DynamoDbStreamRecordContext(metadata, properties, record);
     }
-
-    private static IReadOnlyDictionary<string, DynamoDBEvent.AttributeValue> Copy(
-        IDictionary<string, DynamoDBEvent.AttributeValue>? source) =>
-        source is null
-            ? new Dictionary<string, DynamoDBEvent.AttributeValue>()
-            : new Dictionary<string, DynamoDBEvent.AttributeValue>(source);
 }
 
 /// <summary>
