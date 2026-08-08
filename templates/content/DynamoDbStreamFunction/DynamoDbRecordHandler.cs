@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.DynamoDBEvents;
-
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Logging;
@@ -13,7 +11,7 @@ public sealed class DynamoDbRecordHandler(ILogger<DynamoDbRecordHandler> logger)
     : IDynamoDbStreamRecordHandler
 {
     public ValueTask HandleAsync(
-        DynamoDBEvent.DynamodbStreamRecord record,
+        DynamoDbStreamItem item,
         DynamoDbStreamRecordContext context,
         CancellationToken cancellationToken)
     {
@@ -21,7 +19,7 @@ public sealed class DynamoDbRecordHandler(ILogger<DynamoDbRecordHandler> logger)
             "Processing DynamoDB {EventName} record {EventId} at sequence {SequenceNumber}",
             context.EventName,
             context.EventId,
-            context.SequenceNumber);
+            item.SequenceNumber);
 
         // Keys, NewImage and OldImage expose the AWS DynamoDB AttributeValue model directly.
         // Add application-specific mapping here when a strongly typed domain model is useful.
