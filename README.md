@@ -27,7 +27,7 @@ Source-specific packages build on those roots. EventBridge specializes one-way e
 public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
 ```
 
-The DynamoDB package builds on `RecordFunction`, invokes one handler per stream record, creates one dependency-injection scope per record, and returns `StreamsEventResponse` partial-batch failures using DynamoDB sequence numbers. `Keys`, `NewImage`, and `OldImage` stay in AWS's `DynamoDBEvent.AttributeValue` representation rather than being treated as generic JSON. Sequential processing is the default; `ParallelDynamoDbStreamFunction<THandler>` is an explicit bounded-parallel alternative.
+The DynamoDB package builds on `RecordFunction`, invokes one handler per stream record, creates one dependency-injection scope per record, and returns `StreamsEventResponse` partial-batch failures using DynamoDB sequence numbers. Handlers receive a `DynamoDbStreamItem` containing keys, old/new images and stream metadata, while the outer AWS record is preserved in `DynamoDbStreamRecordContext` and available through `GetDynamoDbStreamRecord()`. DynamoDB values remain in AWS's `DynamoDBEvent.AttributeValue` representation rather than being treated as generic JSON. Sequential processing is the default; `ParallelDynamoDbStreamFunction<THandler>` is an explicit bounded-parallel alternative.
 
 ## EventBridge function
 
