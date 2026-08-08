@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +8,6 @@ using Amazon.Lambda.SQSEvents;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
@@ -34,32 +32,23 @@ public abstract class SqsFunction<THandler>
     }
 
     protected override RecordContext CreateRecordContext(SQSEvent envelope, ILambdaContext lambdaContext) =>
-        FunctionContextFactory.CreateRecordContext(lambdaContext);
+        SqsFunctionInfrastructure.CreateRecordContext(lambdaContext);
 
-    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) => envelope.Records;
+    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) =>
+        SqsFunctionInfrastructure.GetRecords(envelope);
 
-    protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
-    {
-        var failures = results
-            .Where(result => !result.Result)
-            .Select(result => new SQSBatchResponse.BatchItemFailure
-            {
-                ItemIdentifier = result.Record.MessageId
-            })
-            .ToList();
-
-        return new SQSBatchResponse(failures);
-    }
+    protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
+        SqsFunctionInfrastructure.CreateResponse(
+            results,
+            static result => result.Record,
+            static result => result.Result);
 
     protected override ValueTask<bool> HandleRecordExceptionAsync(
         SQSEvent.SQSMessage record,
         Exception exception,
         RecordContext context,
-        CancellationToken cancellationToken)
-    {
-        Logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
-        return ValueTask.FromResult(false);
-    }
+        CancellationToken cancellationToken) =>
+        SqsFunctionInfrastructure.HandleRecordExceptionAsync(record, exception, Logger);
 }
 
 /// <summary>
@@ -85,30 +74,21 @@ public abstract class SqsFunction<TMessage, THandler>
     }
 
     protected override RecordContext CreateRecordContext(SQSEvent envelope, ILambdaContext lambdaContext) =>
-        FunctionContextFactory.CreateRecordContext(lambdaContext);
+        SqsFunctionInfrastructure.CreateRecordContext(lambdaContext);
 
-    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) => envelope.Records;
+    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) =>
+        SqsFunctionInfrastructure.GetRecords(envelope);
 
-    protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
-    {
-        var failures = results
-            .Where(result => !result.Result)
-            .Select(result => new SQSBatchResponse.BatchItemFailure
-            {
-                ItemIdentifier = result.Record.MessageId
-            })
-            .ToList();
-
-        return new SQSBatchResponse(failures);
-    }
+    protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
+        SqsFunctionInfrastructure.CreateResponse(
+            results,
+            static result => result.Record,
+            static result => result.Result);
 
     protected override ValueTask<bool> HandleRecordExceptionAsync(
         SQSEvent.SQSMessage record,
         Exception exception,
         RecordContext context,
-        CancellationToken cancellationToken)
-    {
-        Logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
-        return ValueTask.FromResult(false);
-    }
+        CancellationToken cancellationToken) =>
+        SqsFunctionInfrastructure.HandleRecordExceptionAsync(record, exception, Logger);
 }
