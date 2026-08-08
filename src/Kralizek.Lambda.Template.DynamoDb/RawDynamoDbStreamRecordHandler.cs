@@ -27,9 +27,10 @@ public sealed class RawDynamoDbStreamRecordHandler<THandler>
         RecordContext context,
         CancellationToken cancellationToken)
     {
+        var item = DynamoDbStreamItem.Create(record);
         var recordContext = DynamoDbStreamRecordContext.Create(context, record);
 
-        await _handler.HandleAsync(record, recordContext, cancellationToken).ConfigureAwait(false);
+        await _handler.HandleAsync(item, recordContext, cancellationToken).ConfigureAwait(false);
 
         return true;
     }
