@@ -3,20 +3,21 @@ name: CI
 on:
   push:
     branches: [master]
-    tags: ["v*"]
   pull_request: {}
+  release:
+    types: [published]
   workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.ref_type != 'tag' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.event_name != 'release' }}
 
 env:
   DOTNET_NOLOGO: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   CONFIGURATION: Release
   ARTIFACTS_PATH: ./artifacts
-  MinVerDefaultPreReleaseIdentifiers: ${{ github.event_name == 'workflow_dispatch' && 'alpha.0' || 'preview' }}
+  MinVerDefaultPreReleaseIdentifiers: ${{ github.event_name == 'workflow_dispatch' && 'alpha' || 'preview' }}
 
 jobs:
   validate-and-pack:
@@ -57,7 +58,7 @@ jobs:
         run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
 
       - name: Upload packages
-        if: github.event_name == 'workflow_dispatch' || github.ref_type == 'tag'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
         uses: actions/upload-artifact@v7
         with:
           name: nuget-packages
@@ -295,7 +296,7 @@ jobs:
   publish:
     name: Publish
     needs: [validate-and-pack, template-smoke-test]
-    if: github.event_name == 'workflow_dispatch' || github.ref_type == 'tag'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -308,11 +309,6 @@ jobs:
         run: |
           echo "Manual releases must be dispatched from master."
           exit 1
-
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -342,23 +338,17 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             release_tag="v$package_version"
           else
-            release_tag="${{ github.ref_name }}"
+            release_tag="${{ github.event.release.tag_name }}"
             tag_version="${release_tag#v}"
 
             if [ "$tag_version" != "$package_version" ]; then
-              echo "Tag version $tag_version does not match packed version $package_version."
+              echo "Release tag version $tag_version does not match packed version $package_version."
               exit 1
             fi
           fi
 
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
-
-          if [[ "$package_version" == *-* ]]; then
-            echo "IS_PRERELEASE=true" >> "$GITHUB_ENV"
-          else
-            echo "IS_PRERELEASE=false" >> "$GITHUB_ENV"
-          fi
 
       - name: Publish to GitHub Packages
         run: >-
@@ -369,14 +359,14 @@ jobs:
           --skip-duplicate
 
       - name: Log in to NuGet.org
-        if: github.ref_type == 'tag'
+        if: github.event_name == 'release'
         id: nuget-login
         uses: nuget/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: Kralizek
 
       - name: Publish to NuGet.org
-        if: github.ref_type == 'tag'
+        if: github.event_name == 'release'
         run: >-
           dotnet nuget push
           "./artifacts/packages/*.nupkg"
@@ -384,31 +374,17 @@ jobs:
           --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
 
-      - name: Create GitHub release if needed
+      - name: Create alpha GitHub prerelease
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists."
-            exit 0
-          fi
-
-          args=(
-            "$RELEASE_TAG"
-            --repo "${{ github.repository }}"
-            --target "$GITHUB_SHA"
-            --title "$RELEASE_TAG"
-            --generate-notes
-          )
-
-          if [ "$IS_PRERELEASE" = "true" ]; then
-            args+=(--prerelease)
-          fi
-
-          gh release create "${args[@]}"
+        run: >-
+          gh release create "$RELEASE_TAG"
+          --repo "${{ github.repository }}"
+          --target "$GITHUB_SHA"
+          --title "$RELEASE_TAG"
+          --generate-notes
+          --prerelease
 
       - name: Attach packages to the GitHub release
         env:
