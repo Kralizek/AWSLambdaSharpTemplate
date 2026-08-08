@@ -158,6 +158,47 @@ jobs:
           - name: SQS
             short-name: lambda-template-sqs
             project-name: SmokeSqs
+          - name: Cognito Pre Sign-up
+            short-name: lambda-template-cognito-pre-signup
+            project-name: SmokeCognitoPreSignUp
+          - name: Cognito Post Confirmation
+            short-name: lambda-template-cognito-post-confirmation
+            project-name: SmokeCognitoPostConfirmation
+          - name: Cognito Pre Authentication
+            short-name: lambda-template-cognito-pre-authentication
+            project-name: SmokeCognitoPreAuthentication
+          - name: Cognito Post Authentication
+            short-name: lambda-template-cognito-post-authentication
+            project-name: SmokeCognitoPostAuthentication
+          - name: Cognito Define Auth Challenge
+            short-name: lambda-template-cognito-define-auth-challenge
+            project-name: SmokeCognitoDefineAuthChallenge
+          - name: Cognito Create Auth Challenge
+            short-name: lambda-template-cognito-create-auth-challenge
+            project-name: SmokeCognitoCreateAuthChallenge
+          - name: Cognito Verify Auth Challenge
+            short-name: lambda-template-cognito-verify-auth-challenge
+            project-name: SmokeCognitoVerifyAuthChallenge
+          - name: Cognito Custom Message
+            short-name: lambda-template-cognito-custom-message
+            project-name: SmokeCognitoCustomMessage
+          - name: Cognito User Migration
+            short-name: lambda-template-cognito-user-migration
+            project-name: SmokeCognitoUserMigration
+          - name: Cognito Custom Email Sender
+            short-name: lambda-template-cognito-custom-email-sender
+            project-name: SmokeCognitoCustomEmailSender
+          - name: Cognito Custom SMS Sender
+            short-name: lambda-template-cognito-custom-sms-sender
+            project-name: SmokeCognitoCustomSmsSender
+          - name: Cognito Pre Token Generation V1
+            short-name: lambda-template-cognito-pre-token-generation
+            project-name: SmokeCognitoPreTokenGenerationV1
+            args: --version v1
+          - name: Cognito Pre Token Generation V2
+            short-name: lambda-template-cognito-pre-token-generation
+            project-name: SmokeCognitoPreTokenGenerationV2
+            args: --version v2
 
     steps:
       - name: Checkout
@@ -196,7 +237,8 @@ jobs:
             --output "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}" \
             --profile SmokeProfile \
             --region eu-north-1 \
-            --role SmokeRole
+            --role SmokeRole \
+            ${{ matrix.args }}
 
       - name: Verify generated content
         shell: bash
