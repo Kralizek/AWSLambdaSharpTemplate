@@ -100,13 +100,35 @@ jobs:
       - name: Verify package versions
         shell: bash
         run: |
-          runtime_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.[0-9]*.nupkg)
-          template_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Templates.*.nupkg)
+          set -euo pipefail
 
-          runtime_version=$(basename "$runtime_package" | sed -E 's/^Kralizek\.Lambda\.Template\.(.*)\.nupkg$/\1/')
-          template_version=$(basename "$template_package" | sed -E 's/^Kralizek\.Lambda\.Templates\.(.*)\.nupkg$/\1/')
+          versions_file=$(mktemp)
 
-          test "$runtime_version" = "$template_version"
+          for package in "$ARTIFACTS_PATH"/packages/Kralizek.Lambda.*.nupkg; do
+            nuspec=$(unzip -p "$package" '*.nuspec')
+            package_id=$(printf '%s\n' "$nuspec" | sed -n 's:.*<id>\(.*\)</id>.*:\1:p' | head -n 1)
+            package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
+
+            if [ -z "$package_id" ] || [ -z "$package_version" ]; then
+              echo "Could not read package metadata from $package"
+              exit 1
+            fi
+
+            printf '%-45s %s\n' "$package_id" "$package_version"
+            echo "$package_version" >> "$versions_file"
+          done
+
+          package_versions=$(sort -u "$versions_file")
+          version_count=$(printf '%s\n' "$package_versions" | sed '/^$/d' | wc -l)
+
+          if [ "$version_count" -ne 1 ]; then
+            echo "Packed projects do not share the same package version:"
+            printf '%s\n' "$package_versions"
+            exit 1
+          fi
+
+          package_version=$(printf '%s\n' "$package_versions" | head -n 1)
+          echo "$package_version" > "$ARTIFACTS_PATH/packages/package-version.txt"
 
       - name: Cache smoke-test packages
         uses: actions/cache@v4
@@ -130,6 +152,9 @@ jobs:
           - name: Request
             short-name: lambda-template-request
             project-name: SmokeRequest
+          - name: SQS
+            short-name: lambda-template-sqs
+            project-name: SmokeSqs
 
     steps:
       - name: Checkout
@@ -149,18 +174,11 @@ jobs:
           key: smoke-packages-${{ runner.os }}-${{ github.sha }}
           fail-on-cache-miss: true
 
-      - name: Read package versions
+      - name: Read package metadata
         shell: bash
         run: |
-          runtime_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Template.[0-9]*.nupkg)
-          template_package=$(ls $ARTIFACTS_PATH/packages/Kralizek.Lambda.Templates.*.nupkg)
-
-          runtime_version=$(basename "$runtime_package" | sed -E 's/^Kralizek\.Lambda\.Template\.(.*)\.nupkg$/\1/')
-          template_version=$(basename "$template_package" | sed -E 's/^Kralizek\.Lambda\.Templates\.(.*)\.nupkg$/\1/')
-
-          test "$runtime_version" = "$template_version"
-          echo "PACKAGE_VERSION=$runtime_version" >> "$GITHUB_ENV"
-          echo "TEMPLATE_PACKAGE=$template_package" >> "$GITHUB_ENV"
+          echo "PACKAGE_VERSION=$(cat "$ARTIFACTS_PATH/packages/package-version.txt")" >> "$GITHUB_ENV"
+          echo "TEMPLATE_PACKAGE=$(ls "$ARTIFACTS_PATH"/packages/Kralizek.Lambda.Templates.*.nupkg)" >> "$GITHUB_ENV"
 
       - name: Install packaged templates
         run: |

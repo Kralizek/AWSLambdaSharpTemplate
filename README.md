@@ -1,133 +1,56 @@
 # AWS Lambda Sharp Template
 
-Write AWS Lambda functions in C# with a programming model built around dependency injection, configuration, logging, and explicit handler contracts.
+AWS Lambda templates and runtime libraries for building .NET Lambda functions around explicit programming models instead of wiring every invocation from scratch.
 
-This repository is being refreshed for the next major release and targets .NET 10.
+The current programming model is organized around three semantic function roots:
 
-## Programming model
+- `EventFunction<TInput, THandler>` for one-way event handlers.
+- `RequestFunction<TInput, TOutput, THandler>` for request/response handlers.
+- `RecordFunction<...>` for integrations that process multiple independent records per invocation.
 
-The library exposes three semantic roots:
-
-- `EventFunction` for invocations that do not return a value.
-- `RequestFunction` for request/response invocations.
-- `RecordFunction` for event sources that deliver an envelope containing multiple records.
-
-The function type defines the invocation model and the primary handler. The framework registers the handler as a scoped service and manages the appropriate dependency-injection scopes for each invocation.
-
-### Event functions
-
-```csharp
-public sealed class Function : EventFunction<string, StringEventHandler>;
-
-public sealed class StringEventHandler(ILogger<StringEventHandler> logger)
-    : IEventHandler<string>
-{
-    public ValueTask HandleAsync(
-        string input,
-        EventContext context,
-        CancellationToken cancellationToken)
-    {
-        logger.LogInformation("Received {Input}", input);
-        return ValueTask.CompletedTask;
-    }
-}
-```
-
-### Request functions
-
-```csharp
-public sealed class Function
-    : RequestFunction<string, string, ToUpperStringRequestHandler>;
-
-public sealed class ToUpperStringRequestHandler
-    : IRequestHandler<string, string>
-{
-    public ValueTask<string> HandleAsync(
-        string input,
-        RequestContext context,
-        CancellationToken cancellationToken)
-        => ValueTask.FromResult(input.ToUpperInvariant());
-}
-```
-
-### Record functions
-
-`RecordFunction` is the base for source-specific integrations such as SQS, SNS, DynamoDB Streams, and Kinesis. It preserves the association between each source record and its handler result, creates an isolated scope per record, and allows source-specific implementations to translate handler failures into the appropriate response model.
-
-Source-specific integrations are being migrated in dedicated stacked pull requests and are intentionally not part of the active solution in this slice.
-
-## Configuration, logging, and services
-
-`LambdaFunction` provides three consumer customization hooks:
-
-```csharp
-protected override void ConfigureConfiguration(IConfigurationBuilder configuration)
-{
-    base.ConfigureConfiguration(configuration);
-}
-
-protected override void ConfigureLogging(ILoggingBuilder logging)
-{
-    base.ConfigureLogging(logging);
-}
-
-protected override void ConfigureServices(
-    IServiceCollection services,
-    IConfiguration configuration)
-{
-    base.ConfigureServices(services, configuration);
-}
-```
-
-Lambda-compatible logging is configured by the framework. The primary handler is also registered by the framework, so consumers only register their application dependencies.
-
-The built configuration is available through dependency injection as `IConfiguration`.
-
-## Strongly typed contexts
-
-Handlers receive framework contexts instead of working directly against `ILambdaContext`:
-
-- `EventContext`
-- `RequestContext`
-- `RecordContext`
-
-The full generic forms allow source-specific packages to provide richer context types without casts, while the compact request and event forms use the standard contexts automatically.
-
-## Cancellation and scopes
-
-Cancellation is derived from the remaining Lambda invocation time.
-
-- Event and request functions create one scope per invocation.
-- Record functions create one invocation scope plus an independently disposed scope for every record.
-- Record processing is sequential by default, with bounded parallel processing available to source-specific implementations.
-
-## Samples
-
-The repository contains minimal samples for the two generic invocation models:
-
-- [`samples/EventFunction`](samples/EventFunction)
-- [`samples/RequestFunction`](samples/RequestFunction)
+Source-specific packages build on those roots. For example, `Kralizek.Lambda.Template.Sqs` provides `SqsFunction<TMessage, THandler>` with payload decoding and partial-batch failure handling.
 
 ## Packages
 
-The core programming model is published as `Kralizek.Lambda.Template`.
+- `Kralizek.Lambda.Template.Abstractions` contains the source-neutral handler, context, and payload-decoder contracts.
+- `Kralizek.Lambda.Template` contains the runtime implementation and generic function roots.
+- `Kralizek.Lambda.Template.Sqs` contains the SQS specialization.
+- `Kralizek.Lambda.Templates` contains the `dotnet new` project templates.
 
-The repository also contains source-specific package projects for SNS and SQS. Those integrations are being redesigned on top of `RecordFunction` and will return to the active solution in their dedicated implementation slices.
+## Generic event function
 
-## Templates
-
-The `dotnet new` templates are maintained separately from the runtime programming model. The next template package is being aligned with the runtime package version and the new `EventFunction` / `RequestFunction` API.
-
-## Building
-
-The repository uses the XML solution format:
-
-```bash
-dotnet restore AWSLambdaSharpTemplate.slnx
-dotnet build AWSLambdaSharpTemplate.slnx --configuration Release
-dotnet test AWSLambdaSharpTemplate.slnx --configuration Release
+```csharp
+public sealed class Function : EventFunction<string, StringEventHandler>;
 ```
 
-## License
+## Generic request function
 
-MIT
+```csharp
+public sealed class Function : RequestFunction<string, string, ToUpperStringRequestHandler>;
+```
+
+## SQS function
+
+```csharp
+public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>;
+```
+
+The SQS specialization decodes each SQS message body to `OrderCreated`, invokes `ISqsMessageHandler<OrderCreated>` in an isolated per-record scope, and returns an AWS partial-batch response containing only failed message IDs.
+
+## Project templates
+
+Install the template package with:
+
+```bash
+dotnet new install Kralizek.Lambda.Templates
+```
+
+Available templates include:
+
+```bash
+dotnet new lambda-template-event --name MyEventFunction
+dotnet new lambda-template-request --name MyRequestFunction
+dotnet new lambda-template-sqs --name MySqsFunction
+```
+
+The generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.

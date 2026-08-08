@@ -30,7 +30,7 @@ public sealed class JsonStringPayloadDecoder<TPayload> : IStringPayloadDecoder<T
     private readonly JsonPayloadDecoderState<TPayload> _state;
 
     public JsonStringPayloadDecoder()
-        : this(JsonSerializerOptions.Default) { }
+        : this(new JsonSerializerOptions(JsonSerializerDefaults.Web)) { }
 
     public JsonStringPayloadDecoder(JsonSerializerOptions options)
         : this(new JsonPayloadDecoderState<TPayload>(options)) { }
@@ -64,7 +64,7 @@ public sealed class JsonBinaryPayloadDecoder<TPayload> : IBinaryPayloadDecoder<T
     private readonly JsonPayloadDecoderState<TPayload> _state;
 
     public JsonBinaryPayloadDecoder()
-        : this(JsonSerializerOptions.Default) { }
+        : this(new JsonSerializerOptions(JsonSerializerDefaults.Web)) { }
 
     public JsonBinaryPayloadDecoder(JsonSerializerOptions options)
         : this(new JsonPayloadDecoderState<TPayload>(options)) { }

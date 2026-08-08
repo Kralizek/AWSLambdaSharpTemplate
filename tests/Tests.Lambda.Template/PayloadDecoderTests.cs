@@ -25,20 +25,20 @@ public class PayloadDecoderTests
     }
 
     [Test]
-    public async Task String_decoder_deserializes_json_payload()
+    public async Task String_decoder_uses_web_json_defaults()
     {
         var decoder = new JsonStringPayloadDecoder<TestPayload>();
 
-        var result = await decoder.DecodeAsync("{\"Value\":\"hello\"}");
+        var result = await decoder.DecodeAsync("{\"value\":\"hello\"}");
 
         Assert.That(result.Value, Is.EqualTo("hello"));
     }
 
     [Test]
-    public async Task Binary_decoder_deserializes_utf8_json_payload()
+    public async Task Binary_decoder_uses_web_json_defaults()
     {
         var decoder = new JsonBinaryPayloadDecoder<TestPayload>();
-        var payload = Encoding.UTF8.GetBytes("{\"Value\":\"hello\"}");
+        var payload = Encoding.UTF8.GetBytes("{\"value\":\"hello\"}");
 
         var result = await decoder.DecodeAsync(payload);
 
