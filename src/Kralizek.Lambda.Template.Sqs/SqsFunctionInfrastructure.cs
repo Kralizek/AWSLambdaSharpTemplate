@@ -32,7 +32,8 @@ public abstract class SqsFunctionBase<TRecordHandler>
     protected override RecordContext CreateRecordContext(SQSEvent envelope, ILambdaContext lambdaContext) =>
         FunctionContextFactory.CreateRecordContext(lambdaContext);
 
-    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) => envelope.Records;
+    protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) =>
+        envelope.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>();
 
     protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
@@ -44,7 +45,10 @@ public abstract class SqsFunctionBase<TRecordHandler>
             })
             .ToList();
 
-        return new SQSBatchResponse(failures);
+        return new SQSBatchResponse
+        {
+            BatchItemFailures = failures
+        };
     }
 
     protected override ValueTask<bool> HandleRecordExceptionAsync(
