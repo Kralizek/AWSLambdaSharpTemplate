@@ -1,0 +1,9 @@
+using Amazon.Lambda.Core;
+
+using Kralizek.Lambda;
+
+[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+
+namespace RawSnsFunction;
+
+public sealed class Function : SnsFunction<RawSnsRecordHandler>;
