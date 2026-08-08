@@ -10,6 +10,7 @@ using Amazon.Lambda.DynamoDBEvents;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
