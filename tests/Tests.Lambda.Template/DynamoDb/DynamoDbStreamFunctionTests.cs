@@ -38,7 +38,7 @@ public class DynamoDbStreamFunctionTests
         {
             Assert.That(response.BatchItemFailures, Is.Empty);
             Assert.That(item.SequenceNumber, Is.EqualTo("101"));
-            Assert.That(item.StreamViewType, Is.EqualTo("NEW_AND_OLD_IMAGES"));
+            Assert.That(item.StreamViewType, Is.EqualTo(DynamoDbStreamViewType.NewAndOldImages));
             Assert.That(item.Keys["orderId"].S, Is.EqualTo("order-123"));
             Assert.That(item.NewImage["status"].S, Is.EqualTo("paid"));
             Assert.That(item.OldImage["status"].S, Is.EqualTo("pending"));
@@ -47,6 +47,30 @@ public class DynamoDbStreamFunctionTests
             Assert.That(TestRecordHandler.LastContext?.GetDynamoDbStreamRecord(), Is.SameAs(record));
             Assert.That(TestRecordHandler.LastContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
         });
+    }
+
+    [TestCase("KEYS_ONLY", DynamoDbStreamViewType.KeysOnly)]
+    [TestCase("NEW_IMAGE", DynamoDbStreamViewType.NewImage)]
+    [TestCase("OLD_IMAGE", DynamoDbStreamViewType.OldImage)]
+    [TestCase("NEW_AND_OLD_IMAGES", DynamoDbStreamViewType.NewAndOldImages)]
+    [TestCase("FUTURE_VIEW", DynamoDbStreamViewType.Unknown)]
+    [TestCase(null, DynamoDbStreamViewType.Unknown)]
+    public async Task Function_maps_stream_view_type(
+        string? streamViewType,
+        DynamoDbStreamViewType expected)
+    {
+        var function = new TestFunction();
+        var record = CreateRecord("event-1", "101", "MODIFY");
+        record.Dynamodb!.StreamViewType = streamViewType;
+
+        await function.FunctionHandlerAsync(
+            new DynamoDBEvent
+            {
+                Records = new List<DynamoDBEvent.DynamodbStreamRecord> { record }
+            },
+            TestLambdaContexts.Create());
+
+        Assert.That(TestRecordHandler.Items.Single().StreamViewType, Is.EqualTo(expected));
     }
 
     [Test]
