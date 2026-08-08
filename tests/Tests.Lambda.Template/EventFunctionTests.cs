@@ -1,5 +1,8 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Amazon.Lambda.Core;
 using Amazon.Lambda.TestUtilities;
 
 using Kralizek.Lambda;
@@ -15,57 +18,156 @@ namespace Tests.Lambda;
 [TestFixture]
 public class EventFunctionTests
 {
-    private TestEventFunction CreateSystemUnderTest()
+    private static TestEventFunction CreateSystemUnderTest() => new();
+
+    [Test]
+    public void ConfigureConfiguration_is_invoked_on_initialization()
     {
-        return new TestEventFunction();
+        var sut = CreateSystemUnderTest();
+        Assert.That(sut.IsConfigureConfigurationInvoked, Is.True);
     }
 
     [Test]
-    public void Configure_should_be_invoked_on_type_initialization()
+    public void ConfigureServices_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-
-        Assert.True(sut.IsConfigureInvoked);
+        Assert.That(sut.IsConfigureServicesInvoked, Is.True);
     }
 
     [Test]
-    public void ConfigureServices_should_be_invoked_on_type_initialization()
+    public void ConfigureLogging_is_invoked_on_initialization()
     {
         var sut = CreateSystemUnderTest();
-
-        Assert.True(sut.IsConfigureServicesInvoked);
+        Assert.That(sut.IsConfigureLoggingInvoked, Is.True);
     }
 
     [Test]
-    public void ConfigureLogging_should_be_invoked_on_type_initialization()
+    public async Task FunctionHandlerAsync_invokes_handler_and_passes_context()
     {
-        var sut = CreateSystemUnderTest();
+        TrackingHandler.Reset();
+        var sut = new TrackingHandlerFunction();
+        var lambdaContext = TestLambdaContexts.Create();
+        lambdaContext.AwsRequestId = "request-id";
 
-        Assert.True(sut.IsConfigureLoggingInvoked);
+        await sut.FunctionHandlerAsync("expected-value", lambdaContext);
+
+        Assert.That(TrackingHandler.WasInvoked, Is.True);
+        Assert.That(TrackingHandler.ReceivedInput, Is.EqualTo("expected-value"));
+        Assert.That(TrackingHandler.ReceivedContext?.AwsRequestId, Is.EqualTo("request-id"));
+        Assert.That(TrackingHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
     }
 
     [Test]
-    public void FunctionHandlerAsync_throws_if_no_handler_is_registered()
+    public async Task FunctionHandlerAsync_passes_specialized_context_without_casts()
     {
-        var sut = CreateSystemUnderTest();
+        SpecializedEventHandler.ReceivedContext = null;
+        var sut = new SpecializedEventFunction();
+        var lambdaContext = TestLambdaContexts.Create();
 
-        var context = new TestLambdaContext();
+        await sut.FunctionHandlerAsync("expected-value", lambdaContext);
 
-        Assert.ThrowsAsync<InvalidOperationException>(() => sut.FunctionHandlerAsync("Hello World", context));
+        Assert.That(SpecializedEventHandler.ReceivedContext, Is.Not.Null);
+        Assert.That(SpecializedEventHandler.ReceivedContext?.Input, Is.EqualTo("expected-value"));
+        Assert.That(SpecializedEventHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
     }
 
-    public class TestEventFunction : EventFunction<string>
+    [Test]
+    public void FunctionHandlerAsync_propagates_handler_exception()
     {
-        protected override void Configure(IConfigurationBuilder builder) => IsConfigureInvoked = true;
+        var sut = new FailingHandlerFunction();
 
-        protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) => IsConfigureServicesInvoked = true;
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.FunctionHandlerAsync("hello", TestLambdaContexts.Create()));
+    }
 
-        protected override void ConfigureLogging(ILoggingBuilder loggerFactory, IExecutionEnvironment executionEnvironment) => IsConfigureLoggingInvoked = true;
+    [Test]
+    public void FunctionHandlerAsync_cancels_when_no_execution_time_remains()
+    {
+        TrackingHandler.Reset();
+        var sut = new TrackingHandlerFunction();
+        var lambdaContext = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
 
-        public bool IsConfigureInvoked { get; private set; }
+        Assert.ThrowsAsync<OperationCanceledException>(() =>
+            sut.FunctionHandlerAsync("hello", lambdaContext));
+        Assert.That(TrackingHandler.WasInvoked, Is.False);
+    }
 
+    public class TestEventFunction : EventFunction<string, NoOpHandler>
+    {
+        protected override void ConfigureConfiguration(IConfigurationBuilder configuration) => IsConfigureConfigurationInvoked = true;
+
+        protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration) =>
+            IsConfigureServicesInvoked = true;
+
+        protected override void ConfigureLogging(ILoggingBuilder logging) =>
+            IsConfigureLoggingInvoked = true;
+
+        public bool IsConfigureConfigurationInvoked { get; private set; }
         public bool IsConfigureServicesInvoked { get; private set; }
-
         public bool IsConfigureLoggingInvoked { get; private set; }
+    }
+
+    public class TrackingHandlerFunction : EventFunction<string, TrackingHandler> { }
+
+    public class FailingHandlerFunction : EventFunction<string, ThrowingHandler> { }
+
+    public class SpecializedEventFunction : EventFunction<string, SpecializedEventContext, SpecializedEventHandler>
+    {
+        protected override SpecializedEventContext CreateContext(string input, ILambdaContext context) => new(context, input);
+    }
+
+    public class SpecializedEventContext : EventContext
+    {
+        public SpecializedEventContext(ILambdaContext context, string input)
+            : base(context)
+        {
+            Input = input;
+        }
+
+        public string Input { get; }
+    }
+
+    public class NoOpHandler : IEventHandler<string>
+    {
+        public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken) => ValueTask.CompletedTask;
+    }
+
+    public class TrackingHandler : IEventHandler<string>
+    {
+        public static bool WasInvoked { get; private set; }
+        public static string? ReceivedInput { get; private set; }
+        public static EventContext? ReceivedContext { get; private set; }
+
+        public static void Reset()
+        {
+            WasInvoked = false;
+            ReceivedInput = null;
+            ReceivedContext = null;
+        }
+
+        public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken)
+        {
+            WasInvoked = true;
+            ReceivedInput = input;
+            ReceivedContext = context;
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    public class SpecializedEventHandler : IEventHandler<string, SpecializedEventContext>
+    {
+        public static SpecializedEventContext? ReceivedContext { get; set; }
+
+        public ValueTask HandleAsync(string input, SpecializedEventContext context, CancellationToken cancellationToken)
+        {
+            ReceivedContext = context;
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    public class ThrowingHandler : IEventHandler<string>
+    {
+        public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken) =>
+            ValueTask.FromException(new InvalidOperationException("boom"));
     }
 }

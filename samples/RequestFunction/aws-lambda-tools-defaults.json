@@ -16,5 +16,5 @@
   "function-name": "test-lambda-template",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "function-handler": "EventFunction::EventFunction.Function::FunctionHandlerAsync"
+  "function-handler": "RequestFunction::RequestFunction.Function::FunctionHandlerAsync"
 }

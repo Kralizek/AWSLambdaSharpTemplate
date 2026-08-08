@@ -1,63 +1,74 @@
-﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
 /// <summary>
-/// A base class used for all Event Functions.
+/// A function base class for handlers that process a single event and produce no meaningful response.
 /// </summary>
-/// <typeparam name="TInput">The type of the incoming request.</typeparam>
-public abstract class EventFunction<TInput> : Function
+/// <typeparam name="TInput">The type of the incoming event.</typeparam>
+/// <typeparam name="TContext">The context type passed to the handler.</typeparam>
+/// <typeparam name="THandler">The concrete handler type that processes the event.</typeparam>
+#pragma warning disable S2436 // The generic roles are intentional and make the event contract explicit.
+public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
+#pragma warning restore S2436
+    where TContext : EventContext
+    where THandler : class, IEventHandler<TInput, TContext>
 {
-    /// <summary>
-    /// The entrypoint used by the Lambda runtime for executing the function. 
-    /// </summary>
-    /// <param name="input">The incoming request.</param>
-    /// <param name="context">A representation of the execution context.</param>
-    /// <exception cref="InvalidOperationException">The exception is thrown if no handler is registered for the incoming input.</exception>
-    public async Task FunctionHandlerAsync(TInput? input, ILambdaContext context)
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
-        using var scope = ServiceProvider.CreateScope();
-
-        var handler = scope.ServiceProvider.GetService<IEventHandler<TInput>>();
-
-        if (handler == null)
-        {
-            Logger.LogCritical("No {Handler} could be found", $"IEventHandler<{typeof(TInput).Name}>");
-            throw new InvalidOperationException($"No IEventHandler<{typeof(TInput).Name}> could be found.");
-        }
-
-        Logger.LogInformation("Invoking handler");
-        await handler.HandleAsync(input, context).ConfigureAwait(false);
+        base.ConfigureFrameworkServices(services);
+        services.TryAddScoped<THandler>();
     }
 
     /// <summary>
-    /// Registers the handler for the request ot type <typeparamref name="TInput"/>.
+    /// Creates the strongly typed context passed to the event handler.
     /// </summary>
-    /// <param name="services">The collections of services.</param>
-    /// <param name="lifetime">The lifetime of the handler. Defaults to <see cref="ServiceLifetime.Transient"/>.</param>
-    /// <typeparam name="THandler">The type of the handler for requests of type <typeparamref name="TInput"/>.</typeparam>
-    protected void RegisterHandler<THandler>(IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Transient) where THandler : class, IEventHandler<TInput>
+    protected abstract TContext CreateContext(TInput input, ILambdaContext context);
+
+    /// <summary>
+    /// The entry point called by the Lambda runtime.
+    /// </summary>
+    public async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        services.Add(ServiceDescriptor.Describe(typeof(IEventHandler<TInput>), typeof(THandler), lifetime));
+        using var cts = CreateCancellationTokenSource(context);
+        var eventContext = CreateContext(input, context);
+
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+
+        await ExecuteHandlerAsync<THandler>(
+            invocationScope.ServiceProvider,
+            cts.Token,
+            (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
     }
 }
 
 /// <summary>
-/// An interface that describes an handler for events with inputs of type <typeparamref name="TInput"/>.
+/// A function base class for handlers that use the standard <see cref="EventContext"/>.
 /// </summary>
-/// <typeparam name="TInput">The type of the incoming request.</typeparam>
-public interface IEventHandler<in TInput>
+public abstract class EventFunction<TInput, THandler> : EventFunction<TInput, EventContext, THandler>
+    where THandler : class, IEventHandler<TInput, EventContext>
 {
-    /// <summary>
-    /// The method used to handle the incoming event.
-    /// </summary>
-    /// <param name="input">The incoming request.</param>
-    /// <param name="context">A representation of the execution context.</param>
-    Task HandleAsync(TInput? input, ILambdaContext context);
+    protected override EventContext CreateContext(TInput input, ILambdaContext context) => new(context);
+}
+
+/// <summary>
+/// The contract for strongly typed event handlers.
+/// </summary>
+public interface IEventHandler<in TInput, in TContext>
+    where TContext : EventContext
+{
+    ValueTask HandleAsync(TInput input, TContext context, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// The contract for event handlers that use the standard <see cref="EventContext"/>.
+/// </summary>
+public interface IEventHandler<in TInput> : IEventHandler<TInput, EventContext>
+{
 }
