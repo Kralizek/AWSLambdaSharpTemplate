@@ -17,60 +17,60 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
-    <None
-      Include="content/**/*"
-      Exclude="content/**/*.csproj"
-      Pack="true"
-      PackagePath="content/%(RecursiveDir)%(Filename)%(Extension)" />
-    <None
-      Include="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj"
-      Pack="true"
-      PackagePath="content/EventFunction/LambdaFunctionProject.csproj" />
-    <None
-      Include="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj"
-      Pack="true"
-      PackagePath="content/RequestFunction/LambdaFunctionProject.csproj" />
-    <None
-      Include="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj"
-      Pack="true"
-      PackagePath="content/SnsFunction/LambdaFunctionProject.csproj" />
-    <None
-      Include="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj"
-      Pack="true"
-      PackagePath="content/SqsFunction/LambdaFunctionProject.csproj" />
+    <None Include="content/**/*" Exclude="content/**/*.csproj" Pack="true" PackagePath="content/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/EventFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/RequestFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/SnsFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/SqsFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoPreSignUpFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoPreSignUpFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoPostConfirmationFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoPostConfirmationFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoPreAuthenticationFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoPreAuthenticationFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoPostAuthenticationFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoPostAuthenticationFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoDefineAuthChallengeFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoDefineAuthChallengeFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoCreateAuthChallengeFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoCreateAuthChallengeFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoVerifyAuthChallengeFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoVerifyAuthChallengeFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoCustomMessageFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoCustomMessageFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoUserMigrationFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoUserMigrationFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoCustomEmailSenderFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoCustomEmailSenderFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" />
+    <None Include="$(TemplateStagingDirectory)/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" />
   </ItemGroup>
 
   <Target Name="PrepareTemplateProjects" BeforeTargets="GenerateNuspec">
-    <MakeDir Directories="$(TemplateStagingDirectory)/EventFunction;$(TemplateStagingDirectory)/RequestFunction;$(TemplateStagingDirectory)/SnsFunction;$(TemplateStagingDirectory)/SqsFunction" />
-    <Copy
-      SourceFiles="content/EventFunction/LambdaFunctionProject.csproj"
-      DestinationFiles="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" />
-    <Copy
-      SourceFiles="content/RequestFunction/LambdaFunctionProject.csproj"
-      DestinationFiles="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" />
-    <Copy
-      SourceFiles="content/SnsFunction/LambdaFunctionProject.csproj"
-      DestinationFiles="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj" />
-    <Copy
-      SourceFiles="content/SqsFunction/LambdaFunctionProject.csproj"
-      DestinationFiles="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj" />
+    <MakeDir Directories="$(TemplateStagingDirectory)/EventFunction;$(TemplateStagingDirectory)/RequestFunction;$(TemplateStagingDirectory)/SnsFunction;$(TemplateStagingDirectory)/SqsFunction;$(TemplateStagingDirectory)/CognitoPreSignUpFunction;$(TemplateStagingDirectory)/CognitoPostConfirmationFunction;$(TemplateStagingDirectory)/CognitoPreAuthenticationFunction;$(TemplateStagingDirectory)/CognitoPostAuthenticationFunction;$(TemplateStagingDirectory)/CognitoDefineAuthChallengeFunction;$(TemplateStagingDirectory)/CognitoCreateAuthChallengeFunction;$(TemplateStagingDirectory)/CognitoVerifyAuthChallengeFunction;$(TemplateStagingDirectory)/CognitoCustomMessageFunction;$(TemplateStagingDirectory)/CognitoUserMigrationFunction;$(TemplateStagingDirectory)/CognitoCustomEmailSenderFunction;$(TemplateStagingDirectory)/CognitoCustomSmsSenderFunction;$(TemplateStagingDirectory)/CognitoPreTokenGenerationFunction" />
+    <Copy SourceFiles="content/EventFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/RequestFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/SnsFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/SqsFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoPreSignUpFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoPreSignUpFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoPostConfirmationFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoPostConfirmationFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoPreAuthenticationFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoPreAuthenticationFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoPostAuthenticationFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoPostAuthenticationFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoDefineAuthChallengeFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoDefineAuthChallengeFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoCreateAuthChallengeFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoCreateAuthChallengeFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoVerifyAuthChallengeFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoVerifyAuthChallengeFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoCustomMessageFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoCustomMessageFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoUserMigrationFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoUserMigrationFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoCustomEmailSenderFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoCustomEmailSenderFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" />
+    <Copy SourceFiles="content/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" />
 
-    <XmlPoke
-      XmlInputPath="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj"
-      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version"
-      Value="$(PackageVersion)" />
-    <XmlPoke
-      XmlInputPath="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj"
-      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version"
-      Value="$(PackageVersion)" />
-    <XmlPoke
-      XmlInputPath="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj"
-      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Sns']/@Version"
-      Value="$(PackageVersion)" />
-    <XmlPoke
-      XmlInputPath="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj"
-      Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Sqs']/@Version"
-      Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/SnsFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Sns']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/SqsFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Sqs']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoPreSignUpFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoPostConfirmationFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoPreAuthenticationFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoPostAuthenticationFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoDefineAuthChallengeFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoCreateAuthChallengeFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoVerifyAuthChallengeFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoCustomMessageFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoUserMigrationFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoCustomEmailSenderFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.Cognito']/@Version" Value="$(PackageVersion)" />
   </Target>
 
 </Project>

@@ -24,6 +24,18 @@ dotnet new list lambda-template
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
 | SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
 | SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
+| Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` | The Lambda validates or modifies a user-pool sign-up request before Cognito creates the user. |
+| Cognito Post Confirmation | `lambda-template-cognito-post-confirmation` | The Lambda reacts after a user confirms registration or a password recovery flow. |
+| Cognito Pre Authentication | `lambda-template-cognito-pre-authentication` | The Lambda validates an authentication attempt before Cognito proceeds. |
+| Cognito Post Authentication | `lambda-template-cognito-post-authentication` | The Lambda reacts after Cognito authenticates a user. |
+| Cognito Define Auth Challenge | `lambda-template-cognito-define-auth-challenge` | The Lambda controls the state machine for a custom authentication flow. |
+| Cognito Create Auth Challenge | `lambda-template-cognito-create-auth-challenge` | The Lambda creates a challenge for a custom authentication flow. |
+| Cognito Verify Auth Challenge | `lambda-template-cognito-verify-auth-challenge` | The Lambda verifies the user's response to a custom authentication challenge. |
+| Cognito Custom Message | `lambda-template-cognito-custom-message` | The Lambda customizes Cognito-generated email and SMS message content. |
+| Cognito User Migration | `lambda-template-cognito-user-migration` | The Lambda migrates users from an existing identity store during sign-in or password reset. |
+| Cognito Custom Email Sender | `lambda-template-cognito-custom-email-sender` | The Lambda delivers Cognito email messages through a custom sender. |
+| Cognito Custom SMS Sender | `lambda-template-cognito-custom-sms-sender` | The Lambda delivers Cognito SMS messages through a custom sender. |
+| Cognito Pre Token Generation | `lambda-template-cognito-pre-token-generation` | The Lambda customizes claims and scopes before Cognito issues tokens. Supports `--version v1|v2`. |
 
 ## Create a function
 
@@ -49,6 +61,19 @@ Create an SQS function:
 
 ```bash
 dotnet new lambda-template-sqs --name MySqsFunction
+```
+
+Create a Cognito pre sign-up function:
+
+```bash
+dotnet new lambda-template-cognito-pre-signup --name MyPreSignUpFunction
+```
+
+The pre-token-generation template supports both event contracts exposed by `Amazon.Lambda.CognitoEvents` 5.x:
+
+```bash
+dotnet new lambda-template-cognito-pre-token-generation --name MyTokenHook --version v1
+dotnet new lambda-template-cognito-pre-token-generation --name MyTokenHook --version v2
 ```
 
 All templates support the AWS Lambda deployment settings exposed by the template package:
@@ -103,8 +128,21 @@ public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>;
 
 The default SQS payload decoder uses `System.Text.Json`. Applications can replace `IStringPayloadDecoder<TMessage>` through the normal dependency-injection customization hook when a different payload representation or source-generated JSON metadata is required.
 
+A Cognito Function derives from the function base for its user-pool trigger and delegates application logic to the matching trigger-specific handler interface:
+
+```csharp
+public sealed class Function : CognitoPreSignUpFunction<PreSignUpHandler>;
+
+public sealed class PreSignUpHandler : ICognitoPreSignUpHandler
+{
+    // application logic
+}
+```
+
+Cognito trigger bases specialize the request-function model with the corresponding AWS event contract. Pre-token-generation V1 and V2 use separate strongly typed runtime bases; the template's `--version` option selects the appropriate one.
+
 ## Package compatibility
 
-`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Sns` and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
 For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.

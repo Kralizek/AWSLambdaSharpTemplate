@@ -1,0 +1,12 @@
+{
+  "profile": "",
+  "region": "",
+  "configuration": "Release",
+  "framework": "net10.0",
+  "function-name": "CognitoPreSignUpFunction",
+  "function-role": "",
+  "function-runtime": "dotnet10",
+  "function-memory-size": 128,
+  "function-timeout": 30,
+  "function-handler": "CognitoPreSignUpFunction::CognitoPreSignUpFunction.Function::FunctionHandlerAsync"
+}
