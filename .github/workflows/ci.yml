@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [master]
-    tags: [v*]
+    tags: ["v*"]
   pull_request: {}
   workflow_dispatch:
 
@@ -308,6 +308,11 @@ jobs:
         run: |
           echo "Manual releases must be dispatched from master."
           exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
