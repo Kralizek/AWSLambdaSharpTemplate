@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Kralizek.Lambda.Template.DynamoDb</PackageId>
+    <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;dynamodb;streams</PackageTags>
+    <Description>Extension to Kralizek.Lambda.Template for AWS Lambda functions triggered by Amazon DynamoDB Streams.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kralizek.Lambda.Template\Kralizek.Lambda.Template.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.DynamoDBEvents" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
