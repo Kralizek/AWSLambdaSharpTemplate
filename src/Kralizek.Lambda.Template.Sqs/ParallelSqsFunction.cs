@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kralizek.Lambda;
 
@@ -9,25 +6,15 @@ namespace Kralizek.Lambda;
 /// An SQS function specialization that processes raw records with bounded parallelism.
 /// </summary>
 /// <typeparam name="THandler">The concrete handler type that processes each SQS record.</typeparam>
-public abstract class ParallelSqsFunction<THandler> : SqsFunction<THandler>
+public abstract class ParallelSqsFunction<THandler>
+    : ParallelSqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
-    /// <summary>
-    /// Gets the maximum number of SQS records processed concurrently.
-    /// </summary>
-    protected virtual int MaxDegreeOfParallelism => Math.Max(2, Environment.ProcessorCount);
-
-    protected override Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
-        Amazon.Lambda.SQSEvents.SQSEvent envelope,
-        RecordContext context,
-        IServiceProvider invocationServices,
-        CancellationToken cancellationToken) =>
-        ProcessRecordsParallelAsync(
-            envelope,
-            context,
-            invocationServices,
-            MaxDegreeOfParallelism,
-            cancellationToken);
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    {
+        base.ConfigureFrameworkServices(services);
+        SqsServiceRegistration.AddRawHandler<THandler>(services);
+    }
 }
 
 /// <summary>
@@ -35,23 +22,13 @@ public abstract class ParallelSqsFunction<THandler> : SqsFunction<THandler>
 /// </summary>
 /// <typeparam name="TMessage">The decoded message type.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes each message.</typeparam>
-public abstract class ParallelSqsFunction<TMessage, THandler> : SqsFunction<TMessage, THandler>
+public abstract class ParallelSqsFunction<TMessage, THandler>
+    : ParallelSqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
-    /// <summary>
-    /// Gets the maximum number of SQS records processed concurrently.
-    /// </summary>
-    protected virtual int MaxDegreeOfParallelism => Math.Max(2, Environment.ProcessorCount);
-
-    protected override Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
-        Amazon.Lambda.SQSEvents.SQSEvent envelope,
-        RecordContext context,
-        IServiceProvider invocationServices,
-        CancellationToken cancellationToken) =>
-        ProcessRecordsParallelAsync(
-            envelope,
-            context,
-            invocationServices,
-            MaxDegreeOfParallelism,
-            cancellationToken);
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    {
+        base.ConfigureFrameworkServices(services);
+        SqsServiceRegistration.AddDecodedHandler<TMessage, THandler>(services);
+    }
 }
