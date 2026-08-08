@@ -54,7 +54,7 @@ public class EventFunctionTests
         Assert.That(TrackingHandler.WasInvoked, Is.True);
         Assert.That(TrackingHandler.ReceivedInput, Is.EqualTo("expected-value"));
         Assert.That(TrackingHandler.ReceivedContext?.AwsRequestId, Is.EqualTo("request-id"));
-        Assert.That(TrackingHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
+        Assert.That(TrackingHandler.ReceivedContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
     }
 
     [Test]
@@ -68,7 +68,7 @@ public class EventFunctionTests
 
         Assert.That(SpecializedEventHandler.ReceivedContext, Is.Not.Null);
         Assert.That(SpecializedEventHandler.ReceivedContext?.Input, Is.EqualTo("expected-value"));
-        Assert.That(SpecializedEventHandler.ReceivedContext?.LambdaContext, Is.SameAs(lambdaContext));
+        Assert.That(SpecializedEventHandler.ReceivedContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
     }
 
     [Test]
@@ -119,7 +119,7 @@ public class EventFunctionTests
     public class SpecializedEventContext : EventContext
     {
         public SpecializedEventContext(ILambdaContext context, string input)
-            : base(context)
+            : base(FunctionContextFactory.CreateMetadata(context), FunctionContextFactory.CreateProperties(context))
         {
             Input = input;
         }

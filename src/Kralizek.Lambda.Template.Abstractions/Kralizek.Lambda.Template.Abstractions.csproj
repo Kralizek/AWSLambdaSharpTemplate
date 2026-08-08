@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Kralizek.Lambda.Template.Abstractions</PackageId>
+    <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp</PackageTags>
+    <Description>Lightweight handler, context, and payload decoder contracts for Kralizek.Lambda.Template.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

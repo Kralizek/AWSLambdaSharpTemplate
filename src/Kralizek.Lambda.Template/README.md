@@ -48,6 +48,38 @@ public sealed class ToUpperStringRequestHandler
 }
 ```
 
+## Payload decoding
+
+Source-specific integrations can extract a raw text or binary payload and delegate contract deserialization through the lightweight decoder contracts from `Kralizek.Lambda.Template.Abstractions`.
+
+For text payloads that should be passed to a handler unchanged, use the plain-text decoder:
+
+```csharp
+IStringPayloadDecoder<string> decoder =
+    new PlainTextStringPayloadDecoder();
+```
+
+This package also provides System.Text.Json implementations for both representations:
+
+```csharp
+IStringPayloadDecoder<OrderCreated> stringDecoder =
+    new JsonStringPayloadDecoder<OrderCreated>();
+
+IBinaryPayloadDecoder<OrderCreated> binaryDecoder =
+    new JsonBinaryPayloadDecoder<OrderCreated>();
+```
+
+The JSON decoders support both reflection-based configuration through `JsonSerializerOptions` and source-generated serialization metadata for Native AOT. Pass either a `JsonSerializerContext` or the corresponding `JsonTypeInfo<TPayload>`:
+
+```csharp
+var decoder = new JsonStringPayloadDecoder<OrderCreated>(
+    ApplicationJsonContext.Default);
+```
+
+Glue packages decide which decoder abstraction they consume and how the default implementation is registered.
+
+Custom decoder packages can depend on `Kralizek.Lambda.Template.Abstractions` without referencing the full runtime package.
+
 ## Dependency injection
 
 The primary handler is inferred from the function type and registered automatically as a scoped service.
@@ -94,7 +126,11 @@ The standard contexts are:
 - `RequestContext`
 - `RecordContext`
 
-Full generic forms allow source-specific integrations to substitute richer context types without requiring casts in handlers.
+The context and handler contracts live in `Kralizek.Lambda.Template.Abstractions`, which has no dependency on `Amazon.Lambda.Core`. Common Lambda invocation metadata is exposed as strongly typed CLR properties on `FunctionContext`.
+
+This package provides `FunctionContextFactory`, which maps `ILambdaContext` into those source-neutral properties. The original AWS context is retained in the context property bag as an escape hatch and can be retrieved with `GetLambdaContext()` when an application needs runtime data not surfaced directly by the abstraction.
+
+Source-specific integrations can derive richer context types and use `FunctionContextFactory.CreateMetadata(...)` and `CreateProperties(...)` to preserve the same base metadata and runtime escape hatch.
 
 ## Scopes
 
