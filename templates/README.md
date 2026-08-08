@@ -23,6 +23,7 @@ dotnet new list lambda-template
 | Event Function | `lambda-template-event` | The Lambda handles an input and does not return an application result. |
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
 | EventBridge Function | `lambda-template-eventbridge` | The Lambda is targeted by EventBridge and receives a strongly typed event detail inside the AWS event envelope. |
+| DynamoDB Streams Function | `lambda-template-dynamodb-stream` | The Lambda consumes DynamoDB Streams records with source-specific context and partial-batch failure support. |
 | SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
 | SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
 | Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` | The Lambda validates or modifies a user-pool sign-up request before Cognito creates the user. |
@@ -56,6 +57,12 @@ Create an EventBridge function:
 
 ```bash
 dotnet new lambda-template-eventbridge --name MyEventBridgeFunction
+```
+
+Create a DynamoDB Streams function:
+
+```bash
+dotnet new lambda-template-dynamodb-stream --name MyDynamoDbStreamFunction
 ```
 
 Create an SNS function:
@@ -92,8 +99,8 @@ All templates support the AWS Lambda deployment settings exposed by the template
 For example:
 
 ```bash
-dotnet new lambda-template-eventbridge \
-  --name MyEventBridgeFunction \
+dotnet new lambda-template-dynamodb-stream \
+  --name MyDynamoDbStreamFunction \
   --profile my-profile \
   --region eu-north-1 \
   --role my-lambda-role
@@ -127,6 +134,14 @@ public sealed class Function : EventBridgeFunction<OrderCreated, OrderCreatedHan
 
 The Lambda serializer materializes `CloudWatchEvent<TDetail>.Detail` directly as `TDetail`, so EventBridge does not use a separate payload-decoder abstraction. The AWS envelope remains available to application code for fields such as `Source`, `DetailType`, `Id`, and `Resources`.
 
+A DynamoDB Streams Function derives from `DynamoDbStreamFunction<THandler>` and invokes an `IDynamoDbStreamRecordHandler` once per stream record:
+
+```csharp
+public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
+```
+
+The handler receives the original AWS stream record together with `DynamoDbStreamRecordContext`, which exposes keys, old/new images, sequence number and event metadata. DynamoDB images remain in AWS's `DynamoDBEvent.AttributeValue` model rather than being treated as JSON. Record failures are translated into `StreamsEventResponse` partial-batch failures; the event-source mapping must enable `ReportBatchItemFailures` for Lambda to honor them. Sequential processing is the default, with `ParallelDynamoDbStreamFunction<THandler>` available as an explicit bounded-parallel variant.
+
 An SNS Function derives from `SnsFunction<TNotification, THandler>`. The framework decodes each SNS `Message` to `TNotification`, creates an `SnsNotificationContext`, and invokes the consumer's `ISnsNotificationHandler<TNotification>`:
 
 ```csharp
@@ -158,6 +173,6 @@ Cognito trigger bases specialize the request-function model with the correspondi
 
 ## Package compatibility
 
-`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.DynamoDb`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
 For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.
