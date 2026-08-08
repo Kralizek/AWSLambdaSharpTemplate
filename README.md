@@ -8,16 +8,25 @@ The current programming model is organized around three semantic function roots:
 - `RequestFunction<TInput, TOutput, THandler>` for request/response handlers.
 - `RecordFunction<...>` for integrations that process multiple independent records per invocation.
 
-Source-specific packages build on those roots. SQS and SNS specialize record processing, while `Kralizek.Lambda.Template.Cognito` provides strongly typed request-function specializations for Amazon Cognito user-pool Lambda triggers.
+Source-specific packages build on those roots. EventBridge specializes one-way event processing, SQS and SNS specialize record processing, while `Kralizek.Lambda.Template.Cognito` provides strongly typed request-function specializations for Amazon Cognito user-pool Lambda triggers.
 
 ## Packages
 
 - `Kralizek.Lambda.Template.Abstractions` contains the source-neutral handler, context, and payload-decoder contracts.
 - `Kralizek.Lambda.Template` contains the runtime implementation and generic function roots.
 - `Kralizek.Lambda.Template.Cognito` contains the Cognito trigger specializations.
+- `Kralizek.Lambda.Template.EventBridge` contains the EventBridge specialization.
 - `Kralizek.Lambda.Template.Sns` contains the SNS specialization.
 - `Kralizek.Lambda.Template.Sqs` contains the SQS specialization.
 - `Kralizek.Lambda.Templates` contains the `dotnet new` project templates.
+
+## EventBridge function
+
+```csharp
+public sealed class Function : EventBridgeFunction<OrderCreated, OrderCreatedHandler>;
+```
+
+The EventBridge package builds on `EventFunction` and uses AWS's `CloudWatchEvent<TDetail>` envelope from `Amazon.Lambda.CloudWatchEvents`. `Detail` is deserialized directly by the Lambda serializer, so EventBridge does not add a second payload-decoder layer.
 
 ## Cognito function
 
@@ -41,6 +50,7 @@ dotnet new install Kralizek.Lambda.Templates
 | --- | --- | --- |
 | Event Function | `lambda-template-event` | The Lambda handles an input and does not return an application result. |
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
+| EventBridge Function | `lambda-template-eventbridge` | The Lambda is targeted by EventBridge and receives a strongly typed event detail inside the AWS event envelope. |
 | SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
 | SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
 | Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` | The Lambda validates or modifies a user-pool sign-up request before Cognito creates the user. |

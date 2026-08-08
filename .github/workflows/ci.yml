@@ -159,6 +159,9 @@ jobs:
           - name: Request
             short-name: lambda-template-request
             project-name: SmokeRequest
+          - name: EventBridge
+            short-name: lambda-template-eventbridge
+            project-name: SmokeEventBridge
           - name: SNS
             short-name: lambda-template-sns
             project-name: SmokeSns
