@@ -35,4 +35,25 @@ Install the template package with:
 dotnet new install Kralizek.Lambda.Templates
 ```
 
-Run `dotnet new list lambda-template` to see the generic, SNS, SQS, and Cognito trigger templates. Generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.
+### Available templates
+
+| Template | Short name |
+| --- | --- |
+| Event Function | `lambda-template-event` |
+| Request Function | `lambda-template-request` |
+| SNS Function | `lambda-template-sns` |
+| SQS Function | `lambda-template-sqs` |
+| Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` |
+| Cognito Post Confirmation | `lambda-template-cognito-post-confirmation` |
+| Cognito Pre Authentication | `lambda-template-cognito-pre-authentication` |
+| Cognito Post Authentication | `lambda-template-cognito-post-authentication` |
+| Cognito Define Auth Challenge | `lambda-template-cognito-define-auth-challenge` |
+| Cognito Create Auth Challenge | `lambda-template-cognito-create-auth-challenge` |
+| Cognito Verify Auth Challenge | `lambda-template-cognito-verify-auth-challenge` |
+| Cognito Custom Message | `lambda-template-cognito-custom-message` |
+| Cognito User Migration | `lambda-template-cognito-user-migration` |
+| Cognito Custom Email Sender | `lambda-template-cognito-custom-email-sender` |
+| Cognito Custom SMS Sender | `lambda-template-cognito-custom-sms-sender` |
+| Cognito Pre Token Generation | `lambda-template-cognito-pre-token-generation` (`--version v1|v2`) |
+
+Run `dotnet new list lambda-template` to list the installed templates. Generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.
