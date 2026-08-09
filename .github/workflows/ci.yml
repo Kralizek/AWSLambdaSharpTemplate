@@ -253,10 +253,10 @@ jobs:
 
       - name: Instantiate ${{ matrix.name }} template
         run: |
-          mkdir -p $ARTIFACTS_PATH/smoke
+          mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
           dotnet new "${{ matrix.short-name }}" \
             --name "${{ matrix.project-name }}" \
-            --output "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}" \
+            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}" \
             --profile SmokeProfile \
             --region eu-north-1 \
             --role SmokeRole \
@@ -265,7 +265,7 @@ jobs:
       - name: Verify generated content
         shell: bash
         run: |
-          project="$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
           grep -q 'SmokeProfile' "$project/aws-lambda-tools-defaults.json"
           grep -q 'eu-north-1' "$project/aws-lambda-tools-defaults.json"
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
@@ -276,7 +276,7 @@ jobs:
         shell: bash
         run: |
           local_feed=$(realpath $ARTIFACTS_PATH/packages)
-          cat > $ARTIFACTS_PATH/smoke/NuGet.config <<EOF
+          cat > "$RUNNER_TEMP/lambda-template-smoke/NuGet.config" <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
@@ -303,14 +303,14 @@ jobs:
       - name: Restore generated project
         run: >-
           dotnet restore
-          "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
-          --configfile $ARTIFACTS_PATH/smoke/NuGet.config
-          --packages $ARTIFACTS_PATH/smoke/packages
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
+          --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
 
       - name: Build generated project
         run: >-
           dotnet build
-          "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
           --configuration $CONFIGURATION
           --no-restore
           --warnaserror
