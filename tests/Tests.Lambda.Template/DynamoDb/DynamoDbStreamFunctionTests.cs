@@ -100,7 +100,7 @@ public class DynamoDbStreamFunctionTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Value, Is.TypeOf<DynamoDbStreamRecordResult.FailureCase>());
-            Assert.That(((DynamoDbStreamRecordResult.FailureCase)result.Value).Reason, Is.EqualTo("not ready"));
+            Assert.That(((DynamoDbStreamRecordResult.FailureCase)result.Value!).Reason, Is.EqualTo("not ready"));
         });
     }
 
