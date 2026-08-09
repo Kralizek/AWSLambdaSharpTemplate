@@ -87,9 +87,13 @@ public class SqsFunctionTests
         {
             Assert.That(result.Value, Is.TypeOf<SqsRecordResult.FailureCase>());
             Assert.That(((SqsRecordResult.FailureCase)result.Value).Reason, Is.EqualTo("not ready"));
-            Assert.That(result, Is.TypeOf<SqsRecordResult.FailureResult>());
-            Assert.That(((SqsRecordResult.FailureResult)result).Reason, Is.EqualTo("not ready"));
         });
+    }
+
+    [Test]
+    public void Success_result_contains_success_union_case_value()
+    {
+        Assert.That(SqsRecordResult.Success.Value, Is.TypeOf<SqsRecordResult.SuccessCase>());
     }
 
     [Test]
