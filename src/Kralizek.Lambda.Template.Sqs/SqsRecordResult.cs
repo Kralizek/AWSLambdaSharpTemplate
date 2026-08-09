@@ -27,7 +27,7 @@ public sealed class SqsRecordResult : LambdaRecordResult
     public static SqsRecordResult Failed(string? reason = null) => new(new FailureCase(reason));
 
     /// <inheritdoc />
-    public override object Value { get; }
+    public override object? Value { get; }
 
     /// <summary>
     /// Represents the successful case value of an SQS record result.
