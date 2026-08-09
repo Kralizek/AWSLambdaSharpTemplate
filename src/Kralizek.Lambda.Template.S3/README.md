@@ -1,15 +1,11 @@
 # Kralizek.Lambda.Template.S3
 
-Support for AWS Lambda functions processing native Amazon S3 event notifications and S3 Batch Operations.
+Amazon S3 specialization for native event notifications and S3 Batch Operations.
 
-## Event notifications
+```csharp
+public sealed class Function : S3Function<ObjectCreatedHandler>;
+```
 
-Derive from `S3Function<THandler>` and implement `IS3ObjectEventHandler`. The handler receives a synthetic `S3ObjectEvent` containing a decoded `S3ObjectReference`, the event name, event time, and sequencer. The original AWS notification record remains available through `S3RecordContext.GetS3EventRecord()`.
+For usage, processing semantics, and examples, see [S3](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/S3.md).
 
-## S3 Batch Operations
-
-Derive from `S3BatchFunction<THandler>` and implement `IS3BatchItemHandler`. Batch invocation schema 2.0 is required.
-
-The Batch handler receives an `S3BatchItem`. The initial task-key implementation is `S3BatchObjectKey`, which composes the shared `S3ObjectReference` value object. The raw Batch request and task remain available through `S3BatchContext`.
-
-Return `S3BatchResult.Succeeded()`, `S3BatchResult.TemporaryFailure()`, or `S3BatchResult.PermanentFailure()` for each task. Unexpected exceptions fail the Lambda invocation rather than having retry semantics inferred by the framework.
+The complete library documentation is available in the [`docs/` directory](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/README.md).
