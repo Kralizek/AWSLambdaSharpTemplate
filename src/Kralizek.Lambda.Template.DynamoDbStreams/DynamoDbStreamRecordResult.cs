@@ -5,8 +5,9 @@ namespace Kralizek.Lambda;
 /// </summary>
 public abstract class DynamoDbStreamRecordResult : LambdaRecordResult
 {
-    private DynamoDbStreamRecordResult()
+    private DynamoDbStreamRecordResult(object value)
     {
+        Value = value;
     }
 
     /// <summary>
@@ -21,14 +22,26 @@ public abstract class DynamoDbStreamRecordResult : LambdaRecordResult
     public static DynamoDbStreamRecordResult Failed(string? reason = null) => new FailureResult(reason);
 
     /// <inheritdoc />
-    public override object Value => this;
+    public override object Value { get; }
 
     /// <summary>
-    /// Represents a failed DynamoDB Streams record result.
+    /// Represents the successful case value of a DynamoDB Streams record result.
     /// </summary>
-    public sealed class FailureResult : DynamoDbStreamRecordResult
+    public sealed class SuccessCase
     {
-        internal FailureResult(string? reason)
+        internal static SuccessCase Instance { get; } = new();
+
+        private SuccessCase()
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents the failed case value of a DynamoDB Streams record result.
+    /// </summary>
+    public sealed class FailureCase
+    {
+        internal FailureCase(string? reason)
         {
             Reason = reason;
         }
@@ -39,7 +52,27 @@ public abstract class DynamoDbStreamRecordResult : LambdaRecordResult
         public string? Reason { get; }
     }
 
+    /// <summary>
+    /// Represents a failed DynamoDB Streams record result.
+    /// </summary>
+    public sealed class FailureResult : DynamoDbStreamRecordResult
+    {
+        internal FailureResult(string? reason)
+            : base(new FailureCase(reason))
+        {
+        }
+
+        /// <summary>
+        /// Gets the optional application-provided failure reason.
+        /// </summary>
+        public string? Reason => ((FailureCase)Value).Reason;
+    }
+
     private sealed class SuccessResult : DynamoDbStreamRecordResult
     {
+        public SuccessResult()
+            : base(SuccessCase.Instance)
+        {
+        }
     }
 }
