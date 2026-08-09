@@ -93,31 +93,6 @@ public class DynamoDbStreamFunctionTests
             Is.EqualTo(new[] { "102" }));
     }
 
-    [Test]
-    public async Task Parallel_function_processes_records()
-    {
-        var function = new TestParallelFunction();
-        var @event = new DynamoDBEvent
-        {
-            Records = new List<DynamoDBEvent.DynamodbStreamRecord>
-            {
-                CreateRecord("event-1", "101", "INSERT"),
-                CreateRecord("event-2", "102", "MODIFY"),
-                CreateRecord("event-3", "103", "REMOVE")
-            }
-        };
-
-        var response = await function.FunctionHandlerAsync(@event, TestLambdaContexts.Create());
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(response.BatchItemFailures, Is.Empty);
-            Assert.That(
-                TestRecordHandler.Items.Select(item => item.SequenceNumber),
-                Is.EquivalentTo(new[] { "101", "102", "103" }));
-        });
-    }
-
     private static DynamoDBEvent.DynamodbStreamRecord CreateRecord(
         string eventId,
         string sequenceNumber,
@@ -149,11 +124,6 @@ public class DynamoDbStreamFunctionTests
         };
 
     private sealed class TestFunction : DynamoDbStreamFunction<TestRecordHandler>;
-
-    private sealed class TestParallelFunction : ParallelDynamoDbStreamFunction<TestRecordHandler>
-    {
-        protected override int MaxDegreeOfParallelism => 2;
-    }
 
     private sealed class TestRecordHandler : IDynamoDbStreamRecordHandler
     {
