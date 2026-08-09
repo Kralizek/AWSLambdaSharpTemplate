@@ -6,6 +6,6 @@ Amazon S3 specialization for native event notifications and S3 Batch Operations.
 public sealed class Function : S3Function<ObjectCreatedHandler>;
 ```
 
-For usage, processing semantics, and examples, see [S3](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/master/docs/S3.md).
+For usage, processing semantics, and examples, see [S3](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/S3.md).
 
-The complete library documentation is available in the [`docs/` directory](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/master/docs/README.md).
+The complete library documentation is available in the [`docs/` directory](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/README.md).
