@@ -116,6 +116,29 @@ public class S3FunctionTests
             async () => await new BatchFunction().FunctionHandlerAsync(request, TestLambdaContexts.Create()));
     }
 
+    [Test]
+    public void Batch_function_rejects_task_without_identifier()
+    {
+        var request = new S3BatchEvent
+        {
+            InvocationSchemaVersion = "2.0",
+            InvocationId = "invocation-1",
+            Tasks = new List<S3BatchTask>
+            {
+                new()
+                {
+                    S3Bucket = "uploads",
+                    S3Key = "file.txt"
+                }
+            }
+        };
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await new BatchFunction().FunctionHandlerAsync(request, TestLambdaContexts.Create()));
+
+        Assert.That(exception!.Message, Is.EqualTo("The S3 Batch task does not contain a task identifier."));
+    }
+
     private sealed class NotificationFunction : S3Function<NotificationHandler>;
     private sealed class BatchFunction : S3BatchFunction<BatchHandler>;
 
