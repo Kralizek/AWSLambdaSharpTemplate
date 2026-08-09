@@ -101,9 +101,15 @@ public class DynamoDbStreamFunctionTests
         {
             Assert.That(result.Value, Is.TypeOf<DynamoDbStreamRecordResult.FailureCase>());
             Assert.That(((DynamoDbStreamRecordResult.FailureCase)result.Value).Reason, Is.EqualTo("not ready"));
-            Assert.That(result, Is.TypeOf<DynamoDbStreamRecordResult.FailureResult>());
-            Assert.That(((DynamoDbStreamRecordResult.FailureResult)result).Reason, Is.EqualTo("not ready"));
         });
+    }
+
+    [Test]
+    public void Success_result_contains_success_union_case_value()
+    {
+        Assert.That(
+            DynamoDbStreamRecordResult.Success.Value,
+            Is.TypeOf<DynamoDbStreamRecordResult.SuccessCase>());
     }
 
     private static DynamoDBEvent.DynamodbStreamRecord CreateRecord(
