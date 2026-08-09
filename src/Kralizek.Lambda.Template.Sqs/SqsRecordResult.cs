@@ -3,9 +3,14 @@ namespace Kralizek.Lambda;
 /// <summary>
 /// Represents the outcome of processing an SQS record.
 /// </summary>
-public abstract class SqsRecordResult : LambdaRecordResult
+public sealed class SqsRecordResult : LambdaRecordResult
 {
-    private SqsRecordResult(object value)
+    private SqsRecordResult(SuccessCase value)
+    {
+        Value = value;
+    }
+
+    private SqsRecordResult(FailureCase value)
     {
         Value = value;
     }
@@ -13,13 +18,13 @@ public abstract class SqsRecordResult : LambdaRecordResult
     /// <summary>
     /// Gets the singleton result used when a record has been processed successfully.
     /// </summary>
-    public static SqsRecordResult Success { get; } = new SuccessResult();
+    public static SqsRecordResult Success { get; } = new(SuccessCase.Instance);
 
     /// <summary>
     /// Creates a result used when a record must be reported as failed.
     /// </summary>
     /// <param name="reason">An optional application-provided reason for the failure.</param>
-    public static SqsRecordResult Failed(string? reason = null) => new FailureResult(reason);
+    public static SqsRecordResult Failed(string? reason = null) => new(new FailureCase(reason));
 
     /// <inheritdoc />
     public override object Value { get; }
@@ -50,29 +55,5 @@ public abstract class SqsRecordResult : LambdaRecordResult
         /// Gets the optional application-provided failure reason.
         /// </summary>
         public string? Reason { get; }
-    }
-
-    /// <summary>
-    /// Represents a failed SQS record result.
-    /// </summary>
-    public sealed class FailureResult : SqsRecordResult
-    {
-        internal FailureResult(string? reason)
-            : base(new FailureCase(reason))
-        {
-        }
-
-        /// <summary>
-        /// Gets the optional application-provided failure reason.
-        /// </summary>
-        public string? Reason => ((FailureCase)Value).Reason;
-    }
-
-    private sealed class SuccessResult : SqsRecordResult
-    {
-        private SuccessResult()
-            : base(SuccessCase.Instance)
-        {
-        }
     }
 }
