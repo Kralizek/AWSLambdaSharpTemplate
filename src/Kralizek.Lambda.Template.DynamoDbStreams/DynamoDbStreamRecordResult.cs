@@ -27,7 +27,7 @@ public sealed class DynamoDbStreamRecordResult : LambdaRecordResult
     public static DynamoDbStreamRecordResult Failed(string? reason = null) => new(new FailureCase(reason));
 
     /// <inheritdoc />
-    public override object Value { get; }
+    public override object? Value { get; }
 
     /// <summary>
     /// Represents the successful case value of a DynamoDB Streams record result.
