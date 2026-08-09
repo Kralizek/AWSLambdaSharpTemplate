@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kralizek.Lambda.Template.DynamoDb" Version="__KRALIZEK_LAMBDA_VERSION__" />
+    <PackageReference Include="Kralizek.Lambda.Template.DynamoDbStreams" Version="__KRALIZEK_LAMBDA_VERSION__" />
   </ItemGroup>
 
 </Project>
