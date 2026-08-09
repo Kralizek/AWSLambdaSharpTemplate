@@ -22,11 +22,11 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
     : RecordFunction<
         DynamoDBEvent,
         DynamoDBEvent.DynamodbStreamRecord,
-        bool,
+        DynamoDbStreamRecordResult,
         StreamsEventResponse,
         RecordContext,
         TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<DynamoDBEvent.DynamodbStreamRecord, bool, RecordContext>
+    where TRecordHandler : class, IRecordHandler<DynamoDBEvent.DynamodbStreamRecord, DynamoDbStreamRecordResult, RecordContext>
 {
     protected override RecordContext CreateRecordContext(DynamoDBEvent envelope, ILambdaContext lambdaContext) =>
         FunctionContextFactory.CreateRecordContext(lambdaContext);
@@ -38,7 +38,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
     {
         var failures = new List<StreamsEventResponse.BatchItemFailure>();
 
-        foreach (var result in results.Where(result => !result.Result))
+        foreach (var result in results.Where(result => ReferenceEquals(result.Result, DynamoDbStreamRecordResult.Failed)))
         {
             var sequenceNumber = result.Record.Dynamodb?.SequenceNumber;
 
@@ -60,7 +60,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
         };
     }
 
-    protected override ValueTask<bool> HandleRecordExceptionAsync(
+    protected override ValueTask<DynamoDbStreamRecordResult> HandleRecordExceptionAsync(
         DynamoDBEvent.DynamodbStreamRecord record,
         Exception exception,
         RecordContext context,
@@ -72,7 +72,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
             record.EventID,
             record.Dynamodb?.SequenceNumber);
 
-        return ValueTask.FromResult(false);
+        return ValueTask.FromResult(DynamoDbStreamRecordResult.Failed);
     }
 }
 
