@@ -171,10 +171,13 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 
         try
         {
-            return await ExecuteHandlerAsync<THandler, TRecordResult>(
+            var result = await ExecuteHandlerAsync<THandler, TRecordResult>(
                 recordScope.ServiceProvider,
                 cancellationToken,
                 (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
+
+            return result ?? throw new InvalidOperationException(
+                $"Record handler {typeof(THandler).Name} returned a null result.");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -182,11 +185,14 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         }
         catch (Exception exception)
         {
-            return await HandleRecordExceptionAsync(
+            var result = await HandleRecordExceptionAsync(
                 record,
                 exception,
                 context,
                 cancellationToken).ConfigureAwait(false);
+
+            return result ?? throw new InvalidOperationException(
+                $"Record exception handler for {typeof(THandler).Name} returned a null result.");
         }
     }
 
