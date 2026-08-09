@@ -16,7 +16,7 @@ namespace Kralizek.Lambda;
 /// </remarks>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class SnsRecordHandler<TNotification, THandler>
-    : IRecordHandler<SNSEvent.SNSRecord, bool, RecordContext>
+    : IRecordHandler<SNSEvent.SNSRecord, SnsRecordResult, RecordContext>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
     private readonly IStringPayloadDecoder<TNotification> _decoder;
@@ -28,7 +28,7 @@ public sealed class SnsRecordHandler<TNotification, THandler>
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
-    public async ValueTask<bool> HandleAsync(
+    public async ValueTask<SnsRecordResult> HandleAsync(
         SNSEvent.SNSRecord record,
         RecordContext context,
         CancellationToken cancellationToken)
@@ -39,6 +39,6 @@ public sealed class SnsRecordHandler<TNotification, THandler>
 
         await _handler.HandleAsync(notification, notificationContext, cancellationToken).ConfigureAwait(false);
 
-        return true;
+        return SnsRecordResult.Completed;
     }
 }
