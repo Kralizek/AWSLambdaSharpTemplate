@@ -162,6 +162,9 @@ jobs:
           - name: EventBridge
             short-name: lambda-template-eventbridge
             project-name: SmokeEventBridge
+          - name: DynamoDB Streams
+            short-name: lambda-template-dynamodb-stream
+            project-name: SmokeDynamoDbStream
           - name: SNS
             short-name: lambda-template-sns
             project-name: SmokeSns

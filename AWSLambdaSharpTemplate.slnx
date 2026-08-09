@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/samples/">
     <Project Path="samples/CognitoPreSignUpFunction/CognitoPreSignUpFunction.csproj" />
+    <Project Path="samples/DynamoDbStreamFunction/DynamoDbStreamFunction.csproj" />
     <Project Path="samples/EventBridgeFunction/EventBridgeFunction.csproj" />
     <Project Path="samples/EventFunction/EventFunction.csproj" />
     <Project Path="samples/RawSnsFunction/RawSnsFunction.csproj" />
@@ -12,6 +13,7 @@
   <Folder Name="/src/">
     <Project Path="src/Kralizek.Lambda.Template.Abstractions/Kralizek.Lambda.Template.Abstractions.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Cognito/Kralizek.Lambda.Template.Cognito.csproj" />
+    <Project Path="src/Kralizek.Lambda.Template.DynamoDbStreams/Kralizek.Lambda.Template.DynamoDbStreams.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.EventBridge/Kralizek.Lambda.Template.EventBridge.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sns/Kralizek.Lambda.Template.Sns.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sqs/Kralizek.Lambda.Template.Sqs.csproj" />
