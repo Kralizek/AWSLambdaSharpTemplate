@@ -140,7 +140,7 @@ A DynamoDB Streams Function derives from `DynamoDbStreamFunction<THandler>` and 
 public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
 ```
 
-The handler receives the original AWS stream record together with `DynamoDbStreamRecordContext`, which exposes keys, old/new images, sequence number and event metadata. DynamoDB images remain in AWS's `DynamoDBEvent.AttributeValue` model rather than being treated as JSON. Record failures are translated into `StreamsEventResponse` partial-batch failures; the event-source mapping must enable `ReportBatchItemFailures` for Lambda to honor them. Sequential processing is the default, with `ParallelDynamoDbStreamFunction<THandler>` available as an explicit bounded-parallel variant.
+The handler receives a `DynamoDbStreamItem` containing keys, old/new images, sequence number and stream metadata together with `DynamoDbStreamRecordContext` for the outer event metadata. The original AWS stream record remains available through `context.GetDynamoDbStreamRecord()`. DynamoDB images remain in AWS's `DynamoDBEvent.AttributeValue` model rather than being treated as JSON. Record failures are translated into `StreamsEventResponse` partial-batch failures; the event-source mapping must enable `ReportBatchItemFailures` for Lambda to honor them. Records are processed sequentially within each invocation; applications that need more throughput should configure `ParallelizationFactor` on the DynamoDB Streams event-source mapping.
 
 An SNS Function derives from `SnsFunction<TNotification, THandler>`. The framework decodes each SNS `Message` to `TNotification`, creates an `SnsNotificationContext`, and invokes the consumer's `ISnsNotificationHandler<TNotification>`:
 
@@ -173,6 +173,6 @@ Cognito trigger bases specialize the request-function model with the correspondi
 
 ## Package compatibility
 
-`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.DynamoDb`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.DynamoDbStreams`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
 For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.
