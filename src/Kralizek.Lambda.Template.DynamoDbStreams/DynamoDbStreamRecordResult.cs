@@ -70,7 +70,7 @@ public abstract class DynamoDbStreamRecordResult : LambdaRecordResult
 
     private sealed class SuccessResult : DynamoDbStreamRecordResult
     {
-        public SuccessResult()
+        private SuccessResult()
             : base(SuccessCase.Instance)
         {
         }
