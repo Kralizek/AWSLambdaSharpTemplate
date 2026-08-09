@@ -165,6 +165,12 @@ jobs:
           - name: DynamoDB Streams
             short-name: lambda-template-dynamodb-stream
             project-name: SmokeDynamoDbStream
+          - name: S3
+            short-name: lambda-template-s3
+            project-name: SmokeS3
+          - name: S3 Batch
+            short-name: lambda-template-s3-batch
+            project-name: SmokeS3Batch
           - name: SNS
             short-name: lambda-template-sns
             project-name: SmokeSns
@@ -281,6 +287,7 @@ jobs:
               </packageSource>
               <packageSource key="nuget.org">
                 <package pattern="Amazon.*" />
+                <package pattern="AWSSDK.*" />
                 <package pattern="Microsoft.*" />
                 <package pattern="System.*" />
                 <package pattern="runtime.*" />

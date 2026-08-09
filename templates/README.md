@@ -24,6 +24,8 @@ dotnet new list lambda-template
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
 | EventBridge Function | `lambda-template-eventbridge` | The Lambda is targeted by EventBridge and receives a strongly typed event detail inside the AWS event envelope. |
 | DynamoDB Streams Function | `lambda-template-dynamodb-stream` | The Lambda consumes DynamoDB Streams records with source-specific context and partial-batch failure support. |
+| S3 Function | `lambda-template-s3` | The Lambda reacts to native S3 event notifications using a synthetic object-event model. |
+| S3 Batch Function | `lambda-template-s3-batch` | The Lambda processes S3 Batch Operations tasks using invocation schema 2.0. |
 | SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
 | SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
 | Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` | The Lambda validates or modifies a user-pool sign-up request before Cognito creates the user. |
@@ -63,6 +65,18 @@ Create a DynamoDB Streams function:
 
 ```bash
 dotnet new lambda-template-dynamodb-stream --name MyDynamoDbStreamFunction
+```
+
+Create an S3 notification function:
+
+```bash
+dotnet new lambda-template-s3 --name MyS3Function
+```
+
+Create an S3 Batch Operations function:
+
+```bash
+dotnet new lambda-template-s3-batch --name MyS3BatchFunction
 ```
 
 Create an SNS function:
@@ -142,6 +156,22 @@ public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
 
 The handler receives a `DynamoDbStreamItem` containing keys, old/new images, sequence number and stream metadata together with `DynamoDbStreamRecordContext` for the outer event metadata. The original AWS stream record remains available through `context.GetDynamoDbStreamRecord()`. DynamoDB images remain in AWS's `DynamoDBEvent.AttributeValue` model rather than being treated as JSON. Record failures are translated into `StreamsEventResponse` partial-batch failures; the event-source mapping must enable `ReportBatchItemFailures` for Lambda to honor them. Records are processed sequentially within each invocation; applications that need more throughput should configure `ParallelizationFactor` on the DynamoDB Streams event-source mapping.
 
+An S3 Function derives from `S3Function<THandler>` and invokes an `IS3ObjectEventHandler` for each native S3 notification record:
+
+```csharp
+public sealed class Function : S3Function<ObjectUploadedHandler>;
+```
+
+The handler receives an `S3ObjectEvent` containing the decoded `S3ObjectReference`, the typed-but-forward-compatible `S3EventName`, event time, and sequencer. The original AWS notification record remains available through `context.GetS3EventRecord()`. Native S3 notification records are processed sequentially.
+
+An S3 Batch Function derives from `S3BatchFunction<THandler>` and invokes an `IS3BatchItemHandler` for each Batch Operations task:
+
+```csharp
+public sealed class Function : S3BatchFunction<BatchItemHandler>;
+```
+
+The Batch integration supports invocation schema 2.0. The handler receives an `S3BatchItem` with an extensible `S3BatchTaskKey`; the initial key type is `S3BatchObjectKey`, which wraps the shared `S3ObjectReference`. Return `S3BatchResult.Succeeded()`, `TemporaryFailure()`, or `PermanentFailure()` to control the task result. Batch tasks are processed sequentially within each Lambda invocation.
+
 An SNS Function derives from `SnsFunction<TNotification, THandler>`. The framework decodes each SNS `Message` to `TNotification`, creates an `SnsNotificationContext`, and invokes the consumer's `ISnsNotificationHandler<TNotification>`:
 
 ```csharp
@@ -173,6 +203,6 @@ Cognito trigger bases specialize the request-function model with the correspondi
 
 ## Package compatibility
 
-`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.DynamoDbStreams`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.DynamoDbStreams`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.S3`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
 For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.
