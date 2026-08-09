@@ -70,7 +70,7 @@ public abstract class SqsRecordResult : LambdaRecordResult
 
     private sealed class SuccessResult : SqsRecordResult
     {
-        public SuccessResult()
+        private SuccessResult()
             : base(SuccessCase.Instance)
         {
         }
