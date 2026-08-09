@@ -6,6 +6,6 @@ Amazon DynamoDB Streams specialization with synthetic item changes, source-speci
 public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
 ```
 
-For usage, processing semantics, and examples, see [DynamoDB Streams](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/master/docs/DynamoDB-Streams.md).
+For usage, processing semantics, and examples, see [DynamoDB Streams](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/DynamoDB-Streams.md).
 
-The complete library documentation is available in the [`docs/` directory](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/master/docs/README.md).
+The complete library documentation is available in the [`docs/` directory](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/README.md).
