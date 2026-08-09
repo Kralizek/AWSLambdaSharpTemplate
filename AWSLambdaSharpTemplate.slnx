@@ -15,6 +15,7 @@
     <Project Path="src/Kralizek.Lambda.Template.Cognito/Kralizek.Lambda.Template.Cognito.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.DynamoDbStreams/Kralizek.Lambda.Template.DynamoDbStreams.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.EventBridge/Kralizek.Lambda.Template.EventBridge.csproj" />
+    <Project Path="src/Kralizek.Lambda.Template.S3/Kralizek.Lambda.Template.S3.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sns/Kralizek.Lambda.Template.Sns.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sqs/Kralizek.Lambda.Template.Sqs.csproj" />
     <Project Path="src/Kralizek.Lambda.Template/Kralizek.Lambda.Template.csproj" />
