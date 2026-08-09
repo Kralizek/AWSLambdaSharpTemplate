@@ -68,7 +68,7 @@ public class SnsFunctionTests
             Assert.That(TestHandler.LastContext?.GetSnsRecord(), Is.SameAs(second));
             Assert.That(TestHandler.LastContext?.AwsRequestId, Is.EqualTo(lambdaContext.AwsRequestId));
             Assert.That(TestHandler.LastContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
-            Assert.That(SnsRecordResult.Completed.Value, Is.SameAs(SnsRecordResult.Completed));
+            Assert.That(SnsRecordResult.Completed.Value, Is.TypeOf<SnsRecordResult.CompletionCase>());
         });
     }
 
