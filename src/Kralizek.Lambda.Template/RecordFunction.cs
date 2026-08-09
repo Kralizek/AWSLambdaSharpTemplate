@@ -23,6 +23,7 @@ namespace Kralizek.Lambda;
 #pragma warning disable S2436 // The six generic roles are intentional and mirror the record-processing model from ADR #30.
 public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TResponse, TContext, THandler> : LambdaFunction
 #pragma warning restore S2436
+    where TRecordResult : LambdaRecordResult
     where TContext : RecordContext
     where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
 {
