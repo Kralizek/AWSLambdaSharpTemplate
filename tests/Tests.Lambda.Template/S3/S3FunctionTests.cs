@@ -52,6 +52,7 @@ public class S3FunctionTests
             Assert.That(item.EventName.IsObjectCreated, Is.True);
             Assert.That(item.Sequencer, Is.EqualTo("00ABC"));
             Assert.That(NotificationHandler.Context?.GetS3EventRecord(), Is.SameAs(record));
+            Assert.That(S3RecordResult.Completed.Value, Is.SameAs(S3RecordResult.Completed));
         });
     }
 
@@ -82,6 +83,7 @@ public class S3FunctionTests
         var response = await new BatchFunction().FunctionHandlerAsync(request, TestLambdaContexts.Create());
         var item = BatchHandler.Items.Single();
         var objectKey = item.Key as S3BatchObjectKey;
+        var batchResult = S3BatchResult.Succeeded();
 
         Assert.Multiple(() =>
         {
@@ -99,6 +101,7 @@ public class S3FunctionTests
             Assert.That(BatchHandler.Context?.UserArguments["mode"], Is.EqualTo("validate"));
             Assert.That(BatchHandler.Context?.GetS3BatchRequest(), Is.SameAs(request));
             Assert.That(BatchHandler.Context?.GetS3BatchTask(), Is.SameAs(task));
+            Assert.That(batchResult.Value, Is.SameAs(batchResult));
         });
     }
 
