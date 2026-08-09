@@ -102,6 +102,11 @@ public abstract class S3BatchFunctionBase<TRecordHandler>
 
         foreach (var task in envelope.Tasks)
         {
+            if (string.IsNullOrWhiteSpace(task.TaskId))
+            {
+                throw new InvalidOperationException("The S3 Batch task does not contain a task identifier.");
+            }
+
             task.Request = envelope;
         }
 
