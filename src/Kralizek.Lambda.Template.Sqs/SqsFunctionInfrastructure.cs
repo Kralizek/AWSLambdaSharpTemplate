@@ -38,7 +38,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
     protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = results
-            .Where(result => result.Result is SqsRecordResult.FailureResult)
+            .Where(result => result.Result.Value is SqsRecordResult.FailureCase)
             .Select(result => new SQSBatchResponse.BatchItemFailure
             {
                 ItemIdentifier = result.Record.MessageId
