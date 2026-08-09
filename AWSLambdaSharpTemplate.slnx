@@ -13,7 +13,7 @@
   <Folder Name="/src/">
     <Project Path="src/Kralizek.Lambda.Template.Abstractions/Kralizek.Lambda.Template.Abstractions.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Cognito/Kralizek.Lambda.Template.Cognito.csproj" />
-    <Project Path="src/Kralizek.Lambda.Template.DynamoDb/Kralizek.Lambda.Template.DynamoDb.csproj" />
+    <Project Path="src/Kralizek.Lambda.Template.DynamoDbStreams/Kralizek.Lambda.Template.DynamoDbStreams.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.EventBridge/Kralizek.Lambda.Template.EventBridge.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sns/Kralizek.Lambda.Template.Sns.csproj" />
     <Project Path="src/Kralizek.Lambda.Template.Sqs/Kralizek.Lambda.Template.Sqs.csproj" />
