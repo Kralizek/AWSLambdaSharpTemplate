@@ -86,7 +86,7 @@ public class SqsFunctionTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Value, Is.TypeOf<SqsRecordResult.FailureCase>());
-            Assert.That(((SqsRecordResult.FailureCase)result.Value).Reason, Is.EqualTo("not ready"));
+            Assert.That(((SqsRecordResult.FailureCase)result.Value!).Reason, Is.EqualTo("not ready"));
         });
     }
 
