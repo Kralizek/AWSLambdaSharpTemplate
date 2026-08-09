@@ -7,10 +7,12 @@ namespace LambdaFunctionProject;
 
 public sealed class S3BatchItemHandler : IS3BatchItemHandler
 {
+#pragma warning disable S2325 // Interface implementation must remain an instance method.
     public ValueTask<S3BatchResult> HandleAsync(
         S3BatchItem item,
         S3BatchContext context,
         CancellationToken cancellationToken)
+#pragma warning restore S2325
     {
         cancellationToken.ThrowIfCancellationRequested();
 
