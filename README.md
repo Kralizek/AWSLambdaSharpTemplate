@@ -15,7 +15,7 @@ Source-specific packages build on those roots. EventBridge specializes one-way e
 - `Kralizek.Lambda.Template.Abstractions` contains the source-neutral handler, context, and payload-decoder contracts.
 - `Kralizek.Lambda.Template` contains the runtime implementation and generic function roots.
 - `Kralizek.Lambda.Template.Cognito` contains the Cognito trigger specializations.
-- `Kralizek.Lambda.Template.DynamoDb` contains the DynamoDB Streams specialization.
+- `Kralizek.Lambda.Template.DynamoDbStreams` contains the DynamoDB Streams specialization.
 - `Kralizek.Lambda.Template.EventBridge` contains the EventBridge specialization.
 - `Kralizek.Lambda.Template.Sns` contains the SNS specialization.
 - `Kralizek.Lambda.Template.Sqs` contains the SQS specialization.
@@ -27,7 +27,7 @@ Source-specific packages build on those roots. EventBridge specializes one-way e
 public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
 ```
 
-The DynamoDB package builds on `RecordFunction`, invokes one handler per stream record, creates one dependency-injection scope per record, and returns `StreamsEventResponse` partial-batch failures using DynamoDB sequence numbers. Handlers receive a `DynamoDbStreamItem` containing keys, old/new images and stream metadata, while the outer AWS record is preserved in `DynamoDbStreamRecordContext` and available through `GetDynamoDbStreamRecord()`. DynamoDB values remain in AWS's `DynamoDBEvent.AttributeValue` representation rather than being treated as generic JSON. Sequential processing is the default; `ParallelDynamoDbStreamFunction<THandler>` is an explicit bounded-parallel alternative.
+The DynamoDB Streams package builds on `RecordFunction`, invokes one handler per stream record, creates one dependency-injection scope per record, and returns `StreamsEventResponse` partial-batch failures using DynamoDB sequence numbers. Handlers receive a `DynamoDbStreamItem` containing keys, old/new images and stream metadata, while the outer AWS record is preserved in `DynamoDbStreamRecordContext` and available through `GetDynamoDbStreamRecord()`. DynamoDB values remain in AWS's `DynamoDBEvent.AttributeValue` representation rather than being treated as generic JSON. Sequential processing is the default; `ParallelDynamoDbStreamFunction<THandler>` is an explicit bounded-parallel alternative.
 
 ## EventBridge function
 
