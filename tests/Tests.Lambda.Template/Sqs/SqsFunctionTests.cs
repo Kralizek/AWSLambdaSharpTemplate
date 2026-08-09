@@ -79,13 +79,14 @@ public class SqsFunctionTests
     }
 
     [Test]
-    public void Failure_result_preserves_reason_and_union_value()
+    public void Failure_result_preserves_reason_and_union_case_value()
     {
         var result = SqsRecordResult.Failed("not ready");
 
         Assert.Multiple(() =>
         {
-            Assert.That(result.Value, Is.SameAs(result));
+            Assert.That(result.Value, Is.TypeOf<SqsRecordResult.FailureCase>());
+            Assert.That(((SqsRecordResult.FailureCase)result.Value).Reason, Is.EqualTo("not ready"));
             Assert.That(result, Is.TypeOf<SqsRecordResult.FailureResult>());
             Assert.That(((SqsRecordResult.FailureResult)result).Reason, Is.EqualTo("not ready"));
         });
