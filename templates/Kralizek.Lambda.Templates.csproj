@@ -59,7 +59,7 @@
     <Copy SourceFiles="content/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoCustomSmsSenderFunction/LambdaFunctionProject.csproj" />
     <Copy SourceFiles="content/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" DestinationFiles="$(TemplateStagingDirectory)/CognitoPreTokenGenerationFunction/LambdaFunctionProject.csproj" />
 
-    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/DynamoDbStreamFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.DynamoDb']/@Version" Value="$(PackageVersion)" />
+    <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/DynamoDbStreamFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.DynamoDbStreams']/@Version" Value="$(PackageVersion)" />
     <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/EventBridgeFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template.EventBridge']/@Version" Value="$(PackageVersion)" />
     <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version" Value="$(PackageVersion)" />
     <XmlPoke XmlInputPath="$(TemplateStagingDirectory)/RequestFunction/LambdaFunctionProject.csproj" Query="/Project/ItemGroup/PackageReference[@Include='Kralizek.Lambda.Template']/@Version" Value="$(PackageVersion)" />
