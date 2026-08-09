@@ -165,6 +165,9 @@ jobs:
           - name: DynamoDB Streams
             short-name: lambda-template-dynamodb-stream
             project-name: SmokeDynamoDbStream
+          - name: Kinesis Streams
+            short-name: lambda-template-kinesis-stream
+            project-name: SmokeKinesisStream
           - name: S3
             short-name: lambda-template-s3
             project-name: SmokeS3
