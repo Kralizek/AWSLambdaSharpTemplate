@@ -83,6 +83,24 @@ public sealed record S3ObjectEvent(
 }
 
 /// <summary>
+/// Represents completion of processing an S3 event notification record.
+/// </summary>
+public sealed class S3RecordResult : LambdaRecordResult
+{
+    private S3RecordResult()
+    {
+    }
+
+    /// <summary>
+    /// Gets the singleton result used when an S3 event notification record has been processed successfully.
+    /// </summary>
+    public static S3RecordResult Completed { get; } = new();
+
+    /// <inheritdoc />
+    public override object Value => this;
+}
+
+/// <summary>
 /// Base type for keys carried by S3 Batch Operations tasks.
 /// </summary>
 public abstract record S3BatchTaskKey;
@@ -117,10 +135,28 @@ public enum S3BatchResultCode
     PermanentFailure
 }
 
-public sealed record S3BatchResult(S3BatchResultCode Code, string? Message = null)
+/// <summary>
+/// Represents the outcome of processing an S3 Batch Operations task.
+/// </summary>
+public sealed class S3BatchResult : LambdaRecordResult
 {
+    private S3BatchResult(S3BatchResultCode code, string? message)
+    {
+        Code = code;
+        Message = message;
+    }
+
+    public S3BatchResultCode Code { get; }
+
+    public string? Message { get; }
+
+    /// <inheritdoc />
+    public override object Value => this;
+
     public static S3BatchResult Succeeded(string? message = null) => new(S3BatchResultCode.Succeeded, message);
+
     public static S3BatchResult TemporaryFailure(string? message = null) => new(S3BatchResultCode.TemporaryFailure, message);
+
     public static S3BatchResult PermanentFailure(string? message = null) => new(S3BatchResultCode.PermanentFailure, message);
 }
 
