@@ -76,32 +76,6 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
     }
 }
 
-/// <summary>
-/// Infrastructure base for DynamoDB Streams functions that process records with bounded parallelism.
-/// </summary>
-[EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class ParallelDynamoDbStreamFunctionBase<TRecordHandler>
-    : DynamoDbStreamFunctionBase<TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<DynamoDBEvent.DynamodbStreamRecord, bool, RecordContext>
-{
-    /// <summary>
-    /// Gets the maximum number of DynamoDB Streams records processed concurrently.
-    /// </summary>
-    protected virtual int MaxDegreeOfParallelism => Math.Max(2, Environment.ProcessorCount);
-
-    protected override Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
-        DynamoDBEvent envelope,
-        RecordContext context,
-        IServiceProvider invocationServices,
-        CancellationToken cancellationToken) =>
-        ProcessRecordsParallelAsync(
-            envelope,
-            context,
-            invocationServices,
-            MaxDegreeOfParallelism,
-            cancellationToken);
-}
-
 internal static class DynamoDbStreamServiceRegistration
 {
     public static void AddHandler<THandler>(IServiceCollection services)
