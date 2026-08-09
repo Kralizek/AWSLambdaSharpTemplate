@@ -23,11 +23,11 @@ public abstract class SqsFunctionBase<TRecordHandler>
     : RecordFunction<
         SQSEvent,
         SQSEvent.SQSMessage,
-        bool,
+        SqsRecordResult,
         SQSBatchResponse,
         RecordContext,
         TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, bool, RecordContext>
+    where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, SqsRecordResult, RecordContext>
 {
     protected override RecordContext CreateRecordContext(SQSEvent envelope, ILambdaContext lambdaContext) =>
         FunctionContextFactory.CreateRecordContext(lambdaContext);
@@ -38,7 +38,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
     protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = results
-            .Where(result => !result.Result)
+            .Where(result => ReferenceEquals(result.Result, SqsRecordResult.Failed))
             .Select(result => new SQSBatchResponse.BatchItemFailure
             {
                 ItemIdentifier = result.Record.MessageId
@@ -51,14 +51,14 @@ public abstract class SqsFunctionBase<TRecordHandler>
         };
     }
 
-    protected override ValueTask<bool> HandleRecordExceptionAsync(
+    protected override ValueTask<SqsRecordResult> HandleRecordExceptionAsync(
         SQSEvent.SQSMessage record,
         Exception exception,
         RecordContext context,
         CancellationToken cancellationToken)
     {
         Logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
-        return ValueTask.FromResult(false);
+        return ValueTask.FromResult(SqsRecordResult.Failed);
     }
 }
 
@@ -68,7 +68,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
 /// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public abstract class ParallelSqsFunctionBase<TRecordHandler> : SqsFunctionBase<TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, bool, RecordContext>
+    where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, SqsRecordResult, RecordContext>
 {
     /// <summary>
     /// Gets the maximum number of SQS records processed concurrently.
