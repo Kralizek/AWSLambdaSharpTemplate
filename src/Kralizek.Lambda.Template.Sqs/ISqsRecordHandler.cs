@@ -10,7 +10,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 public interface ISqsRecordHandler
 {
-    ValueTask HandleAsync(
+    ValueTask<SqsRecordResult> HandleAsync(
         SQSEvent.SQSMessage record,
         SqsMessageContext context,
         CancellationToken cancellationToken);

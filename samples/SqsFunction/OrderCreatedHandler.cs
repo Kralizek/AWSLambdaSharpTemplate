@@ -10,7 +10,7 @@ namespace SqsFunction;
 public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
     : ISqsMessageHandler<OrderCreated>
 {
-    public ValueTask HandleAsync(
+    public ValueTask<SqsRecordResult> HandleAsync(
         OrderCreated message,
         SqsMessageContext context,
         CancellationToken cancellationToken)
@@ -20,6 +20,6 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
             message.OrderId,
             context.MessageId);
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(SqsRecordResult.Success);
     }
 }

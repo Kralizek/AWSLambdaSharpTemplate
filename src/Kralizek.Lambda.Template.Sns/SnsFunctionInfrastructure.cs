@@ -22,11 +22,11 @@ public abstract class SnsFunctionBase<TRecordHandler>
     : RecordFunction<
         SNSEvent,
         SNSEvent.SNSRecord,
-        bool,
+        SnsRecordResult,
         object?,
         RecordContext,
         TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<SNSEvent.SNSRecord, bool, RecordContext>
+    where TRecordHandler : class, IRecordHandler<SNSEvent.SNSRecord, SnsRecordResult, RecordContext>
 {
     protected override RecordContext CreateRecordContext(SNSEvent envelope, ILambdaContext lambdaContext) =>
         FunctionContextFactory.CreateRecordContext(lambdaContext);
@@ -43,7 +43,7 @@ public abstract class SnsFunctionBase<TRecordHandler>
 /// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public abstract class ParallelSnsFunctionBase<TRecordHandler> : SnsFunctionBase<TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<SNSEvent.SNSRecord, bool, RecordContext>
+    where TRecordHandler : class, IRecordHandler<SNSEvent.SNSRecord, SnsRecordResult, RecordContext>
 {
     /// <summary>
     /// Gets the maximum number of SNS records processed concurrently.

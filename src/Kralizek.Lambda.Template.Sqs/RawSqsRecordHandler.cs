@@ -16,7 +16,7 @@ namespace Kralizek.Lambda;
 /// </remarks>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RawSqsRecordHandler<THandler>
-    : IRecordHandler<SQSEvent.SQSMessage, bool, RecordContext>
+    : IRecordHandler<SQSEvent.SQSMessage, SqsRecordResult, RecordContext>
     where THandler : class, ISqsRecordHandler
 {
     private readonly THandler _handler;
@@ -26,15 +26,12 @@ public sealed class RawSqsRecordHandler<THandler>
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
-    public async ValueTask<bool> HandleAsync(
+    public ValueTask<SqsRecordResult> HandleAsync(
         SQSEvent.SQSMessage record,
         RecordContext context,
         CancellationToken cancellationToken)
     {
         var messageContext = SqsMessageContext.Create(context, record);
-
-        await _handler.HandleAsync(record, messageContext, cancellationToken).ConfigureAwait(false);
-
-        return true;
+        return _handler.HandleAsync(record, messageContext, cancellationToken);
     }
 }

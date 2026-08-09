@@ -10,7 +10,7 @@ namespace LambdaFunctionProject;
 public sealed class DynamoDbRecordHandler(ILogger<DynamoDbRecordHandler> logger)
     : IDynamoDbStreamRecordHandler
 {
-    public ValueTask HandleAsync(
+    public ValueTask<DynamoDbStreamRecordResult> HandleAsync(
         DynamoDbStreamItem item,
         DynamoDbStreamRecordContext context,
         CancellationToken cancellationToken)
@@ -24,6 +24,6 @@ public sealed class DynamoDbRecordHandler(ILogger<DynamoDbRecordHandler> logger)
         // Keys, NewImage and OldImage expose the AWS DynamoDB AttributeValue model directly.
         // Add application-specific mapping here when a strongly typed domain model is useful.
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(DynamoDbStreamRecordResult.Success);
     }
 }

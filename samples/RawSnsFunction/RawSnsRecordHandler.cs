@@ -11,7 +11,7 @@ namespace RawSnsFunction;
 
 public sealed class RawSnsRecordHandler(ILogger<RawSnsRecordHandler> logger) : ISnsRecordHandler
 {
-    public ValueTask HandleAsync(
+    public ValueTask<SnsRecordResult> HandleAsync(
         SNSEvent.SNSRecord record,
         SnsNotificationContext context,
         CancellationToken cancellationToken)
@@ -21,6 +21,6 @@ public sealed class RawSnsRecordHandler(ILogger<RawSnsRecordHandler> logger) : I
             context.MessageId,
             context.TopicArn);
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(SnsRecordResult.Completed);
     }
 }

@@ -102,7 +102,7 @@ public class RawSnsFunctionTests
             LastContext = null;
         }
 
-        public ValueTask HandleAsync(
+        public ValueTask<SnsRecordResult> HandleAsync(
             SNSEvent.SNSRecord record,
             SnsNotificationContext context,
             CancellationToken cancellationToken)
@@ -117,7 +117,7 @@ public class RawSnsFunctionTests
             LastRecord = record;
             LastContext = context;
             ReceivedRecords.Enqueue(record);
-            return ValueTask.CompletedTask;
+            return ValueTask.FromResult(SnsRecordResult.Completed);
         }
     }
 }

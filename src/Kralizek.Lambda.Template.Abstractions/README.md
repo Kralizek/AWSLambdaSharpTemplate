@@ -14,6 +14,8 @@ The package defines the handler contracts used by the semantic function roots:
 
 The compact forms use the standard `EventContext` and `RequestContext`. Full forms allow source-specific integrations to expose richer context types.
 
+Record handlers use a source-specific result derived from `LambdaRecordResult`. Its `Value` property deliberately matches the runtime shape of the C# union contract so source-specific result models can adopt `IUnion` when the library targets a framework that exposes it.
+
 ## Function contexts
 
 `FunctionContext` exposes common invocation metadata through strongly typed, source-neutral properties:

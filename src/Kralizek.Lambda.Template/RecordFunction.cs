@@ -23,6 +23,7 @@ namespace Kralizek.Lambda;
 #pragma warning disable S2436 // The six generic roles are intentional and mirror the record-processing model from ADR #30.
 public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TResponse, TContext, THandler> : LambdaFunction
 #pragma warning restore S2436
+    where TRecordResult : LambdaRecordResult
     where TContext : RecordContext
     where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
 {
@@ -170,10 +171,13 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 
         try
         {
-            return await ExecuteHandlerAsync<THandler, TRecordResult>(
+            var result = await ExecuteHandlerAsync<THandler, TRecordResult>(
                 recordScope.ServiceProvider,
                 cancellationToken,
                 (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
+
+            return result ?? throw new InvalidOperationException(
+                $"Record handler {typeof(THandler).Name} returned a null result.");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -181,11 +185,14 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         }
         catch (Exception exception)
         {
-            return await HandleRecordExceptionAsync(
+            var result = await HandleRecordExceptionAsync(
                 record,
                 exception,
                 context,
                 cancellationToken).ConfigureAwait(false);
+
+            return result ?? throw new InvalidOperationException(
+                $"Record exception handler for {typeof(THandler).Name} returned a null result.");
         }
     }
 

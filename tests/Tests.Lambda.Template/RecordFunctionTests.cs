@@ -74,6 +74,17 @@ public class RecordFunctionTests
     }
 
     [Test]
+    public void FunctionHandlerAsync_rejects_null_handler_result()
+    {
+        var sut = new NullResultRecordFunction();
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.FunctionHandlerAsync(new[] { "bad-record" }, TestLambdaContexts.Create()));
+
+        Assert.That(exception!.Message, Does.Contain(nameof(NullReturningHandler)));
+    }
+
+    [Test]
     public async Task FunctionHandlerAsync_allows_specialization_to_translate_handler_exception()
     {
         var sut = new TranslatingFailureRecordFunction();
@@ -131,7 +142,7 @@ public class RecordFunctionTests
             sut.FunctionHandlerAsync(new[] { "record" }, TestLambdaContexts.Create()));
     }
 
-    public class SequentialRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, CollectingHandler>
+    public class SequentialRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, CollectingHandler>
     {
         public int? MaximumDegreeOfParallelism { get; init; }
 
@@ -152,7 +163,7 @@ public class RecordFunctionTests
                 : base.ProcessRecordsAsync(envelope, context, invocationServices, cancellationToken);
     }
 
-    public class IdentityRecordFunction : RecordFunction<string[], string, string, string[], TestRecordContext, EchoRecordHandler>
+    public class IdentityRecordFunction : RecordFunction<string[], string, TestRecordResult, string[], TestRecordContext, EchoRecordHandler>
     {
         protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
             new(lambdaContext, "test");
@@ -160,10 +171,10 @@ public class RecordFunctionTests
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
         protected override string[] CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
-            results.Select(result => $"{result.Record}:{result.Result}").ToArray();
+            results.Select(result => $"{result.Record}:{result.Result.Value}").ToArray();
     }
 
-    public class FailingRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, ThrowingHandler>
+    public class FailingRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, ThrowingHandler>
     {
         protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
             new(lambdaContext, "test");
@@ -173,7 +184,17 @@ public class RecordFunctionTests
         protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
     }
 
-    public class TranslatingFailureRecordFunction : RecordFunction<string[], string, bool, string[], TestRecordContext, ConditionalThrowingHandler>
+    public class NullResultRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, NullReturningHandler>
+    {
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
+
+        protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
+
+        protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
+    }
+
+    public class TranslatingFailureRecordFunction : RecordFunction<string[], string, TestRecordResult, string[], TestRecordContext, ConditionalThrowingHandler>
     {
         public Exception? TranslatedException { get; private set; }
 
@@ -183,20 +204,20 @@ public class RecordFunctionTests
         protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
 
         protected override string[] CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) =>
-            results.Select(result => $"{result.Record}:{result.Result}").ToArray();
+            results.Select(result => $"{result.Record}:{result.Result.Value}").ToArray();
 
-        protected override ValueTask<bool> HandleRecordExceptionAsync(
+        protected override ValueTask<TestRecordResult> HandleRecordExceptionAsync(
             string record,
             Exception exception,
             TestRecordContext context,
             CancellationToken cancellationToken)
         {
             TranslatedException = exception;
-            return ValueTask.FromResult(false);
+            return ValueTask.FromResult(new TestRecordResult(false));
         }
     }
 
-    public class CancellationRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, CollectingHandler>
+    public class CancellationRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, CollectingHandler>
     {
         public bool ExceptionWasTranslated { get; private set; }
 
@@ -207,18 +228,18 @@ public class RecordFunctionTests
 
         protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
 
-        protected override ValueTask<bool> HandleRecordExceptionAsync(
+        protected override ValueTask<TestRecordResult> HandleRecordExceptionAsync(
             string record,
             Exception exception,
             TestRecordContext context,
             CancellationToken cancellationToken)
         {
             ExceptionWasTranslated = true;
-            return ValueTask.FromResult(false);
+            return ValueTask.FromResult(new TestRecordResult(false));
         }
     }
 
-    public class ScopedRecordFunction : RecordFunction<string[], string, bool, int, TestRecordContext, ScopedTrackingHandler>
+    public class ScopedRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, ScopedTrackingHandler>
     {
         public int? MaximumDegreeOfParallelism { get; init; }
 
@@ -255,40 +276,56 @@ public class RecordFunctionTests
         public string Source { get; }
     }
 
-    public class CollectingHandler : IRecordHandler<string, bool, TestRecordContext>
+    public sealed class TestRecordResult : LambdaRecordResult
+    {
+        public TestRecordResult(object? value)
+        {
+            Value = value;
+        }
+
+        public override object? Value { get; }
+    }
+
+    public class CollectingHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
     {
         public static ConcurrentQueue<string> Processed { get; } = new();
         public static ConcurrentBag<TestRecordContext> Contexts { get; } = new();
 
-        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken)
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken)
         {
             Processed.Enqueue(record);
             Contexts.Add(context);
-            return ValueTask.FromResult(true);
+            return ValueTask.FromResult(new TestRecordResult(true));
         }
     }
 
-    public class EchoRecordHandler : IRecordHandler<string, string, TestRecordContext>
+    public class EchoRecordHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
     {
-        public ValueTask<string> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
-            ValueTask.FromResult(record.ToUpperInvariant());
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new TestRecordResult(record.ToUpperInvariant()));
     }
 
-    public class ThrowingHandler : IRecordHandler<string, bool, TestRecordContext>
+    public class ThrowingHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
     {
-        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
-            ValueTask.FromException<bool>(new InvalidOperationException("handler failed"));
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
+            ValueTask.FromException<TestRecordResult>(new InvalidOperationException("handler failed"));
     }
 
-    public class ConditionalThrowingHandler : IRecordHandler<string, bool, TestRecordContext>
+    public class NullReturningHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
     {
-        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
+            ValueTask.FromResult<TestRecordResult>(null!);
+    }
+
+    public class ConditionalThrowingHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
+    {
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
             record == "bad"
-                ? ValueTask.FromException<bool>(new InvalidOperationException("handler failed"))
-                : ValueTask.FromResult(true);
+                ? ValueTask.FromException<TestRecordResult>(new InvalidOperationException("handler failed"))
+                : ValueTask.FromResult(new TestRecordResult(true));
     }
 
-    public class ScopedTrackingHandler : IRecordHandler<string, bool, TestRecordContext>
+    public class ScopedTrackingHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
     {
         public static ConcurrentBag<ScopedService> CapturedServices { get; } = new();
 
@@ -299,10 +336,10 @@ public class RecordFunctionTests
             _service = service;
         }
 
-        public ValueTask<bool> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken)
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken)
         {
             CapturedServices.Add(_service);
-            return ValueTask.FromResult(true);
+            return ValueTask.FromResult(new TestRecordResult(true));
         }
     }
 

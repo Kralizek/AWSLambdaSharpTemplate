@@ -12,7 +12,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RawDynamoDbStreamRecordHandler<THandler>
-    : IRecordHandler<DynamoDBEvent.DynamodbStreamRecord, bool, RecordContext>
+    : IRecordHandler<DynamoDBEvent.DynamodbStreamRecord, DynamoDbStreamRecordResult, RecordContext>
     where THandler : class, IDynamoDbStreamRecordHandler
 {
     private readonly THandler _handler;
@@ -22,7 +22,7 @@ public sealed class RawDynamoDbStreamRecordHandler<THandler>
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
-    public async ValueTask<bool> HandleAsync(
+    public ValueTask<DynamoDbStreamRecordResult> HandleAsync(
         DynamoDBEvent.DynamodbStreamRecord record,
         RecordContext context,
         CancellationToken cancellationToken)
@@ -30,8 +30,6 @@ public sealed class RawDynamoDbStreamRecordHandler<THandler>
         var item = DynamoDbStreamItem.Create(record);
         var recordContext = DynamoDbStreamRecordContext.Create(context, record);
 
-        await _handler.HandleAsync(item, recordContext, cancellationToken).ConfigureAwait(false);
-
-        return true;
+        return _handler.HandleAsync(item, recordContext, cancellationToken);
     }
 }

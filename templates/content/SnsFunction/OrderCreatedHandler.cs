@@ -10,7 +10,7 @@ namespace LambdaFunctionProject;
 public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
     : ISnsNotificationHandler<OrderCreated>
 {
-    public ValueTask HandleAsync(
+    public ValueTask<SnsRecordResult> HandleAsync(
         OrderCreated notification,
         SnsNotificationContext context,
         CancellationToken cancellationToken)
@@ -20,6 +20,6 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
             notification.OrderId,
             context.MessageId);
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(SnsRecordResult.Completed);
     }
 }

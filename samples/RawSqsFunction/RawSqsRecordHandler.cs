@@ -12,7 +12,7 @@ namespace RawSqsFunction;
 public sealed class RawSqsRecordHandler(ILogger<RawSqsRecordHandler> logger)
     : ISqsRecordHandler
 {
-    public ValueTask HandleAsync(
+    public ValueTask<SqsRecordResult> HandleAsync(
         SQSEvent.SQSMessage record,
         SqsMessageContext context,
         CancellationToken cancellationToken)
@@ -24,6 +24,6 @@ public sealed class RawSqsRecordHandler(ILogger<RawSqsRecordHandler> logger)
 
         logger.LogDebug("Raw body: {Body}", record.Body);
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(SqsRecordResult.Success);
     }
 }

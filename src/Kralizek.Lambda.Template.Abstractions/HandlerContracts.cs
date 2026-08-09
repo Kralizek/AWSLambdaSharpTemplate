@@ -46,6 +46,7 @@ public interface IRequestHandler<in TInput, TOutput> : IRequestHandler<TInput, T
 #pragma warning disable S2436 // Record, result, and strongly typed context are distinct handler roles by design.
 public interface IRecordHandler<in TRecord, TRecordResult, in TContext>
 #pragma warning restore S2436
+    where TRecordResult : LambdaRecordResult
     where TContext : RecordContext
 {
     ValueTask<TRecordResult> HandleAsync(TRecord record, TContext context, CancellationToken cancellationToken);
