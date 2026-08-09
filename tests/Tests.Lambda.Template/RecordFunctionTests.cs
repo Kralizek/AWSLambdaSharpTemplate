@@ -74,6 +74,17 @@ public class RecordFunctionTests
     }
 
     [Test]
+    public void FunctionHandlerAsync_rejects_null_handler_result()
+    {
+        var sut = new NullResultRecordFunction();
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.FunctionHandlerAsync(new[] { "bad-record" }, TestLambdaContexts.Create()));
+
+        Assert.That(exception!.Message, Does.Contain(nameof(NullReturningHandler)));
+    }
+
+    [Test]
     public async Task FunctionHandlerAsync_allows_specialization_to_translate_handler_exception()
     {
         var sut = new TranslatingFailureRecordFunction();
@@ -164,6 +175,16 @@ public class RecordFunctionTests
     }
 
     public class FailingRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, ThrowingHandler>
+    {
+        protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
+            new(lambdaContext, "test");
+
+        protected override IEnumerable<string> GetRecords(string[] envelope) => envelope;
+
+        protected override int CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => results.Count;
+    }
+
+    public class NullResultRecordFunction : RecordFunction<string[], string, TestRecordResult, int, TestRecordContext, NullReturningHandler>
     {
         protected override TestRecordContext CreateRecordContext(string[] envelope, ILambdaContext lambdaContext) =>
             new(lambdaContext, "test");
@@ -288,6 +309,12 @@ public class RecordFunctionTests
     {
         public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
             ValueTask.FromException<TestRecordResult>(new InvalidOperationException("handler failed"));
+    }
+
+    public class NullReturningHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
+    {
+        public ValueTask<TestRecordResult> HandleAsync(string record, TestRecordContext context, CancellationToken cancellationToken) =>
+            ValueTask.FromResult<TestRecordResult>(null!);
     }
 
     public class ConditionalThrowingHandler : IRecordHandler<string, TestRecordResult, TestRecordContext>
