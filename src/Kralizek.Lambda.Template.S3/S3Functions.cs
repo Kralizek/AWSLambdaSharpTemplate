@@ -25,8 +25,8 @@ public interface IS3BatchItemHandler
 
 [EditorBrowsable(EditorBrowsableState.Never)]
 public abstract class S3FunctionBase<TRecordHandler>
-    : RecordFunction<S3Event, S3Event.S3EventNotificationRecord, bool, object?, RecordContext, TRecordHandler>
-    where TRecordHandler : class, IRecordHandler<S3Event.S3EventNotificationRecord, bool, RecordContext>
+    : RecordFunction<S3Event, S3Event.S3EventNotificationRecord, S3RecordResult, object?, RecordContext, TRecordHandler>
+    where TRecordHandler : class, IRecordHandler<S3Event.S3EventNotificationRecord, S3RecordResult, RecordContext>
 {
     protected override RecordContext CreateRecordContext(S3Event envelope, ILambdaContext lambdaContext) =>
         FunctionContextFactory.CreateRecordContext(lambdaContext);
@@ -39,7 +39,7 @@ public abstract class S3FunctionBase<TRecordHandler>
 
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RawS3ObjectEventHandler<THandler>
-    : IRecordHandler<S3Event.S3EventNotificationRecord, bool, RecordContext>
+    : IRecordHandler<S3Event.S3EventNotificationRecord, S3RecordResult, RecordContext>
     where THandler : class, IS3ObjectEventHandler
 {
     private readonly THandler _handler;
@@ -47,7 +47,7 @@ public sealed class RawS3ObjectEventHandler<THandler>
     public RawS3ObjectEventHandler(THandler handler) =>
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
 
-    public async ValueTask<bool> HandleAsync(
+    public async ValueTask<S3RecordResult> HandleAsync(
         S3Event.S3EventNotificationRecord record,
         RecordContext context,
         CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ public sealed class RawS3ObjectEventHandler<THandler>
             S3RecordContext.Create(context, record),
             cancellationToken).ConfigureAwait(false);
 
-        return true;
+        return S3RecordResult.Completed;
     }
 }
 
