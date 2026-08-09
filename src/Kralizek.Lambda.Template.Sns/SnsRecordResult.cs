@@ -16,7 +16,7 @@ public sealed class SnsRecordResult : LambdaRecordResult
     public static SnsRecordResult Completed { get; } = new(CompletionCase.Instance);
 
     /// <inheritdoc />
-    public override object Value { get; }
+    public override object? Value { get; }
 
     /// <summary>
     /// Represents the completion case value of an SNS record result.
