@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a reproducible problem with the runtime packages or project templates
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please include enough detail for the issue to be reproduced without access to your application.
+
+  - type: input
+    id: package
+    attributes:
+      label: Package or template
+      description: Which Kralizek.Lambda package or dotnet new template is affected?
+      placeholder: Kralizek.Lambda.Template.Sqs / lambda-template-sqs
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 6.0.0-alpha.13
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Runtime / handler dispatch
+        - Dependency injection / configuration / logging
+        - Serialization / payload decoding
+        - Record failure / batch response behavior
+        - Project template generation
+        - Packaging / restore
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest code sample or repository that reproduces the issue, including the Lambda event source when relevant.
+      render: csharp
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include .NET SDK/runtime, operating system, Lambda runtime, and relevant AWS event-source configuration.
+      placeholder: |
+        .NET SDK: 10.0.x
+        Lambda runtime: dotnet10
+        Event source: SQS with ReportBatchItemFailures enabled
+    validations:
+      required: true
