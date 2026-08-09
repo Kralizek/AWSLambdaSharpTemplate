@@ -5,7 +5,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 public sealed class SnsRecordResult : LambdaRecordResult
 {
-    private SnsRecordResult(object value)
+    private SnsRecordResult(CompletionCase value)
     {
         Value = value;
     }
