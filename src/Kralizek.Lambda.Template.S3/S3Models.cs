@@ -87,23 +87,38 @@ public sealed record S3ObjectEvent(
 /// </summary>
 public sealed class S3RecordResult : LambdaRecordResult
 {
-    private S3RecordResult()
+    private S3RecordResult(CompletionCase value)
     {
+        Value = value;
     }
 
     /// <summary>
     /// Gets the singleton result used when an S3 event notification record has been processed successfully.
     /// </summary>
-    public static S3RecordResult Completed { get; } = new();
+    public static S3RecordResult Completed { get; } = new(CompletionCase.Instance);
 
     /// <inheritdoc />
-    public override object Value => this;
+    public override object? Value { get; }
+
+    /// <summary>
+    /// Represents the completion case value of an S3 event notification record result.
+    /// </summary>
+    public sealed class CompletionCase
+    {
+        internal static CompletionCase Instance { get; } = new();
+
+        private CompletionCase()
+        {
+        }
+    }
 }
 
 /// <summary>
 /// Base type for keys carried by S3 Batch Operations tasks.
 /// </summary>
+#pragma warning disable S2094 // Deliberate marker base for future S3 Batch task key representations.
 public abstract record S3BatchTaskKey;
+#pragma warning restore S2094
 
 /// <summary>
 /// An S3 Batch Operations key referring to an S3 object.
@@ -140,24 +155,68 @@ public enum S3BatchResultCode
 /// </summary>
 public sealed class S3BatchResult : LambdaRecordResult
 {
-    private S3BatchResult(S3BatchResultCode code, string? message)
+    private S3BatchResult(SucceededCase value)
     {
-        Code = code;
-        Message = message;
+        Value = value;
     }
 
-    public S3BatchResultCode Code { get; }
+    private S3BatchResult(TemporaryFailureCase value)
+    {
+        Value = value;
+    }
 
-    public string? Message { get; }
+    private S3BatchResult(PermanentFailureCase value)
+    {
+        Value = value;
+    }
 
     /// <inheritdoc />
-    public override object Value => this;
+    public override object? Value { get; }
 
-    public static S3BatchResult Succeeded(string? message = null) => new(S3BatchResultCode.Succeeded, message);
+    public static S3BatchResult Succeeded(string? message = null) => new(new SucceededCase(message));
 
-    public static S3BatchResult TemporaryFailure(string? message = null) => new(S3BatchResultCode.TemporaryFailure, message);
+    public static S3BatchResult TemporaryFailure(string? message = null) => new(new TemporaryFailureCase(message));
 
-    public static S3BatchResult PermanentFailure(string? message = null) => new(S3BatchResultCode.PermanentFailure, message);
+    public static S3BatchResult PermanentFailure(string? message = null) => new(new PermanentFailureCase(message));
+
+    /// <summary>
+    /// Represents successful processing of an S3 Batch Operations task.
+    /// </summary>
+    public sealed class SucceededCase
+    {
+        internal SucceededCase(string? message)
+        {
+            Message = message;
+        }
+
+        public string? Message { get; }
+    }
+
+    /// <summary>
+    /// Represents a temporary failure while processing an S3 Batch Operations task.
+    /// </summary>
+    public sealed class TemporaryFailureCase
+    {
+        internal TemporaryFailureCase(string? message)
+        {
+            Message = message;
+        }
+
+        public string? Message { get; }
+    }
+
+    /// <summary>
+    /// Represents a permanent failure while processing an S3 Batch Operations task.
+    /// </summary>
+    public sealed class PermanentFailureCase
+    {
+        internal PermanentFailureCase(string? message)
+        {
+            Message = message;
+        }
+
+        public string? Message { get; }
+    }
 }
 
 [EditorBrowsable(EditorBrowsableState.Never)]
