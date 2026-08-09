@@ -116,12 +116,25 @@ public abstract class S3BatchFunctionBase<TRecordHandler>
         return new S3BatchResponse
         {
             InvocationId = request.InvocationId,
-            Results = results.Select(result => new S3BatchTaskResponse
-            {
-                TaskId = result.Record.TaskId,
-                ResultCode = result.Result.Code.ToString(),
-                ResultString = result.Result.Message
-            }).ToList()
+            Results = results.Select(CreateTaskResponse).ToList()
+        };
+    }
+
+    private static S3BatchTaskResponse CreateTaskResponse(RecordProcessingResult result)
+    {
+        var (code, message) = result.Result.Value switch
+        {
+            S3BatchResult.SucceededCase succeeded => (S3BatchResultCode.Succeeded, succeeded.Message),
+            S3BatchResult.TemporaryFailureCase temporaryFailure => (S3BatchResultCode.TemporaryFailure, temporaryFailure.Message),
+            S3BatchResult.PermanentFailureCase permanentFailure => (S3BatchResultCode.PermanentFailure, permanentFailure.Message),
+            _ => throw new InvalidOperationException("The S3 Batch result contains an unsupported result case.")
+        };
+
+        return new S3BatchTaskResponse
+        {
+            TaskId = result.Record.TaskId,
+            ResultCode = code.ToString(),
+            ResultString = message
         };
     }
 }
