@@ -38,7 +38,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
     {
         var failures = new List<StreamsEventResponse.BatchItemFailure>();
 
-        foreach (var result in results.Where(result => result.Result is DynamoDbStreamRecordResult.FailureResult))
+        foreach (var result in results.Where(result => result.Result.Value is DynamoDbStreamRecordResult.FailureCase))
         {
             var sequenceNumber = result.Record.Dynamodb?.SequenceNumber;
 
