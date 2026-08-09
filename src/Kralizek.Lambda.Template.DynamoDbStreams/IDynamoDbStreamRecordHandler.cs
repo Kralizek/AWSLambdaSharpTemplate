@@ -8,7 +8,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 public interface IDynamoDbStreamRecordHandler
 {
-    ValueTask HandleAsync(
+    ValueTask<DynamoDbStreamRecordResult> HandleAsync(
         DynamoDbStreamItem item,
         DynamoDbStreamRecordContext context,
         CancellationToken cancellationToken);

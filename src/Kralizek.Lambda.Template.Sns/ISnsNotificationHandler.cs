@@ -12,7 +12,7 @@ public interface ISnsNotificationHandler<in TNotification>
     /// <summary>
     /// Handles one decoded SNS notification.
     /// </summary>
-    ValueTask HandleAsync(
+    ValueTask<SnsRecordResult> HandleAsync(
         TNotification notification,
         SnsNotificationContext context,
         CancellationToken cancellationToken);

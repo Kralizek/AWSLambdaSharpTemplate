@@ -26,15 +26,12 @@ public sealed class RawSqsRecordHandler<THandler>
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
-    public async ValueTask<SqsRecordResult> HandleAsync(
+    public ValueTask<SqsRecordResult> HandleAsync(
         SQSEvent.SQSMessage record,
         RecordContext context,
         CancellationToken cancellationToken)
     {
         var messageContext = SqsMessageContext.Create(context, record);
-
-        await _handler.HandleAsync(record, messageContext, cancellationToken).ConfigureAwait(false);
-
-        return SqsRecordResult.Completed;
+        return _handler.HandleAsync(record, messageContext, cancellationToken);
     }
 }

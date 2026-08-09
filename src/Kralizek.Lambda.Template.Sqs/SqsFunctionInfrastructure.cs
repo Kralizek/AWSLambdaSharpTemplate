@@ -38,7 +38,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
     protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = results
-            .Where(result => ReferenceEquals(result.Result, SqsRecordResult.Failed))
+            .Where(result => result.Result is SqsRecordResult.FailureResult)
             .Select(result => new SQSBatchResponse.BatchItemFailure
             {
                 ItemIdentifier = result.Record.MessageId
@@ -58,7 +58,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
         CancellationToken cancellationToken)
     {
         Logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
-        return ValueTask.FromResult(SqsRecordResult.Failed);
+        return ValueTask.FromResult(SqsRecordResult.Failed(exception.Message));
     }
 }
 

@@ -79,6 +79,19 @@ public class SqsFunctionTests
     }
 
     [Test]
+    public void Failure_result_preserves_reason_and_union_value()
+    {
+        var result = SqsRecordResult.Failed("not ready");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Value, Is.SameAs(result));
+            Assert.That(result, Is.TypeOf<SqsRecordResult.FailureResult>());
+            Assert.That(((SqsRecordResult.FailureResult)result).Reason, Is.EqualTo("not ready"));
+        });
+    }
+
+    [Test]
     public async Task Function_treats_null_records_as_empty_batch()
     {
         var function = new TestFunction();
@@ -188,7 +201,7 @@ public class SqsFunctionTests
             LastContext = null;
         }
 
-        public ValueTask HandleAsync(
+        public ValueTask<SqsRecordResult> HandleAsync(
             TestMessage message,
             SqsMessageContext context,
             CancellationToken cancellationToken)
@@ -198,11 +211,11 @@ public class SqsFunctionTests
 
             if (message.Value == "fail")
             {
-                throw new InvalidOperationException("Expected test failure.");
+                return ValueTask.FromResult(SqsRecordResult.Failed("Expected test failure."));
             }
 
             ReceivedMessages.Enqueue(message);
-            return ValueTask.CompletedTask;
+            return ValueTask.FromResult(SqsRecordResult.Success);
         }
     }
 

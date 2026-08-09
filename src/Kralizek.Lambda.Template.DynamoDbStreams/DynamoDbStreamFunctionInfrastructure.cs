@@ -38,7 +38,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
     {
         var failures = new List<StreamsEventResponse.BatchItemFailure>();
 
-        foreach (var result in results.Where(result => ReferenceEquals(result.Result, DynamoDbStreamRecordResult.Failed)))
+        foreach (var result in results.Where(result => result.Result is DynamoDbStreamRecordResult.FailureResult))
         {
             var sequenceNumber = result.Record.Dynamodb?.SequenceNumber;
 
@@ -72,7 +72,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
             record.EventID,
             record.Dynamodb?.SequenceNumber);
 
-        return ValueTask.FromResult(DynamoDbStreamRecordResult.Failed);
+        return ValueTask.FromResult(DynamoDbStreamRecordResult.Failed(exception.Message));
     }
 }
 

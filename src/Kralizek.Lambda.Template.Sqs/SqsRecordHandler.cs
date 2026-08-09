@@ -36,8 +36,6 @@ public sealed class SqsRecordHandler<TMessage, THandler>
         var message = await _decoder.DecodeAsync(record.Body, cancellationToken).ConfigureAwait(false);
         var messageContext = SqsMessageContext.Create(context, record);
 
-        await _handler.HandleAsync(message, messageContext, cancellationToken).ConfigureAwait(false);
-
-        return SqsRecordResult.Completed;
+        return await _handler.HandleAsync(message, messageContext, cancellationToken).ConfigureAwait(false);
     }
 }

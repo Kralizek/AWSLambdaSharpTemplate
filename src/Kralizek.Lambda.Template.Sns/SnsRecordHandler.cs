@@ -37,8 +37,6 @@ public sealed class SnsRecordHandler<TNotification, THandler>
         var notification = await _decoder.DecodeAsync(snsMessage.Message, cancellationToken).ConfigureAwait(false);
         var notificationContext = SnsNotificationContext.Create(context, record);
 
-        await _handler.HandleAsync(notification, notificationContext, cancellationToken).ConfigureAwait(false);
-
-        return SnsRecordResult.Completed;
+        return await _handler.HandleAsync(notification, notificationContext, cancellationToken).ConfigureAwait(false);
     }
 }

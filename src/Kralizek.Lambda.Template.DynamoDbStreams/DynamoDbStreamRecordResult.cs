@@ -3,7 +3,7 @@ namespace Kralizek.Lambda;
 /// <summary>
 /// Represents the outcome of processing a DynamoDB Streams record.
 /// </summary>
-public sealed class DynamoDbStreamRecordResult : LambdaRecordResult
+public abstract class DynamoDbStreamRecordResult : LambdaRecordResult
 {
     private DynamoDbStreamRecordResult()
     {
@@ -12,13 +12,34 @@ public sealed class DynamoDbStreamRecordResult : LambdaRecordResult
     /// <summary>
     /// Gets the singleton result used when a record has been processed successfully.
     /// </summary>
-    public static DynamoDbStreamRecordResult Completed { get; } = new();
+    public static DynamoDbStreamRecordResult Success { get; } = new SuccessResult();
 
     /// <summary>
-    /// Gets the singleton result used when a record must be reported as failed.
+    /// Creates a result used when a record must be reported as failed.
     /// </summary>
-    public static DynamoDbStreamRecordResult Failed { get; } = new();
+    /// <param name="reason">An optional application-provided reason for the failure.</param>
+    public static DynamoDbStreamRecordResult Failed(string? reason = null) => new FailureResult(reason);
 
     /// <inheritdoc />
     public override object Value => this;
+
+    /// <summary>
+    /// Represents a failed DynamoDB Streams record result.
+    /// </summary>
+    public sealed class FailureResult : DynamoDbStreamRecordResult
+    {
+        internal FailureResult(string? reason)
+        {
+            Reason = reason;
+        }
+
+        /// <summary>
+        /// Gets the optional application-provided failure reason.
+        /// </summary>
+        public string? Reason { get; }
+    }
+
+    private sealed class SuccessResult : DynamoDbStreamRecordResult
+    {
+    }
 }

@@ -26,15 +26,12 @@ public sealed class RawSnsRecordHandler<THandler>
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
     }
 
-    public async ValueTask<SnsRecordResult> HandleAsync(
+    public ValueTask<SnsRecordResult> HandleAsync(
         SNSEvent.SNSRecord record,
         RecordContext context,
         CancellationToken cancellationToken)
     {
         var notificationContext = SnsNotificationContext.Create(context, record);
-
-        await _handler.HandleAsync(record, notificationContext, cancellationToken).ConfigureAwait(false);
-
-        return SnsRecordResult.Completed;
+        return _handler.HandleAsync(record, notificationContext, cancellationToken);
     }
 }

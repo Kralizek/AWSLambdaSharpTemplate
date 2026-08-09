@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,6 +92,19 @@ public class DynamoDbStreamFunctionTests
             Is.EqualTo(new[] { "102" }));
     }
 
+    [Test]
+    public void Failure_result_preserves_reason_and_union_value()
+    {
+        var result = DynamoDbStreamRecordResult.Failed("not ready");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Value, Is.SameAs(result));
+            Assert.That(result, Is.TypeOf<DynamoDbStreamRecordResult.FailureResult>());
+            Assert.That(((DynamoDbStreamRecordResult.FailureResult)result).Reason, Is.EqualTo("not ready"));
+        });
+    }
+
     private static DynamoDBEvent.DynamodbStreamRecord CreateRecord(
         string eventId,
         string sequenceNumber,
@@ -139,7 +151,7 @@ public class DynamoDbStreamFunctionTests
             LastContext = null;
         }
 
-        public ValueTask HandleAsync(
+        public ValueTask<DynamoDbStreamRecordResult> HandleAsync(
             DynamoDbStreamItem item,
             DynamoDbStreamRecordContext context,
             CancellationToken cancellationToken)
@@ -149,11 +161,11 @@ public class DynamoDbStreamFunctionTests
 
             if (context.EventName == "FAIL")
             {
-                throw new InvalidOperationException("Expected test failure.");
+                return ValueTask.FromResult(DynamoDbStreamRecordResult.Failed("Expected test failure."));
             }
 
             ReceivedItems.Enqueue(item);
-            return ValueTask.CompletedTask;
+            return ValueTask.FromResult(DynamoDbStreamRecordResult.Success);
         }
     }
 }

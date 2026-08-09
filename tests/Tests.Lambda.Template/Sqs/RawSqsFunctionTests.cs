@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -115,7 +114,7 @@ public class RawSqsFunctionTests
             LastContext = null;
         }
 
-        public ValueTask HandleAsync(
+        public ValueTask<SqsRecordResult> HandleAsync(
             SQSEvent.SQSMessage record,
             SqsMessageContext context,
             CancellationToken cancellationToken)
@@ -125,11 +124,11 @@ public class RawSqsFunctionTests
 
             if (record.Body == "fail")
             {
-                throw new InvalidOperationException("Expected test failure.");
+                return ValueTask.FromResult(SqsRecordResult.Failed("Expected test failure."));
             }
 
             ReceivedRecords.Enqueue(record);
-            return ValueTask.CompletedTask;
+            return ValueTask.FromResult(SqsRecordResult.Success);
         }
     }
 }

@@ -13,7 +13,7 @@ public interface ISnsRecordHandler
     /// <summary>
     /// Handles one SNS record without decoding its message payload.
     /// </summary>
-    ValueTask HandleAsync(
+    ValueTask<SnsRecordResult> HandleAsync(
         SNSEvent.SNSRecord record,
         SnsNotificationContext context,
         CancellationToken cancellationToken);

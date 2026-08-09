@@ -68,6 +68,7 @@ public class SnsFunctionTests
             Assert.That(TestHandler.LastContext?.GetSnsRecord(), Is.SameAs(second));
             Assert.That(TestHandler.LastContext?.AwsRequestId, Is.EqualTo(lambdaContext.AwsRequestId));
             Assert.That(TestHandler.LastContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
+            Assert.That(SnsRecordResult.Completed.Value, Is.SameAs(SnsRecordResult.Completed));
         });
     }
 
@@ -202,7 +203,7 @@ public class SnsFunctionTests
             LastContext = null;
         }
 
-        public ValueTask HandleAsync(
+        public ValueTask<SnsRecordResult> HandleAsync(
             TestNotification notification,
             SnsNotificationContext context,
             CancellationToken cancellationToken)
@@ -216,7 +217,7 @@ public class SnsFunctionTests
             }
 
             ReceivedNotifications.Enqueue(notification);
-            return ValueTask.CompletedTask;
+            return ValueTask.FromResult(SnsRecordResult.Completed);
         }
     }
 
@@ -236,13 +237,13 @@ public class SnsFunctionTests
             _disposedCount = 0;
         }
 
-        public ValueTask HandleAsync(
+        public ValueTask<SnsRecordResult> HandleAsync(
             TestNotification notification,
             SnsNotificationContext context,
             CancellationToken cancellationToken)
         {
             Instances.Enqueue(_instanceId);
-            return ValueTask.CompletedTask;
+            return ValueTask.FromResult(SnsRecordResult.Completed);
         }
 
         public void Dispose() => Interlocked.Increment(ref _disposedCount);
@@ -265,7 +266,7 @@ public class SnsFunctionTests
             _processedCount = 0;
         }
 
-        public async ValueTask HandleAsync(
+        public async ValueTask<SnsRecordResult> HandleAsync(
             TestNotification notification,
             SnsNotificationContext context,
             CancellationToken cancellationToken)
@@ -277,6 +278,7 @@ public class SnsFunctionTests
             {
                 await Task.Delay(25, cancellationToken);
                 Interlocked.Increment(ref _processedCount);
+                return SnsRecordResult.Completed;
             }
             finally
             {

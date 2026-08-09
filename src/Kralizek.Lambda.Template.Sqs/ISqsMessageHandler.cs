@@ -9,7 +9,7 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TMessage">The decoded message type.</typeparam>
 public interface ISqsMessageHandler<in TMessage>
 {
-    ValueTask HandleAsync(
+    ValueTask<SqsRecordResult> HandleAsync(
         TMessage message,
         SqsMessageContext context,
         CancellationToken cancellationToken);

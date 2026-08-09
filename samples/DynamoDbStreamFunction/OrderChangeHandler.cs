@@ -10,7 +10,7 @@ namespace DynamoDbStreamFunction;
 public sealed class OrderChangeHandler(ILogger<OrderChangeHandler> logger)
     : IDynamoDbStreamRecordHandler
 {
-    public ValueTask HandleAsync(
+    public ValueTask<DynamoDbStreamRecordResult> HandleAsync(
         DynamoDbStreamItem item,
         DynamoDbStreamRecordContext context,
         CancellationToken cancellationToken)
@@ -25,6 +25,6 @@ public sealed class OrderChangeHandler(ILogger<OrderChangeHandler> logger)
             orderId,
             item.SequenceNumber);
 
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(DynamoDbStreamRecordResult.Success);
     }
 }

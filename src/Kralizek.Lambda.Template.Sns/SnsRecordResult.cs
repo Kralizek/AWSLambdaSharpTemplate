@@ -1,7 +1,7 @@
 namespace Kralizek.Lambda;
 
 /// <summary>
-/// Represents completion of processing an SNS record.
+/// Represents successful processing of an SNS record.
 /// </summary>
 public sealed class SnsRecordResult : LambdaRecordResult
 {
@@ -10,7 +10,7 @@ public sealed class SnsRecordResult : LambdaRecordResult
     }
 
     /// <summary>
-    /// Gets the singleton result used when a record has been processed successfully.
+    /// Gets the singleton result used when an SNS record has completed processing.
     /// </summary>
     public static SnsRecordResult Completed { get; } = new();
 
