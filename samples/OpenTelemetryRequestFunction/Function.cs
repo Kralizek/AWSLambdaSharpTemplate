@@ -18,7 +18,7 @@ namespace OpenTelemetryRequestFunction;
 public class Function : RequestFunction<string, string, UpperCaseHandler>
 {
     private static readonly TracerProvider TracerProvider = Sdk.CreateTracerProviderBuilder()
-        .AddAWSLambdaConfigurations()
+        .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
         .AddConsoleExporter()
         .Build();
 
