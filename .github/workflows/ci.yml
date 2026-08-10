@@ -337,6 +337,38 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate GitHub release metadata
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Release tag is not a supported Semantic Versioning tag: $RELEASE_TAG"
+            exit 1
+          fi
+
+          release_commit=$(git rev-parse "$RELEASE_TAG^{commit}")
+          head_commit=$(git rev-parse HEAD)
+
+          if [ "$release_commit" != "$head_commit" ]; then
+            echo "Release tag $RELEASE_TAG does not point to the checked-out commit."
+            exit 1
+          fi
+
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            if [ "$RELEASE_IS_PRERELEASE" != "true" ]; then
+              echo "Prerelease tag $RELEASE_TAG must be published as a GitHub prerelease."
+              exit 1
+            fi
+          elif [ "$RELEASE_IS_PRERELEASE" != "false" ]; then
+            echo "Stable tag $RELEASE_TAG must not be published as a GitHub prerelease."
+            exit 1
+          fi
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
