@@ -509,6 +509,8 @@ jobs:
           --api-key "${{ github.token }}"
           --skip-duplicate
 
+      # Alpha releases stay on GitHub for explicit/manual consumption.
+      # Beta, RC, and stable releases are also published to NuGet.org.
       - name: Log in to NuGet.org
         if: >-
           (github.event_name == 'release' && !contains(github.event.release.tag_name, '-alpha.')) ||
