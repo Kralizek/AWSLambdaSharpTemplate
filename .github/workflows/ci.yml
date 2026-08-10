@@ -8,8 +8,18 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      create_release:
-        description: Create a GitHub prerelease and attach packages
+      release_channel:
+        description: Prerelease channel to create, or none for a manual package build
+        type: choice
+        required: true
+        default: none
+        options:
+          - none
+          - alpha
+          - beta
+          - rc
+      dry_run:
+        description: Validate the selected release without publishing packages or creating a release
         type: boolean
         required: false
         default: false
@@ -23,14 +33,80 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   CONFIGURATION: Release
   ARTIFACTS_PATH: ./artifacts
-  MinVerDefaultPreReleaseIdentifiers: ${{ github.event_name == 'workflow_dispatch' && 'alpha' || 'preview' }}
+  MinVerDefaultPreReleaseIdentifiers: preview
 
 jobs:
-  validate-and-pack:
-    name: Validate and pack
+  prepare-version:
+    name: Prepare version
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.prerelease-version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        if: github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine prerelease version
+        if: github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none'
+        id: prerelease-version
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          minimum_major_minor=$(sed -n 's:.*<MinVerMinimumMajorMinor>\([^<]*\)</MinVerMinimumMajorMinor>.*:\1:p' eng/Package.props | head -n 1)
+
+          if [[ ! "$minimum_major_minor" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Could not determine MinVerMinimumMajorMinor from eng/Package.props."
+            exit 1
+          fi
+
+          minimum_version="${minimum_major_minor}.0"
+          latest_stable_tag=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+
+          if [ -z "$latest_stable_tag" ]; then
+            release_base="$minimum_version"
+          else
+            latest_stable_version="${latest_stable_tag#v}"
+            IFS=. read -r stable_major stable_minor _ <<< "$latest_stable_version"
+            auto_incremented_version="${stable_major}.$((stable_minor + 1)).0"
+
+            release_base=$(printf '%s\n%s\n' "$minimum_version" "$auto_incremented_version" | sort -V | tail -n 1)
+          fi
+
+          latest_channel_tag=$(git tag -l "v${release_base}-${RELEASE_CHANNEL}.*" --sort=-version:refname | head -n 1 || true)
+
+          if [ -z "$latest_channel_tag" ]; then
+            channel_number=1
+          else
+            channel_number="${latest_channel_tag##*.}"
+
+            if [[ ! "$channel_number" =~ ^[0-9]+$ ]]; then
+              echo "Could not determine prerelease number from $latest_channel_tag."
+              exit 1
+            fi
+
+            channel_number=$((channel_number + 1))
+          fi
+
+          version="${release_base}-${RELEASE_CHANNEL}.${channel_number}"
+          echo "Selected prerelease version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  validate-and-pack:
+    name: Validate and pack
+    needs: prepare-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -75,9 +151,12 @@ jobs:
 
   smoke-pack:
     name: Pack for template smoke tests
+    needs: prepare-version
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -317,7 +396,7 @@ jobs:
 
   publish:
     name: Publish
-    needs: [validate-and-pack, template-smoke-test]
+    needs: [prepare-version, validate-and-pack, template-smoke-test]
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -396,6 +475,11 @@ jobs:
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             release_tag="v$package_version"
+
+            if [ "${{ inputs.release_channel }}" != "none" ] && [ "$package_version" != "${{ needs.prepare-version.outputs.version }}" ]; then
+              echo "Packed version $package_version does not match selected prerelease version ${{ needs.prepare-version.outputs.version }}."
+              exit 1
+            fi
           else
             release_tag="${{ github.event.release.tag_name }}"
             tag_version="${release_tag#v}"
@@ -409,7 +493,23 @@ jobs:
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
 
+      - name: Dry-run release summary
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        shell: bash
+        run: |
+          echo "Dry run: no packages or GitHub release will be published."
+          echo "Release channel: ${{ inputs.release_channel }}"
+          echo "Package version: $PACKAGE_VERSION"
+          if [ "${{ inputs.release_channel }}" = "alpha" ]; then
+            echo "Production release would publish to GitHub Packages and create a GitHub prerelease."
+          elif [ "${{ inputs.release_channel }}" = "beta" ] || [ "${{ inputs.release_channel }}" = "rc" ]; then
+            echo "Production release would publish to GitHub Packages and NuGet.org and create a GitHub prerelease."
+          else
+            echo "Production run would publish the package to GitHub Packages only."
+          fi
+
       - name: Configure GitHub Packages source
+        if: github.event_name == 'release' || !inputs.dry_run
         run: >-
           dotnet nuget add source
           "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
@@ -419,6 +519,7 @@ jobs:
           --store-password-in-clear-text
 
       - name: Publish to GitHub Packages
+        if: github.event_name == 'release' || !inputs.dry_run
         run: >-
           dotnet nuget push
           "./artifacts/packages/*.nupkg"
@@ -426,15 +527,21 @@ jobs:
           --api-key "${{ github.token }}"
           --skip-duplicate
 
+      # Alpha releases stay on GitHub for explicit/manual consumption.
+      # Beta, RC, and stable releases are also published to NuGet.org.
       - name: Log in to NuGet.org
-        if: github.event_name == 'release'
+        if: >-
+          (github.event_name == 'release' && !contains(github.event.release.tag_name, '-alpha.')) ||
+          (github.event_name == 'workflow_dispatch' && (inputs.release_channel == 'beta' || inputs.release_channel == 'rc'))
         id: nuget-login
         uses: nuget/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: Kralizek
 
       - name: Publish to NuGet.org
-        if: github.event_name == 'release'
+        if: >-
+          (github.event_name == 'release' && !contains(github.event.release.tag_name, '-alpha.')) ||
+          (github.event_name == 'workflow_dispatch' && !inputs.dry_run && (inputs.release_channel == 'beta' || inputs.release_channel == 'rc'))
         run: >-
           dotnet nuget push
           "./artifacts/packages/*.nupkg"
@@ -442,8 +549,8 @@ jobs:
           --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
 
-      - name: Ensure alpha GitHub prerelease exists
-        if: github.event_name == 'workflow_dispatch' && inputs.create_release
+      - name: Ensure GitHub prerelease exists
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run && inputs.release_channel != 'none'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -463,7 +570,7 @@ jobs:
             --prerelease
 
       - name: Attach packages to the GitHub release
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run && inputs.release_channel != 'none')
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
