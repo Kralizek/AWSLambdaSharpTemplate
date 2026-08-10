@@ -21,3 +21,5 @@ dotnet lambda invoke-function otel-request-function --payload "Hello World"
 ```
 
 The invocation returns `"HELLO WORLD"` and the Lambda logs include the server span emitted by the standard AWS Lambda OpenTelemetry instrumentation.
+
+The wrapper pattern in this sample has also been validated against the AWS Lambda .NET 10 runtime: Lambda resolves the derived handler, the request continues through the normal `RequestFunction` lifecycle, and the standard AWS Lambda instrumentation exports the invocation span.
