@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a problem. Please include enough detail for the issue to be reproduced without access to your application.
+        Thanks for reporting a problem. Please include enough detail for the issue to be reproduced without access to your application. Do not include AWS credentials, tokens, secret values, or other sensitive data.
 
   - type: input
     id: package
@@ -22,51 +22,78 @@ body:
     id: version
     attributes:
       label: Version
-      placeholder: 6.0.0-alpha.13
+      placeholder: 6.0.0
     validations:
       required: true
 
   - type: dropdown
-    id: area
+    id: integration
     attributes:
-      label: Area
+      label: Integration
       options:
-        - Runtime / handler dispatch
-        - Dependency injection / configuration / logging
-        - Serialization / payload decoding
-        - Record failure / batch response behavior
-        - Project template generation
+        - Core programming model
+        - SQS
+        - SNS
+        - S3 notifications
+        - S3 Batch Operations
+        - EventBridge
+        - Cognito
+        - DynamoDB Streams
+        - Kinesis Streams
+        - Project templates
         - Packaging / restore
-        - Documentation
         - Other
-    validations:
-      required: true
-
-  - type: textarea
-    id: description
-    attributes:
-      label: Problem
-      description: What happened, and what did you expect instead?
     validations:
       required: true
 
   - type: textarea
     id: reproduction
     attributes:
-      label: Minimal reproduction
-      description: Provide the smallest code sample or repository that reproduces the issue, including the Lambda event source when relevant.
-      render: csharp
+      label: Steps to reproduce
+      description: Provide exact steps or link to a minimal reproduction repository. Include the Lambda event or payload when it is relevant and safe to share.
+      placeholder: |
+        1. Create a function deriving from ...
+        2. Configure the event source with ...
+        3. Invoke with ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Minimal code or event payload
+      description: Include only the smallest relevant function/handler code, generated project fragment, event payload, or configuration. Remove credentials and private data.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
     validations:
       required: true
 
   - type: textarea
     id: environment
     attributes:
-      label: Environment
-      description: Include .NET SDK/runtime, operating system, Lambda runtime, and relevant AWS event-source configuration.
+      label: Environment and event-source configuration
+      description: Include .NET SDK/runtime, operating system, Lambda runtime, and relevant AWS event-source configuration such as batch size, ReportBatchItemFailures, ParallelizationFactor, or retry settings.
       placeholder: |
         .NET SDK: 10.0.x
         Lambda runtime: dotnet10
-        Event source: SQS with ReportBatchItemFailures enabled
+        OS: Amazon Linux / Windows / local development OS
+        Event source: SQS, batch size 10, ReportBatchItemFailures enabled
     validations:
       required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Logs, stack traces, related issues, or anything else that helps explain the problem.
