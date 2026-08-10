@@ -1,0 +1,99 @@
+name: Bug report
+description: Report a reproducible problem with the runtime packages or project templates
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please include enough detail for the issue to be reproduced without access to your application. Do not include AWS credentials, tokens, secret values, or other sensitive data.
+
+  - type: input
+    id: package
+    attributes:
+      label: Package or template
+      description: Which Kralizek.Lambda package or dotnet new template is affected?
+      placeholder: Kralizek.Lambda.Template.Sqs / lambda-template-sqs
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 6.0.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: integration
+    attributes:
+      label: Integration
+      options:
+        - Core programming model
+        - SQS
+        - SNS
+        - S3 notifications
+        - S3 Batch Operations
+        - EventBridge
+        - Cognito
+        - DynamoDB Streams
+        - Kinesis Streams
+        - Project templates
+        - Packaging / restore
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide exact steps or link to a minimal reproduction repository. Include the Lambda event or payload when it is relevant and safe to share.
+      placeholder: |
+        1. Create a function deriving from ...
+        2. Configure the event source with ...
+        3. Invoke with ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Minimal code or event payload
+      description: Include only the smallest relevant function/handler code, generated project fragment, event payload, or configuration. Remove credentials and private data.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and event-source configuration
+      description: Include .NET SDK/runtime, operating system, Lambda runtime, and relevant AWS event-source configuration such as batch size, ReportBatchItemFailures, ParallelizationFactor, or retry settings.
+      placeholder: |
+        .NET SDK: 10.0.x
+        Lambda runtime: dotnet10
+        OS: Amazon Linux / Windows / local development OS
+        Event source: SQS, batch size 10, ReportBatchItemFailures enabled
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Logs, stack traces, related issues, or anything else that helps explain the problem.

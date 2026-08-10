@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
-    <None Include="content/**/*" Exclude="content/**/*.csproj" Pack="true" PackagePath="content/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="content/**/*" Exclude="content/**/*.csproj;content/Directory.Packages.props" Pack="true" PackagePath="content/%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="$(TemplateStagingDirectory)/DynamoDbStreamFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/DynamoDbStreamFunction/LambdaFunctionProject.csproj" />
     <None Include="$(TemplateStagingDirectory)/EventBridgeFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/EventBridgeFunction/LambdaFunctionProject.csproj" />
     <None Include="$(TemplateStagingDirectory)/EventFunction/LambdaFunctionProject.csproj" Pack="true" PackagePath="content/EventFunction/LambdaFunctionProject.csproj" />

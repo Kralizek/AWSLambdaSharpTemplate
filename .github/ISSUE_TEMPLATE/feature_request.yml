@@ -1,0 +1,53 @@
+name: Feature request
+description: Propose a new Lambda integration or an improvement to the programming model
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of change
+      options:
+        - New AWS event source / integration
+        - Programming model improvement
+        - Existing integration improvement
+        - Project template improvement
+        - Packaging / tooling improvement
+        - Documentation improvement
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the consumer problem or missing capability. Focus on the use case rather than the proposed API.
+    validations:
+      required: true
+
+  - type: textarea
+    id: aws-model
+    attributes:
+      label: AWS behavior and constraints
+      description: For AWS integrations, describe the event shape, batching, retry/failure semantics, ordering guarantees, and relevant event-source-mapping behavior.
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: If you already have an API shape in mind, sketch it here. This is optional.
+      render: csharp
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing AWS Lambda APIs, workarounds, or other approaches you considered.
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Suggested scope
+      description: What should be included, and what should deliberately remain out of scope?

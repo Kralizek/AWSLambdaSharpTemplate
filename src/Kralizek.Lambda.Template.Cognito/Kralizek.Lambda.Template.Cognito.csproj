@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.CognitoEvents" Version="5.0.0" />
+    <PackageReference Include="Amazon.Lambda.CognitoEvents" />
   </ItemGroup>
 
   <ItemGroup>

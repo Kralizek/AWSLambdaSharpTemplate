@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Amazon.Lambda.CloudWatchEvents" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.CognitoEvents" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Core" Version="3.2.0" />
+    <PackageVersion Include="Amazon.Lambda.DynamoDBEvents" Version="4.0.0" />
+    <PackageVersion Include="Amazon.Lambda.KinesisEvents" Version="4.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Logging.AspNetCore" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.S3Events" Version="4.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.SNSEvents" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.1.0" />
+    <PackageVersion Include="DotNet.ReproducibleBuilds" Version="2.0.5" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="MinVer" Version="7.0.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="NUnit" Version="4.6.1" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
+  </ItemGroup>
+</Project>

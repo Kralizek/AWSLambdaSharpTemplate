@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.DynamoDBEvents" Version="4.0.0" />
+    <PackageReference Include="Amazon.Lambda.DynamoDBEvents" />
   </ItemGroup>
 
   <ItemGroup>

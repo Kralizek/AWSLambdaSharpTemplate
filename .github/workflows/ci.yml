@@ -253,10 +253,10 @@ jobs:
 
       - name: Instantiate ${{ matrix.name }} template
         run: |
-          mkdir -p $ARTIFACTS_PATH/smoke
+          mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
           dotnet new "${{ matrix.short-name }}" \
             --name "${{ matrix.project-name }}" \
-            --output "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}" \
+            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}" \
             --profile SmokeProfile \
             --region eu-north-1 \
             --role SmokeRole \
@@ -265,7 +265,7 @@ jobs:
       - name: Verify generated content
         shell: bash
         run: |
-          project="$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
           grep -q 'SmokeProfile' "$project/aws-lambda-tools-defaults.json"
           grep -q 'eu-north-1' "$project/aws-lambda-tools-defaults.json"
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
@@ -276,7 +276,7 @@ jobs:
         shell: bash
         run: |
           local_feed=$(realpath $ARTIFACTS_PATH/packages)
-          cat > $ARTIFACTS_PATH/smoke/NuGet.config <<EOF
+          cat > "$RUNNER_TEMP/lambda-template-smoke/NuGet.config" <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
@@ -303,14 +303,14 @@ jobs:
       - name: Restore generated project
         run: >-
           dotnet restore
-          "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
-          --configfile $ARTIFACTS_PATH/smoke/NuGet.config
-          --packages $ARTIFACTS_PATH/smoke/packages
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
+          --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
 
       - name: Build generated project
         run: >-
           dotnet build
-          "$ARTIFACTS_PATH/smoke/${{ matrix.project-name }}"
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
           --configuration $CONFIGURATION
           --no-restore
           --warnaserror
@@ -336,6 +336,38 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Validate GitHub release metadata
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Release tag is not a supported Semantic Versioning tag: $RELEASE_TAG"
+            exit 1
+          fi
+
+          release_commit=$(git rev-parse "$RELEASE_TAG^{commit}")
+          head_commit=$(git rev-parse HEAD)
+
+          if [ "$release_commit" != "$head_commit" ]; then
+            echo "Release tag $RELEASE_TAG does not point to the checked-out commit."
+            exit 1
+          fi
+
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            if [ "$RELEASE_IS_PRERELEASE" != "true" ]; then
+              echo "Prerelease tag $RELEASE_TAG must be published as a GitHub prerelease."
+              exit 1
+            fi
+          elif [ "$RELEASE_IS_PRERELEASE" != "false" ]; then
+            echo "Stable tag $RELEASE_TAG must not be published as a GitHub prerelease."
+            exit 1
+          fi
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
