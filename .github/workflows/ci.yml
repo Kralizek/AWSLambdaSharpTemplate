@@ -9,19 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       release_channel:
-        description: Prerelease channel to use when creating a GitHub prerelease
+        description: Prerelease channel to create, or none for a manual package build
         type: choice
         required: true
-        default: alpha
+        default: none
         options:
+          - none
           - alpha
           - beta
           - rc
-      create_release:
-        description: Create a GitHub prerelease and attach packages
-        type: boolean
-        required: false
-        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -45,13 +41,13 @@ jobs:
 
     steps:
       - name: Checkout
-        if: github.event_name == 'workflow_dispatch' && inputs.create_release
+        if: github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none'
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Determine prerelease version
-        if: github.event_name == 'workflow_dispatch' && inputs.create_release
+        if: github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none'
         id: prerelease-version
         env:
           RELEASE_CHANNEL: ${{ inputs.release_channel }}
@@ -475,7 +471,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             release_tag="v$package_version"
 
-            if [ "${{ inputs.create_release }}" = "true" ] && [ "$package_version" != "${{ needs.prepare-version.outputs.version }}" ]; then
+            if [ "${{ inputs.release_channel }}" != "none" ] && [ "$package_version" != "${{ needs.prepare-version.outputs.version }}" ]; then
               echo "Packed version $package_version does not match selected prerelease version ${{ needs.prepare-version.outputs.version }}."
               exit 1
             fi
@@ -514,7 +510,7 @@ jobs:
       - name: Log in to NuGet.org
         if: >-
           (github.event_name == 'release' && !contains(github.event.release.tag_name, '-alpha.')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.create_release && inputs.release_channel != 'alpha')
+          (github.event_name == 'workflow_dispatch' && (inputs.release_channel == 'beta' || inputs.release_channel == 'rc'))
         id: nuget-login
         uses: nuget/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
@@ -523,7 +519,7 @@ jobs:
       - name: Publish to NuGet.org
         if: >-
           (github.event_name == 'release' && !contains(github.event.release.tag_name, '-alpha.')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.create_release && inputs.release_channel != 'alpha')
+          (github.event_name == 'workflow_dispatch' && (inputs.release_channel == 'beta' || inputs.release_channel == 'rc'))
         run: >-
           dotnet nuget push
           "./artifacts/packages/*.nupkg"
@@ -532,7 +528,7 @@ jobs:
           --skip-duplicate
 
       - name: Ensure GitHub prerelease exists
-        if: github.event_name == 'workflow_dispatch' && inputs.create_release
+        if: github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -552,7 +548,7 @@ jobs:
             --prerelease
 
       - name: Attach packages to the GitHub release
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none')
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
