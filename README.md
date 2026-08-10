@@ -1,79 +1,138 @@
 # AWS Lambda Sharp Template
 
-AWS Lambda templates and runtime libraries for building .NET Lambda functions around explicit programming models instead of wiring every invocation from scratch.
+AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` templates for building AWS Lambda functions around a small, dependency-injection-friendly programming model.
 
-The current programming model is organized around three semantic function roots:
+The library separates Lambda functions into three semantic models:
 
-- `EventFunction<TInput, THandler>` for one-way event handlers.
-- `RequestFunction<TInput, TOutput, THandler>` for request/response handlers.
-- `RecordFunction<...>` for integrations that process multiple independent records per invocation.
+- **Event functions** consume an input and return no application response.
+- **Request functions** consume an input and return an output.
+- **Record functions** process records from AWS envelopes such as SQS, SNS, DynamoDB Streams, Kinesis Streams, and S3 notifications.
 
-Source-specific packages build on those roots. EventBridge specializes one-way event processing, DynamoDB Streams, SQS and SNS specialize record processing, while `Kralizek.Lambda.Template.Cognito` provides strongly typed request-function specializations for Amazon Cognito user-pool Lambda triggers.
+Source-specific packages build on those models while keeping AWS-specific envelope, retry, ordering, and failure semantics explicit.
+
+## Documentation
+
+- [Documentation](docs/README.md)
+- [Samples](samples/README.md) — choose a sample by problem; AWS-specific sample READMEs include trimmed incoming events and minimal Terraform topology sketches.
+- [Migrating from V5 to V6](MIGRATION.md)
+- [Changelog](CHANGELOG.md)
 
 ## Packages
 
-- `Kralizek.Lambda.Template.Abstractions` contains the source-neutral handler, context, and payload-decoder contracts.
-- `Kralizek.Lambda.Template` contains the runtime implementation and generic function roots.
-- `Kralizek.Lambda.Template.Cognito` contains the Cognito trigger specializations.
-- `Kralizek.Lambda.Template.DynamoDbStreams` contains the DynamoDB Streams specialization.
-- `Kralizek.Lambda.Template.EventBridge` contains the EventBridge specialization.
-- `Kralizek.Lambda.Template.Sns` contains the SNS specialization.
-- `Kralizek.Lambda.Template.Sqs` contains the SQS specialization.
-- `Kralizek.Lambda.Templates` contains the `dotnet new` project templates.
+| Package | Purpose |
+| --- | --- |
+| `Kralizek.Lambda.Template` | Core runtime and generic Event/Request/Record programming models |
+| `Kralizek.Lambda.Template.Abstractions` | Lightweight handler, context, decoder, and record-result contracts |
+| `Kralizek.Lambda.Template.Sqs` | SQS record processing |
+| `Kralizek.Lambda.Template.Sns` | SNS notification processing |
+| `Kralizek.Lambda.Template.S3` | S3 notifications and S3 Batch Operations |
+| `Kralizek.Lambda.Template.EventBridge` | EventBridge events |
+| `Kralizek.Lambda.Template.DynamoDbStreams` | DynamoDB Streams |
+| `Kralizek.Lambda.Template.KinesisStreams` | Kinesis Streams |
+| `Kralizek.Lambda.Template.Cognito` | Cognito triggers |
+| `Kralizek.Lambda.Templates` | `dotnet new` project templates |
 
-## DynamoDB Streams function
-
-```csharp
-public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
-```
-
-The DynamoDB Streams package builds on `RecordFunction`, invokes one handler per stream record, creates one dependency-injection scope per record, and returns `StreamsEventResponse` partial-batch failures using DynamoDB sequence numbers. Handlers receive a `DynamoDbStreamItem` containing keys, old/new images and stream metadata, while the outer AWS record is preserved in `DynamoDbStreamRecordContext` and available through `GetDynamoDbStreamRecord()`. DynamoDB values remain in AWS's `DynamoDBEvent.AttributeValue` representation rather than being treated as generic JSON. Records within an invocation are processed sequentially by design; configure `ParallelizationFactor` on the DynamoDB Streams event source mapping when additional throughput is needed.
-
-## EventBridge function
+## Generic event function
 
 ```csharp
-public sealed class Function : EventBridgeFunction<OrderCreated, OrderCreatedHandler>;
+public sealed class Function : EventFunction<MyEvent, MyEventHandler>;
+
+public sealed class MyEventHandler : IEventHandler<MyEvent>
+{
+    public ValueTask HandleAsync(
+        MyEvent input,
+        EventContext context,
+        CancellationToken cancellationToken)
+    {
+        return ValueTask.CompletedTask;
+    }
+}
 ```
 
-The EventBridge package builds on `EventFunction` and uses AWS's `CloudWatchEvent<TDetail>` envelope from `Amazon.Lambda.CloudWatchEvents`. `Detail` is deserialized directly by the Lambda serializer, so EventBridge does not add a second payload-decoder layer.
-
-## Cognito function
+## Generic request function
 
 ```csharp
-public sealed class Function : CognitoPreSignUpFunction<PreSignUpHandler>;
+public sealed class Function : RequestFunction<MyRequest, MyResponse, MyRequestHandler>;
+
+public sealed class MyRequestHandler : IRequestHandler<MyRequest, MyResponse>
+{
+    public ValueTask<MyResponse> HandleAsync(
+        MyRequest input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(new MyResponse());
+    }
+}
 ```
 
-Each Cognito trigger has a dedicated function base and handler interface so the AWS event contract is fixed by the glue package and application code supplies only the handler. Pre-token-generation V1 and V2 are exposed as separate runtime bases and a single template with a `--version` option.
+## Record processing
 
-## Project templates
+Record-oriented integrations create an independent dependency-injection scope for each record. Source packages define source-specific result types and translate them into the AWS response expected by that event source.
 
-Install the template package with:
+SQS, for example, supports typed payload decoding and partial batch failure responses:
+
+```csharp
+public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>;
+
+public sealed class OrderCreatedHandler : ISqsMessageHandler<OrderCreated>
+{
+    public ValueTask<SqsRecordResult> HandleAsync(
+        OrderCreated message,
+        SqsMessageContext context,
+        CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(SqsRecordResult.Success);
+    }
+}
+```
+
+DynamoDB Streams and Kinesis Streams deliberately process records sequentially inside one Lambda invocation. Use the event source mapping's `ParallelizationFactor` when additional stream concurrency is required.
+
+## Configuration and services
+
+Function base classes expose hooks for configuration, logging, and services:
+
+```csharp
+protected override void ConfigureServices(
+    IServiceCollection services,
+    IConfiguration configuration)
+{
+    base.ConfigureServices(services, configuration);
+    services.AddSingleton<MyService>();
+}
+```
+
+Handlers are declared by the function's generic type arguments and are registered automatically. Consumer code does not need a separate handler-registration hook.
+
+## Templates
+
+Install the template package:
 
 ```bash
 dotnet new install Kralizek.Lambda.Templates
 ```
 
-### Available templates
+List the available templates:
 
-| Template | Short name | Use when |
-| --- | --- | --- |
-| Event Function | `lambda-template-event` | The Lambda handles an input and does not return an application result. |
-| Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
-| EventBridge Function | `lambda-template-eventbridge` | The Lambda is targeted by EventBridge and receives a strongly typed event detail inside the AWS event envelope. |
-| DynamoDB Streams Function | `lambda-template-dynamodb-stream` | The Lambda consumes DynamoDB Streams records with source-specific context and partial-batch failure support. |
-| SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
-| SQS Function | `lambda-template-sqs` | The Lambda is triggered by SQS and processes each decoded message independently with partial-batch failure support. |
-| Cognito Pre Sign-up | `lambda-template-cognito-pre-signup` | The Lambda validates or modifies a user-pool sign-up request before Cognito creates the user. |
-| Cognito Post Confirmation | `lambda-template-cognito-post-confirmation` | The Lambda reacts after a user confirms registration or a password recovery flow. |
-| Cognito Pre Authentication | `lambda-template-cognito-pre-authentication` | The Lambda validates an authentication attempt before Cognito proceeds. |
-| Cognito Post Authentication | `lambda-template-cognito-post-authentication` | The Lambda reacts after Cognito authenticates a user. |
-| Cognito Define Auth Challenge | `lambda-template-cognito-define-auth-challenge` | The Lambda controls the state machine for a custom authentication flow. |
-| Cognito Create Auth Challenge | `lambda-template-cognito-create-auth-challenge` | The Lambda creates a challenge for a custom authentication flow. |
-| Cognito Verify Auth Challenge | `lambda-template-cognito-verify-auth-challenge` | The Lambda verifies the user's response to a custom authentication challenge. |
-| Cognito Custom Message | `lambda-template-cognito-custom-message` | The Lambda customizes Cognito-generated email and SMS message content. |
-| Cognito User Migration | `lambda-template-cognito-user-migration` | The Lambda migrates users from an existing identity store during sign-in or password reset. |
-| Cognito Custom Email Sender | `lambda-template-cognito-custom-email-sender` | The Lambda delivers Cognito email messages through a custom sender. |
-| Cognito Custom SMS Sender | `lambda-template-cognito-custom-sms-sender` | The Lambda delivers Cognito SMS messages through a custom sender. |
-| Cognito Pre Token Generation | `lambda-template-cognito-pre-token-generation` | The Lambda customizes claims and scopes before Cognito issues tokens. Supports `--version v1|v2`. |
+```bash
+dotnet new list lambda-template
+```
 
-Run `dotnet new list lambda-template` to list the installed templates. Generated projects target .NET 10 and include `aws-lambda-tools-defaults.json` for use with the standard AWS Lambda .NET tooling.
+The template set includes generic event/request functions and source-specific templates for supported AWS integrations.
+
+## Build
+
+The repository requires the .NET SDK version pinned in `global.json`.
+
+```bash
+dotnet restore
+dotnet build --configuration Release --warnaserror
+dotnet test --configuration Release
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+
+## License
+
+MIT. See [LICENSE.txt](LICENSE.txt).
