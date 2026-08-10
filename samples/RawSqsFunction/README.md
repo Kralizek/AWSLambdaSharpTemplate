@@ -49,7 +49,7 @@ The Lambda packaging, role, and permissions are omitted. The important part is t
 
 `Function` derives from `SqsFunction<RawSqsRecordHandler>`. The handler receives the original `SQSEvent.SQSMessage`, so the body, message attributes, message ID, and AWS delivery metadata remain available directly.
 
-The record still participates in the normal SQS pipeline: one record scope per message, source-specific `SqsRecordResult` values, and partial-batch failure translation.
+The record still participates in the normal SQS pipeline. For each message, `IRecordProcessor` creates an independent record scope, resolves and invokes `RawSqsRecordHandler`, and disposes the scope before the function performs source-specific partial-batch failure translation. Applications normally interact only with the function and handler; the processor is the reusable single-record primitive underneath them.
 
 ## Look at
 

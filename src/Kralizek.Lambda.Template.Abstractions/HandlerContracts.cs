@@ -51,3 +51,18 @@ public interface IRecordHandler<in TRecord, TRecordResult, in TContext>
 {
     ValueTask<TRecordResult> HandleAsync(TRecord record, TContext context, CancellationToken cancellationToken);
 }
+
+/// <summary>
+/// Processes one record using the framework record-scope and handler-activation semantics.
+/// </summary>
+/// <typeparam name="TRecord">The individual record type to process.</typeparam>
+/// <typeparam name="TRecordResult">The result produced from processing the record.</typeparam>
+/// <typeparam name="TContext">The context available while processing the record.</typeparam>
+#pragma warning disable S2436 // Record, result, and strongly typed context are distinct processor roles by design.
+public interface IRecordProcessor<in TRecord, TRecordResult, in TContext>
+#pragma warning restore S2436
+    where TRecordResult : LambdaRecordResult
+    where TContext : RecordContext
+{
+    ValueTask<TRecordResult> ProcessAsync(TRecord record, TContext context, CancellationToken cancellationToken);
+}

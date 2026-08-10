@@ -7,6 +7,7 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 - New to the library? Read [Getting Started](Getting-Started.md).
 - Unsure which base type to use? Read [Choosing a Function Model](Choosing-a-Function-Model.md).
 - Migrating an existing application? Read [Migrating from v5 to v6](Migrating-from-v5-to-v6.md).
+- Composing nested record envelopes? Read [Record Processing](Record-Processing.md).
 
 ## AWS integrations
 
@@ -26,7 +27,7 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 | Handle an input and return a result | `RequestFunction<TInput, TOutput, THandler>` | Request/response integrations such as Cognito |
 | Process independent records in an envelope | `RecordFunction<...>` | SQS, SNS, DynamoDB Streams, Kinesis Streams, S3 notifications, and other record sources |
 
-Source-specific packages specialize these roots while preserving a common model for dependency injection, configuration, logging, cancellation, contexts, and handler dispatch.
+Source-specific packages specialize these roots while preserving a common model for dependency injection, configuration, logging, cancellation, contexts, and handler dispatch. `IRecordProcessor<TRecord, TRecordResult, TContext>` exposes the single-record execution primitive for advanced nested-record composition while source-specific functions retain ownership of envelope scheduling and AWS failure semantics.
 
 ## Install the templates
 

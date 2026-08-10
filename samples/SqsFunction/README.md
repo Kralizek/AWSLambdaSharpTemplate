@@ -52,7 +52,9 @@ SQSEvent
         └── OrderCreated
 ```
 
-`Function` derives from `SqsFunction<OrderCreated, OrderCreatedHandler>`. The SQS integration decodes each `SQSMessage.Body` into `OrderCreated`, creates an independent record scope, invokes the handler, and translates `SqsRecordResult` values into the Lambda partial-batch response.
+`Function` derives from `SqsFunction<OrderCreated, OrderCreatedHandler>`. The SQS integration decodes each `SQSMessage.Body` into `OrderCreated`, then the record pipeline delegates that record to `IRecordProcessor`, which creates an independent record scope, resolves and invokes the configured handler, and disposes the scope. The function translates `SqsRecordResult` values into the Lambda partial-batch response.
+
+Normal SQS functions do not need to resolve `IRecordProcessor` directly. The public processor becomes useful when composing nested record envelopes while preserving the same per-record scope semantics, as shown by the SQS → SNS → S3 samples.
 
 A failed record can therefore be reported without failing successful records from the same batch when the event source mapping enables partial batch responses.
 
@@ -62,4 +64,4 @@ A failed record can therefore be reported without failing successful records fro
 - `OrderCreated` for the decoded application payload.
 - `OrderCreatedHandler` for per-record processing and `SqsRecordResult`.
 
-If your application needs the original `SQSEvent.SQSMessage` rather than a decoded body, see [RawSqsFunction](../RawSqsFunction/).
+If your application needs the original `SQSEvent.SQSMessage` rather than a decoded body, see [RawSqsFunction](../RawSqsFunction/). For nested record composition, compare [SqsRawSnsS3Function](../SqsRawSnsS3Function/) and [SqsSnsS3Function](../SqsSnsS3Function/).

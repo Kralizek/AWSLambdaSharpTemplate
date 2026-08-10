@@ -10,6 +10,8 @@
     <Project Path="samples/RequestFunction/RequestFunction.csproj" />
     <Project Path="samples/SnsFunction/SnsFunction.csproj" />
     <Project Path="samples/SqsFunction/SqsFunction.csproj" />
+    <Project Path="samples/SqsRawSnsS3Function/SqsRawSnsS3Function.csproj" />
+    <Project Path="samples/SqsSnsS3Function/SqsSnsS3Function.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Kralizek.Lambda.Template.Abstractions/Kralizek.Lambda.Template.Abstractions.csproj" />

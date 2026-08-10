@@ -23,6 +23,30 @@ public interface IS3BatchItemHandler
     ValueTask<S3BatchResult> HandleAsync(S3BatchItem item, S3BatchContext context, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Registration helpers for composing S3 object-event record processing outside a direct S3 Lambda invocation.
+/// </summary>
+public static class S3ServiceCollectionExtensions
+{
+    /// <summary>
+    /// Registers an S3 object-event handler and the record processor that adapts AWS S3 records to the public S3 programming model.
+    /// </summary>
+    public static IServiceCollection AddS3ObjectEventProcessing<THandler>(this IServiceCollection services)
+        where THandler : class, IS3ObjectEventHandler
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddScoped<THandler>();
+        services.AddRecordProcessor<
+            S3Event.S3EventNotificationRecord,
+            S3RecordResult,
+            RecordContext,
+            RawS3ObjectEventHandler<THandler>>();
+
+        return services;
+    }
+}
+
 [EditorBrowsable(EditorBrowsableState.Never)]
 public abstract class S3FunctionBase<TRecordHandler>
     : RecordFunction<S3Event, S3Event.S3EventNotificationRecord, S3RecordResult, object?, RecordContext, TRecordHandler>
@@ -68,7 +92,7 @@ public abstract class S3Function<THandler>
     protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.TryAddScoped<THandler>();
+        services.AddS3ObjectEventProcessing<THandler>();
     }
 }
 

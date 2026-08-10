@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
@@ -30,7 +29,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.TryAddScoped<THandler>();
+        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>();
     }
 
     /// <summary>
@@ -98,13 +97,14 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         cancellationToken.ThrowIfCancellationRequested();
 
         var results = new List<RecordProcessingResult>();
+        var processor = invocationServices.GetRequiredService<IRecordProcessor<TRecord, TRecordResult, TContext>>();
 
         foreach (var record in GetRecords(envelope))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = await ExecuteRecordAsync(
-                invocationServices,
+                processor,
                 record,
                 context,
                 cancellationToken).ConfigureAwait(false);
@@ -134,6 +134,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        var processor = invocationServices.GetRequiredService<IRecordProcessor<TRecord, TRecordResult, TContext>>();
         var records = GetRecords(envelope).ToArray();
         var results = new RecordProcessingResult[records.Length];
 
@@ -150,7 +151,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
             {
                 var record = records[index];
                 var result = await ExecuteRecordAsync(
-                    invocationServices,
+                    processor,
                     record,
                     context,
                     ct).ConfigureAwait(false);
@@ -162,22 +163,14 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     }
 
     private async ValueTask<TRecordResult> ExecuteRecordAsync(
-        IServiceProvider invocationServices,
+        IRecordProcessor<TRecord, TRecordResult, TContext> processor,
         TRecord record,
         TContext context,
         CancellationToken cancellationToken)
     {
-        await using var recordScope = invocationServices.CreateAsyncScope();
-
         try
         {
-            var result = await ExecuteHandlerAsync<THandler, TRecordResult>(
-                recordScope.ServiceProvider,
-                cancellationToken,
-                (handler, ct) => handler.HandleAsync(record, context, ct)).ConfigureAwait(false);
-
-            return result ?? throw new InvalidOperationException(
-                $"Record handler {typeof(THandler).Name} returned a null result.");
+            return await processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
