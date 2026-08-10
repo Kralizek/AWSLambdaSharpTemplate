@@ -8,6 +8,8 @@ The concrete function hides the inherited `FunctionHandlerAsync` method with the
 
 The console exporter keeps the sample self-contained and makes the invocation span visible in the Lambda logs. Applications can replace it with an OTLP or other OpenTelemetry exporter without changing the wrapper pattern.
 
+Equivalent samples are also available for `RequestFunction` in `../OpenTelemetryRequestFunction` and for record processing with typed SQS in `../OpenTelemetrySqsFunction`.
+
 Deploy the sample from this directory with:
 
 ```shell
