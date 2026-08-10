@@ -43,6 +43,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.prerelease-version.outputs.version }}
+      smoke-cache-key-suffix: ${{ steps.smoke-cache-key.outputs.suffix }}
 
     steps:
       - name: Checkout
@@ -98,6 +99,20 @@ jobs:
           version="${release_base}-${RELEASE_CHANNEL}.${channel_number}"
           echo "Selected prerelease version: $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Determine smoke cache key
+        id: smoke-cache-key
+        env:
+          PRERELEASE_VERSION: ${{ steps.prerelease-version.outputs.version }}
+        shell: bash
+        run: |
+          if [ -n "$PRERELEASE_VERSION" ]; then
+            suffix="$PRERELEASE_VERSION"
+          else
+            suffix="default"
+          fi
+
+          echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
 
   validate-and-pack:
     name: Validate and pack
@@ -220,11 +235,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.ARTIFACTS_PATH }}/packages
-          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}
+          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
 
   template-smoke-test:
     name: Template smoke test (${{ matrix.name }})
-    needs: smoke-pack
+    needs: [prepare-version, smoke-pack]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -316,7 +331,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.ARTIFACTS_PATH }}/packages
-          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}
+          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
           fail-on-cache-miss: true
 
       - name: Read package metadata
