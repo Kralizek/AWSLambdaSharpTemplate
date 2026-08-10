@@ -11,3 +11,5 @@ The source-neutral contexts are:
 They expose common Lambda invocation metadata through CLR properties. Source-specific integrations derive richer contexts for delivery metadata, such as `SqsMessageContext`, `SnsNotificationContext`, `DynamoDbStreamRecordContext`, and `KinesisStreamRecordContext`.
 
 The original AWS Lambda context is preserved as an escape hatch and can be retrieved with `GetLambdaContext()`. Source-specific contexts similarly preserve the original AWS record where useful, for example `GetSqsMessage()`, `GetSnsRecord()`, and `GetDynamoDbStreamRecord()`.
+
+When record processing is composed, source-specific record contexts copy the parent context properties into the inner context. This is how outer delivery metadata remains available across nested record boundaries without relying on hierarchical dependency-injection scopes. For example, an S3 handler invoked for an S3 event carried by SQS can still recover the containing SQS message through `GetSqsMessage()`.

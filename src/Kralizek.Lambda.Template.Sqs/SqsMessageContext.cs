@@ -96,9 +96,9 @@ public static class SqsMessageContextExtensions
     internal const string SqsMessagePropertyName = "Kralizek.Lambda.Template.Sqs.SqsMessage";
 
     /// <summary>
-    /// Gets the original AWS SQS message preserved in the context property bag.
+    /// Gets the original AWS SQS message preserved in this record context or one derived from it.
     /// </summary>
-    public static SQSEvent.SQSMessage GetSqsMessage(this SqsMessageContext context)
+    public static SQSEvent.SQSMessage GetSqsMessage(this RecordContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -107,6 +107,6 @@ public static class SqsMessageContextExtensions
             return message;
         }
 
-        throw new InvalidOperationException("The SQS message context does not contain an AWS SQS message.");
+        throw new InvalidOperationException("The record context does not contain an AWS SQS message.");
     }
 }
