@@ -57,7 +57,7 @@ resource "aws_lambda_permission" "sns" {
 
 `Function` derives from `SnsFunction<RawSnsRecordHandler>`. The handler receives the original SNS record, keeping the message, subject, message attributes, identifiers, and AWS metadata available directly.
 
-SNS still uses one handler invocation per record, but there is no partial-batch response protocol. An unhandled failure fails the Lambda invocation.
+SNS still uses one handler invocation per record. Under the hood, `IRecordProcessor` creates and disposes the independent scope for that record and resolves `RawSnsRecordHandler` inside it. The processor does not own SNS scheduling or failure semantics; those remain with the outer function pipeline. Because SNS has no partial-batch response protocol, an unhandled failure fails the Lambda invocation.
 
 ## Look at
 

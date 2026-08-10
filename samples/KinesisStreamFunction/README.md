@@ -70,7 +70,7 @@ KinesisEvent
 
 `Function` derives from `KinesisStreamFunction<OrderCreated, OrderCreatedHandler>`. The framework passes the record bytes through `IBinaryPayloadDecoder<OrderCreated>` before invoking the handler. The default decoder handles JSON, and applications can replace it through dependency injection.
 
-Failed `KinesisStreamRecordResult` values become `StreamsEventResponse` batch item failures using sequence numbers.
+The decoded stream record is executed through `IRecordProcessor`, which creates its independent DI scope and resolves/invokes the record handler. The Kinesis function remains responsible for sequential scheduling and translating source-specific results into `StreamsEventResponse` entries using sequence numbers.
 
 Records are deliberately processed sequentially inside one invocation. Increase concurrency through `ParallelizationFactor` on the event source mapping rather than reordering records inside the function.
 

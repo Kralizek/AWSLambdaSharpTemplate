@@ -10,8 +10,10 @@ Each sample README shows the expected Lambda input shape and how that input maps
 | --- | --- | --- |
 | A Lambda that consumes an event and returns no application response | [EventFunction](EventFunction/) | `EventFunction<TInput, THandler>`, handler DI, logging, and `EventContext` |
 | A Lambda with a typed request and response | [RequestFunction](RequestFunction/) | `RequestFunction<TInput, TOutput, THandler>` and `RequestContext` |
-| JSON messages from SQS | [SqsFunction](SqsFunction/) | typed payload decoding, per-record handlers, and partial batch failures |
+| JSON messages from SQS | [SqsFunction](SqsFunction/) | typed payload decoding, `IRecordProcessor`-backed per-record scopes, and partial batch failures |
 | SQS messages without decoding the body | [RawSqsFunction](RawSqsFunction/) | raw record handling when the AWS envelope is the application contract |
+| S3 notifications delivered through SNS → SQS with raw message delivery | [SqsRawSnsS3Function](SqsRawSnsS3Function/) | nested S3 record composition when the SQS body is the `S3Event` directly |
+| S3 notifications delivered through SNS → SQS with the SNS envelope preserved | [SqsSnsS3Function](SqsSnsS3Function/) | SNS-envelope decoding followed by nested S3 record composition |
 | JSON notifications from SNS | [SnsFunction](SnsFunction/) | typed payload decoding and SNS record handling |
 | SNS notifications without decoding the message | [RawSnsFunction](RawSnsFunction/) | raw SNS record handling |
 | A strongly typed EventBridge detail while retaining the full envelope | [EventBridgeFunction](EventBridgeFunction/) | `CloudWatchEvent<TDetail>` and EventBridge metadata |
@@ -29,6 +31,12 @@ Start with [EventFunction](EventFunction/) if the caller does not consume an app
 
 Compare [SqsFunction](SqsFunction/) with [RawSqsFunction](RawSqsFunction/), or [SnsFunction](SnsFunction/) with [RawSnsFunction](RawSnsFunction/). The decoded samples let the framework turn the message payload into an application type before invoking the handler. The raw samples keep the AWS record as the handler input when message attributes or the original envelope are central to the application logic.
 
+### Nested S3 notifications through SNS and SQS
+
+Compare [SqsRawSnsS3Function](SqsRawSnsS3Function/) with [SqsSnsS3Function](SqsSnsS3Function/). The AWS topology is the same; the SNS subscription's `raw_message_delivery` setting changes the payload shape from `SQS body → S3Event` to `SQS body → SNS envelope → Message → S3Event`.
+
+Both samples use the public `IRecordProcessor` to reuse the framework's normal S3 per-record scope and handler-activation semantics inside an outer SQS record. The processor handles one inner record at a time; the outer SQS function remains responsible for iteration-level failure translation and the AWS retry boundary.
+
 ### Queues vs streams
 
 [SqsFunction](SqsFunction/) demonstrates record-oriented processing where bounded in-process parallelism can be an explicit specialization. [DynamoDbStreamFunction](DynamoDbStreamFunction/) and [KinesisStreamFunction](KinesisStreamFunction/) deliberately process records sequentially inside an invocation; use the Lambda event source mapping to control stream concurrency while preserving ordering semantics.
@@ -41,4 +49,4 @@ The projects use project references to the packages in this repository and are p
 dotnet build
 ```
 
-Each sample also contains `aws-lambda-tools-defaults.json` with example deployment settings. Treat those values as examples and replace profile, role, region, event-source configuration, and other infrastructure settings for your environment.
+Deployment-oriented samples may also contain `aws-lambda-tools-defaults.json` with example deployment settings. Treat those values as examples and replace profile, role, region, event-source configuration, and other infrastructure settings for your environment.

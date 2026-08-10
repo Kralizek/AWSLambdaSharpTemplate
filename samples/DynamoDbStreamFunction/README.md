@@ -72,7 +72,7 @@ The Lambda definition, role, packaging, and IAM permissions are omitted. `stream
 
 `Function` derives from `DynamoDbStreamFunction<OrderChangeHandler>`. The handler receives a `DynamoDbStreamItem` projection with keys, old/new images, sequence number, stream view type, and related metadata. The original AWS stream record remains available through `DynamoDbStreamRecordContext` when needed.
 
-Failed `DynamoDbStreamRecordResult` values are translated into `StreamsEventResponse` entries using sequence numbers.
+Each stream record is executed through `IRecordProcessor`, which creates its independent DI scope and resolves/invokes the stream record handler. The surrounding DynamoDB Streams function still owns sequential scheduling, sequence-number result translation, and the final `StreamsEventResponse`; the processor does not change stream ordering or checkpoint semantics.
 
 Records are deliberately processed sequentially inside one invocation. Increase throughput with the event source mapping's `ParallelizationFactor` rather than adding in-process parallelism, so shard ordering remains an infrastructure-level choice.
 

@@ -61,7 +61,7 @@ SNSEvent
         └── OrderCreated
 ```
 
-`Function` derives from `SnsFunction<OrderCreated, OrderCreatedHandler>`. The framework decodes the notification message into `OrderCreated`, creates an independent record scope, and invokes the handler.
+`Function` derives from `SnsFunction<OrderCreated, OrderCreatedHandler>`. The framework decodes the notification message into `OrderCreated`, then delegates the record to `IRecordProcessor`, which creates the independent record scope and resolves/invokes the configured handler. Applications normally do not call the processor directly; it is the shared one-record execution primitive used by `RecordFunction` and advanced nested-record composition.
 
 Unlike SQS and stream integrations, SNS has no partial-batch response protocol. An unhandled failure therefore fails the Lambda invocation rather than returning failed item identifiers.
 
