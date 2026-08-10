@@ -10,6 +10,9 @@ Each sample README shows the expected Lambda input shape and how that input maps
 | --- | --- | --- |
 | A Lambda that consumes an event and returns no application response | [EventFunction](EventFunction/) | `EventFunction<TInput, THandler>`, handler DI, logging, and `EventContext` |
 | A Lambda with a typed request and response | [RequestFunction](RequestFunction/) | `RequestFunction<TInput, TOutput, THandler>` and `RequestContext` |
+| OpenTelemetry instrumentation for a request/response Lambda | [OpenTelemetryRequestFunction](OpenTelemetryRequestFunction/) | wrapping the inherited request handler with `AWSLambdaWrapper.TraceAsync` and exporting the invocation span |
+| OpenTelemetry instrumentation for an event Lambda | [OpenTelemetryEventFunction](OpenTelemetryEventFunction/) | the same standard AWS Lambda OpenTelemetry wrapper pattern applied to `EventFunction` |
+| OpenTelemetry instrumentation for SQS record processing | [OpenTelemetrySqsFunction](OpenTelemetrySqsFunction/) | wrapping a typed SQS record function while preserving `SQSBatchResponse` and partial batch failures |
 | JSON messages from SQS | [SqsFunction](SqsFunction/) | typed payload decoding, `IRecordProcessor`-backed per-record scopes, and partial batch failures |
 | SQS messages without decoding the body | [RawSqsFunction](RawSqsFunction/) | raw record handling when the AWS envelope is the application contract |
 | S3 notifications delivered through SNS → SQS with raw message delivery | [SqsRawSnsS3Function](SqsRawSnsS3Function/) | nested S3 record composition when the SQS body is the `S3Event` directly |
@@ -26,6 +29,10 @@ Each sample README shows the expected Lambda input shape and how that input maps
 ### Generic event vs request/response
 
 Start with [EventFunction](EventFunction/) if the caller does not consume an application response. Use [RequestFunction](RequestFunction/) when the Lambda invocation is explicitly request/response and your handler returns a value.
+
+### OpenTelemetry across function shapes
+
+Compare [OpenTelemetryRequestFunction](OpenTelemetryRequestFunction/), [OpenTelemetryEventFunction](OpenTelemetryEventFunction/), and [OpenTelemetrySqsFunction](OpenTelemetrySqsFunction/). All three use the standard `OpenTelemetry.Instrumentation.AWSLambda` wrapper around the inherited `FunctionHandlerAsync`; only the Lambda handler signature changes. The framework lifecycle remains unchanged underneath the wrapper, including SQS partial-batch-response behavior.
 
 ### Decoded vs raw messages
 
