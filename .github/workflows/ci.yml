@@ -8,6 +8,15 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
+      release_channel:
+        description: Prerelease channel to use when creating a GitHub prerelease
+        type: choice
+        required: true
+        default: alpha
+        options:
+          - alpha
+          - beta
+          - rc
       create_release:
         description: Create a GitHub prerelease and attach packages
         type: boolean
@@ -23,14 +32,80 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   CONFIGURATION: Release
   ARTIFACTS_PATH: ./artifacts
-  MinVerDefaultPreReleaseIdentifiers: ${{ github.event_name == 'workflow_dispatch' && 'alpha' || 'preview' }}
+  MinVerDefaultPreReleaseIdentifiers: preview
 
 jobs:
-  validate-and-pack:
-    name: Validate and pack
+  prepare-version:
+    name: Prepare version
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.prerelease-version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        if: github.event_name == 'workflow_dispatch' && inputs.create_release
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine prerelease version
+        if: github.event_name == 'workflow_dispatch' && inputs.create_release
+        id: prerelease-version
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          minimum_major_minor=$(sed -n 's:.*<MinVerMinimumMajorMinor>\([^<]*\)</MinVerMinimumMajorMinor>.*:\1:p' eng/Package.props | head -n 1)
+
+          if [[ ! "$minimum_major_minor" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Could not determine MinVerMinimumMajorMinor from eng/Package.props."
+            exit 1
+          fi
+
+          minimum_version="${minimum_major_minor}.0"
+          latest_stable_tag=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+
+          if [ -z "$latest_stable_tag" ]; then
+            release_base="$minimum_version"
+          else
+            latest_stable_version="${latest_stable_tag#v}"
+            IFS=. read -r stable_major stable_minor _ <<< "$latest_stable_version"
+            auto_incremented_version="${stable_major}.$((stable_minor + 1)).0"
+
+            release_base=$(printf '%s\n%s\n' "$minimum_version" "$auto_incremented_version" | sort -V | tail -n 1)
+          fi
+
+          latest_channel_tag=$(git tag -l "v${release_base}-${RELEASE_CHANNEL}.*" --sort=-version:refname | head -n 1 || true)
+
+          if [ -z "$latest_channel_tag" ]; then
+            channel_number=1
+          else
+            channel_number="${latest_channel_tag##*.}"
+
+            if [[ ! "$channel_number" =~ ^[0-9]+$ ]]; then
+              echo "Could not determine prerelease number from $latest_channel_tag."
+              exit 1
+            fi
+
+            channel_number=$((channel_number + 1))
+          fi
+
+          version="${release_base}-${RELEASE_CHANNEL}.${channel_number}"
+          echo "Selected prerelease version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  validate-and-pack:
+    name: Validate and pack
+    needs: prepare-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -75,9 +150,12 @@ jobs:
 
   smoke-pack:
     name: Pack for template smoke tests
+    needs: prepare-version
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -317,7 +395,7 @@ jobs:
 
   publish:
     name: Publish
-    needs: [validate-and-pack, template-smoke-test]
+    needs: [prepare-version, validate-and-pack, template-smoke-test]
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -396,6 +474,11 @@ jobs:
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             release_tag="v$package_version"
+
+            if [ "${{ inputs.create_release }}" = "true" ] && [ "$package_version" != "${{ needs.prepare-version.outputs.version }}" ]; then
+              echo "Packed version $package_version does not match selected prerelease version ${{ needs.prepare-version.outputs.version }}."
+              exit 1
+            fi
           else
             release_tag="${{ github.event.release.tag_name }}"
             tag_version="${release_tag#v}"
@@ -442,7 +525,7 @@ jobs:
           --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --skip-duplicate
 
-      - name: Ensure alpha GitHub prerelease exists
+      - name: Ensure GitHub prerelease exists
         if: github.event_name == 'workflow_dispatch' && inputs.create_release
         env:
           GH_TOKEN: ${{ github.token }}
