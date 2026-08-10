@@ -13,7 +13,7 @@
   "configuration": "Release",
   "framework": "net10.0",
   "function-runtime": "dotnet10",
-  "function-name": "otel-request-function-experiment",
+  "function-name": "otel-request-function",
   "function-memory-size": 256,
   "function-timeout": 30,
   "function-handler": "OpenTelemetryRequestFunction::OpenTelemetryRequestFunction.Function::FunctionHandlerAsync"
