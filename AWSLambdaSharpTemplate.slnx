@@ -5,7 +5,9 @@
     <Project Path="samples/EventBridgeFunction/EventBridgeFunction.csproj" />
     <Project Path="samples/EventFunction/EventFunction.csproj" />
     <Project Path="samples/KinesisStreamFunction/KinesisStreamFunction.csproj" />
+    <Project Path="samples/OpenTelemetryEventFunction/OpenTelemetryEventFunction.csproj" />
     <Project Path="samples/OpenTelemetryRequestFunction/OpenTelemetryRequestFunction.csproj" />
+    <Project Path="samples/OpenTelemetrySqsFunction/OpenTelemetrySqsFunction.csproj" />
     <Project Path="samples/RawSnsFunction/RawSnsFunction.csproj" />
     <Project Path="samples/RawSqsFunction/RawSqsFunction.csproj" />
     <Project Path="samples/RequestFunction/RequestFunction.csproj" />
