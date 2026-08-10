@@ -2,6 +2,8 @@
 
 The samples are intentionally small. Each one focuses on a specific part of the programming model so you can start from the problem you need to solve rather than from an AWS service list.
 
+Each sample README shows the expected Lambda input shape and how that input maps to the framework. AWS-specific samples also include a minimal Terraform sketch when the event-source topology is part of the concept. Those snippets intentionally omit general Lambda packaging, IAM, and unrelated infrastructure unless it is necessary to explain the integration.
+
 ## Which sample should I use?
 
 | If you want to demonstrate... | Start here | What it shows |
