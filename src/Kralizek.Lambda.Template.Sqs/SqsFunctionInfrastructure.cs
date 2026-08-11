@@ -50,6 +50,9 @@ public abstract class SqsFunctionBase<TRecordHandler>
         }
     }
 
+    protected override bool IsSuccessfulRecordResult(SqsRecordResult result) =>
+        result.Value is SqsRecordResult.SuccessCase;
+
     protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = results
