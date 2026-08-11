@@ -39,6 +39,13 @@
       "datatype": "string",
       "replaces": "DefaultRole",
       "defaultValue": ""
+    },
+    "otel": {
+      "type": "parameter",
+      "description": "Enable OpenTelemetry using the standard AWS Lambda instrumentation.",
+      "datatype": "bool",
+      "replaces": "EnableOpenTelemetry",
+      "defaultValue": "false"
     }
   },
   "primaryOutputs": [

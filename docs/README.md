@@ -8,6 +8,7 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 - Unsure which base type to use? Read [Choosing a Function Model](Choosing-a-Function-Model.md).
 - Migrating an existing application? Read [Migrating from v5 to v6](Migrating-from-v5-to-v6.md).
 - Composing nested record envelopes? Read [Record Processing](Record-Processing.md).
+- Adding traces and metrics? Read [OpenTelemetry](OpenTelemetry.md).
 
 ## AWS integrations
 
@@ -41,4 +42,4 @@ Then list the available templates:
 dotnet new list lambda-template
 ```
 
-Generated projects target .NET 10 and use the standard AWS Lambda .NET tooling.
+Generated projects target .NET 10 and use the standard AWS Lambda .NET tooling. Add `--otel` to any project template to generate the standard AWS Lambda OpenTelemetry wrapper and collect the framework's built-in traces and metrics.

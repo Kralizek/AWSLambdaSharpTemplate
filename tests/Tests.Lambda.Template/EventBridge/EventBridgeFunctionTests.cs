@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,6 +30,8 @@ public class EventBridgeFunctionTests
             Detail = new OrderCreated("order-123", 42.50m)
         };
 
+        using var invocation = new Activity("lambda-invocation").Start();
+
         await sut.FunctionHandlerAsync(input, lambdaContext);
 
         Assert.Multiple(() =>
@@ -39,6 +42,9 @@ public class EventBridgeFunctionTests
             Assert.That(TrackingHandler.ReceivedEvent?.DetailType, Is.EqualTo("Order Created"));
             Assert.That(TrackingHandler.ReceivedContext?.AwsRequestId, Is.EqualTo("request-id"));
             Assert.That(TrackingHandler.ReceivedContext?.GetLambdaContext(), Is.SameAs(lambdaContext));
+            Assert.That(invocation.GetTagItem("kralizek.aws.eventbridge.event_id"), Is.EqualTo("event-id"));
+            Assert.That(invocation.GetTagItem("kralizek.aws.eventbridge.source"), Is.EqualTo("com.example.orders"));
+            Assert.That(invocation.GetTagItem("kralizek.aws.eventbridge.detail_type"), Is.EqualTo("Order Created"));
         });
     }
 

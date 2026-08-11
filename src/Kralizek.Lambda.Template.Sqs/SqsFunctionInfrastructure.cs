@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +36,20 @@ public abstract class SqsFunctionBase<TRecordHandler>
     protected override IEnumerable<SQSEvent.SQSMessage> GetRecords(SQSEvent envelope) =>
         envelope.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>();
 
+    protected override void EnrichRecordActivity(Activity activity, SQSEvent.SQSMessage record, RecordContext context)
+    {
+        activity.SetTag("messaging.system", "aws_sqs");
+        activity.SetTag("messaging.operation.name", "process");
+        activity.SetTag("messaging.operation.type", "process");
+        activity.SetTag("messaging.message.id", record.MessageId);
+
+        if (!string.IsNullOrWhiteSpace(record.EventSourceArn))
+        {
+            activity.SetTag("cloud.resource_id", record.EventSourceArn);
+            activity.SetTag("messaging.destination.name", GetResourceName(record.EventSourceArn));
+        }
+    }
+
     protected override SQSBatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = results
@@ -59,6 +74,12 @@ public abstract class SqsFunctionBase<TRecordHandler>
     {
         Logger.LogError(exception, "Failed to process SQS record {MessageId}", record.MessageId);
         return ValueTask.FromResult(SqsRecordResult.Failed(exception.Message));
+    }
+
+    private static string GetResourceName(string arn)
+    {
+        var separator = arn.LastIndexOf(':');
+        return separator >= 0 && separator < arn.Length - 1 ? arn[(separator + 1)..] : arn;
     }
 }
 

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +43,7 @@ public static class S3ServiceCollectionExtensions
             S3Event.S3EventNotificationRecord,
             S3RecordResult,
             RecordContext,
-            RawS3ObjectEventHandler<THandler>>();
+            RawS3ObjectEventHandler<THandler>>(static (activity, record, _) => S3Telemetry.EnrichObjectEvent(activity, record));
 
         return services;
     }
@@ -57,6 +59,12 @@ public abstract class S3FunctionBase<TRecordHandler>
 
     protected override IEnumerable<S3Event.S3EventNotificationRecord> GetRecords(S3Event envelope) =>
         envelope.Records ?? Enumerable.Empty<S3Event.S3EventNotificationRecord>();
+
+    protected override void EnrichRecordActivity(
+        Activity activity,
+        S3Event.S3EventNotificationRecord record,
+        RecordContext context) =>
+        S3Telemetry.EnrichObjectEvent(activity, record);
 
     protected override object? CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => null;
 }
@@ -137,6 +145,9 @@ public abstract class S3BatchFunctionBase<TRecordHandler>
         return envelope.Tasks;
     }
 
+    protected override void EnrichRecordActivity(Activity activity, S3BatchTask record, RecordContext context) =>
+        S3Telemetry.EnrichBatchTask(activity, record);
+
     protected override S3BatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var first = results.FirstOrDefault();
@@ -196,5 +207,25 @@ public abstract class S3BatchFunction<THandler>
     {
         base.ConfigureFrameworkServices(services);
         services.TryAddScoped<THandler>();
+    }
+}
+
+internal static class S3Telemetry
+{
+    public static void EnrichObjectEvent(Activity activity, S3Event.S3EventNotificationRecord record)
+    {
+        activity.SetTag("aws.s3.bucket", record.S3?.Bucket?.Name);
+        activity.SetTag("aws.s3.key", record.S3?.Object?.KeyDecoded);
+        activity.SetTag("kralizek.aws.s3.event_name", record.EventName);
+        activity.SetTag("kralizek.aws.s3.sequencer", record.S3?.Object?.Sequencer);
+        activity.SetTag("cloud.region", record.AwsRegion);
+    }
+
+    public static void EnrichBatchTask(Activity activity, S3BatchTask task)
+    {
+        activity.SetTag("aws.s3.bucket", task.S3Bucket);
+        activity.SetTag("aws.s3.key", task.S3Key is null ? null : WebUtility.UrlDecode(task.S3Key));
+        activity.SetTag("kralizek.aws.s3.version_id", task.S3VersionId);
+        activity.SetTag("kralizek.aws.s3.batch.task_id", task.TaskId);
     }
 }

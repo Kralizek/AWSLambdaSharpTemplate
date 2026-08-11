@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +34,26 @@ public abstract class SnsFunctionBase<TRecordHandler>
 
     protected override IEnumerable<SNSEvent.SNSRecord> GetRecords(SNSEvent envelope) =>
         envelope.Records ?? Enumerable.Empty<SNSEvent.SNSRecord>();
+
+    protected override void EnrichRecordActivity(Activity activity, SNSEvent.SNSRecord record, RecordContext context)
+    {
+        activity.SetTag("messaging.system", "aws.sns");
+        activity.SetTag("messaging.operation.name", "process");
+        activity.SetTag("messaging.operation.type", "process");
+        activity.SetTag("messaging.message.id", record.Sns?.MessageId);
+
+        var topicArn = record.Sns?.TopicArn;
+        if (!string.IsNullOrWhiteSpace(topicArn))
+        {
+            activity.SetTag("aws.sns.topic.arn", topicArn);
+            activity.SetTag("messaging.destination.name", topicArn[(topicArn.LastIndexOf(':') + 1)..]);
+        }
+
+        if (!string.IsNullOrWhiteSpace(record.EventSubscriptionArn))
+        {
+            activity.SetTag("cloud.resource_id", record.EventSubscriptionArn);
+        }
+    }
 
     protected override object? CreateResponse(IReadOnlyCollection<RecordProcessingResult> results) => null;
 }

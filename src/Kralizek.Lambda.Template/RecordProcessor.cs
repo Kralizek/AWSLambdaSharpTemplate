@@ -1,4 +1,6 @@
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,14 +23,30 @@ public static class RecordProcessorServiceCollectionExtensions
 #pragma warning restore S2436
         where TRecordResult : LambdaRecordResult
         where TContext : RecordContext
+        where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext> =>
+        AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(services, null);
+
+    /// <summary>
+    /// Registers a record handler together with a processor and a source-owned activity enricher.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+#pragma warning disable S2436 // The generic roles mirror the record-processing model.
+    public static IServiceCollection AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
+#pragma warning restore S2436
+        this IServiceCollection services,
+        Action<Activity, TRecord, TContext>? enrichActivity)
+        where TRecordResult : LambdaRecordResult
+        where TContext : RecordContext
         where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
     {
         ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddScoped<THandler>();
-        services.TryAddSingleton<
-            IRecordProcessor<TRecord, TRecordResult, TContext>,
-            RecordProcessor<TRecord, TRecordResult, TContext, THandler>>();
+        services.TryAddSingleton<IRecordProcessor<TRecord, TRecordResult, TContext>>(serviceProvider =>
+            new RecordProcessor<TRecord, TRecordResult, TContext, THandler>(
+                serviceProvider.GetRequiredService<IServiceScopeFactory>(),
+                serviceProvider.GetRequiredService<ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>>>(),
+                enrichActivity));
 
         return services;
     }
@@ -44,13 +62,16 @@ internal sealed class RecordProcessor<TRecord, TRecordResult, TContext, THandler
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>> _logger;
+    private readonly Action<Activity, TRecord, TContext>? _enrichActivity;
 
     public RecordProcessor(
         IServiceScopeFactory scopeFactory,
-        ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>> logger)
+        ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>> logger,
+        Action<Activity, TRecord, TContext>? enrichActivity = null)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _enrichActivity = enrichActivity;
     }
 
     public async ValueTask<TRecordResult> ProcessAsync(
@@ -60,14 +81,39 @@ internal sealed class RecordProcessor<TRecord, TRecordResult, TContext, THandler
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await using var recordScope = _scopeFactory.CreateAsyncScope();
-        var handler = recordScope.ServiceProvider.GetRequiredService<THandler>();
+        using var activity = LambdaTelemetry.StartRecordActivity();
+        if (activity is not null)
+        {
+            _enrichActivity?.Invoke(activity, record, context);
+        }
 
-        _logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
+        var startedAt = Stopwatch.GetTimestamp();
 
-        var result = await handler.HandleAsync(record, context, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var recordScope = _scopeFactory.CreateAsyncScope();
+            var handler = recordScope.ServiceProvider.GetRequiredService<THandler>();
 
-        return result ?? throw new InvalidOperationException(
-            $"Record handler {typeof(THandler).Name} returned a null result.");
+            _logger.LogDebug("Invoking handler {Handler}", typeof(THandler).Name);
+
+            var result = await handler.HandleAsync(record, context, cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException(
+                    $"Record handler {typeof(THandler).Name} returned a null result.");
+
+            LambdaTelemetry.RecordProcessed("success", Stopwatch.GetElapsedTime(startedAt));
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, "canceled");
+            LambdaTelemetry.RecordProcessed("canceled", Stopwatch.GetElapsedTime(startedAt));
+            throw;
+        }
+        catch (Exception exception)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
+            LambdaTelemetry.RecordProcessed("error", Stopwatch.GetElapsedTime(startedAt));
+            throw;
+        }
     }
 }

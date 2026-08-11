@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +34,19 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
 
     protected override IEnumerable<DynamoDBEvent.DynamodbStreamRecord> GetRecords(DynamoDBEvent envelope) =>
         envelope.Records ?? Enumerable.Empty<DynamoDBEvent.DynamodbStreamRecord>();
+
+    protected override void EnrichRecordActivity(Activity activity, DynamoDBEvent.DynamodbStreamRecord record, RecordContext context)
+    {
+        activity.SetTag("kralizek.aws.dynamodb.stream.event_id", record.EventID);
+        activity.SetTag("kralizek.aws.dynamodb.stream.event_name", record.EventName);
+        activity.SetTag("kralizek.aws.dynamodb.stream.sequence_number", record.Dynamodb?.SequenceNumber);
+
+        if (!string.IsNullOrWhiteSpace(record.EventSourceArn))
+        {
+            activity.SetTag("cloud.resource_id", record.EventSourceArn);
+            activity.SetTag("kralizek.aws.dynamodb.stream.arn", record.EventSourceArn);
+        }
+    }
 
     protected override StreamsEventResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {

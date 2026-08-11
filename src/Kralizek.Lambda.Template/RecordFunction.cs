@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,14 +30,16 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>();
+        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(EnrichRecordActivity);
     }
 
     /// <summary>
     /// The entry point called by the Lambda runtime.
     /// </summary>
-    public async Task<TResponse> FunctionHandlerAsync(TEnvelope envelope, ILambdaContext lambdaContext)
+    public virtual async Task<TResponse> FunctionHandlerAsync(TEnvelope envelope, ILambdaContext lambdaContext)
     {
+        LambdaTelemetry.EnrichInvocation("record");
+
         using var cts = CreateCancellationTokenSource(lambdaContext);
         var context = CreateRecordContext(envelope, lambdaContext);
 
@@ -60,6 +63,17 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     /// Extracts the individual records from the envelope.
     /// </summary>
     protected abstract IEnumerable<TRecord> GetRecords(TEnvelope envelope);
+
+    /// <summary>
+    /// Adds source-specific transport or event metadata to the activity for one record.
+    /// </summary>
+    /// <remarks>
+    /// Implementations should keep business-specific telemetry in application-owned activities and meters.
+    /// High-cardinality record identifiers belong on activities and must not be copied to framework metric tags.
+    /// </remarks>
+    protected virtual void EnrichRecordActivity(Activity activity, TRecord record, TContext context)
+    {
+    }
 
     /// <summary>
     /// Creates the final source-specific response from the processed records and their results.
