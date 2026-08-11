@@ -411,16 +411,6 @@ jobs:
         shell: bash
         run: |
           local_feed=$(realpath $ARTIFACTS_PATH/packages)
-
-          if [ "${{ matrix.otel }}" = "true" ]; then
-            otel_package_mappings='                <package pattern="OpenTelemetry" />
-                <package pattern="OpenTelemetry.*" />
-                <package pattern="Grpc.*" />
-                <package pattern="Google.Protobuf" />'
-          else
-            otel_package_mappings=''
-          fi
-
           cat > "$RUNNER_TEMP/lambda-template-smoke/NuGet.config" <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
@@ -434,13 +424,7 @@ jobs:
                 <package pattern="Kralizek.Lambda.*" />
               </packageSource>
               <packageSource key="nuget.org">
-                <package pattern="Amazon.*" />
-                <package pattern="AWSSDK.*" />
-                <package pattern="Microsoft.*" />
-          $otel_package_mappings
-                <package pattern="System.*" />
-                <package pattern="runtime.*" />
-                <package pattern="NETStandard.Library" />
+                <package pattern="*" />
               </packageSource>
             </packageSourceMapping>
           </configuration>
