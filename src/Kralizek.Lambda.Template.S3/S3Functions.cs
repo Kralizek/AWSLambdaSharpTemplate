@@ -199,7 +199,7 @@ public abstract class S3BatchFunctionBase<TRecordHandler>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RawS3BatchItemHandler<THandler>
     : IRecordHandler<S3BatchTask, S3BatchResult, RecordContext>
-    where THandler : class, IRecordHandler<S3BatchTask, S3BatchResult, RecordContext>
+    where THandler : class, IS3BatchItemHandler
 {
     private readonly THandler _handler;
 
@@ -210,7 +210,10 @@ public sealed class RawS3BatchItemHandler<THandler>
         S3BatchTask record,
         RecordContext context,
         CancellationToken cancellationToken) =>
-        _handler.HandleAsync(record, context, cancellationToken);
+        _handler.HandleAsync(
+            S3BatchItem.Create(record),
+            S3BatchContext.Create(context, record),
+            cancellationToken);
 }
 
 public abstract class S3BatchFunction<THandler>
