@@ -42,6 +42,8 @@ Each record-oriented AWS source package enriches the record activity with transp
 
 Source packages also interpret their handler result types. A handler that returns a source-defined failure result marks the record span as `Error` even though the handler completed normally. This is distinct from a handler exception. SQS, Kinesis Streams, and DynamoDB Streams map their failure result cases this way. S3 Batch treats temporary and permanent failures as failed spans and also adds `kralizek.aws.s3.batch.result` with a bounded value describing the result case.
 
+A handled record failure does not mark the parent Lambda invocation span as `Error`. For partial-batch sources such as SQS, Kinesis Streams, and DynamoDB Streams, successfully producing the source-specific response means the invocation completed correctly even when one or more record spans report failure. The invocation span is reserved for failures of the invocation itself.
+
 High-cardinality record identifiers belong on spans only. Framework metrics intentionally do not copy message IDs, object keys, sequence numbers, partition keys, resource ARNs, user names, failure messages, or similar values into metric tags.
 
 Business-specific telemetry is application-owned. Handlers should create their own activities and meters for domain concepts rather than extending framework source metadata with business identifiers.
