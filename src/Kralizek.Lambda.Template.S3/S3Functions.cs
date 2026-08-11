@@ -43,7 +43,10 @@ public static class S3ServiceCollectionExtensions
             S3Event.S3EventNotificationRecord,
             S3RecordResult,
             RecordContext,
-            RawS3ObjectEventHandler<THandler>>(static (activity, record, _) => S3Telemetry.EnrichObjectEvent(activity, record));
+            RawS3ObjectEventHandler<THandler>>(
+                static (activity, record, _) => S3Telemetry.EnrichObjectEvent(activity, record),
+                null,
+                null);
 
         return services;
     }
@@ -148,6 +151,20 @@ public abstract class S3BatchFunctionBase<TRecordHandler>
     protected override void EnrichRecordActivity(Activity activity, S3BatchTask record, RecordContext context) =>
         S3Telemetry.EnrichBatchTask(activity, record);
 
+    protected override bool IsSuccessfulRecordResult(S3BatchResult result) =>
+        result.Value is S3BatchResult.SucceededCase;
+
+    protected override void EnrichRecordResultActivity(Activity activity, S3BatchResult result) =>
+        activity.SetTag(
+            "kralizek.aws.s3.batch.result",
+            result.Value switch
+            {
+                S3BatchResult.SucceededCase => "succeeded",
+                S3BatchResult.TemporaryFailureCase => "temporary_failure",
+                S3BatchResult.PermanentFailureCase => "permanent_failure",
+                _ => "unknown"
+            });
+
     protected override S3BatchResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var first = results.FirstOrDefault();
@@ -182,7 +199,7 @@ public abstract class S3BatchFunctionBase<TRecordHandler>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RawS3BatchItemHandler<THandler>
     : IRecordHandler<S3BatchTask, S3BatchResult, RecordContext>
-    where THandler : class, IS3BatchItemHandler
+    where THandler : class, IRecordHandler<S3BatchTask, S3BatchResult, RecordContext>
 {
     private readonly THandler _handler;
 
@@ -193,10 +210,7 @@ public sealed class RawS3BatchItemHandler<THandler>
         S3BatchTask record,
         RecordContext context,
         CancellationToken cancellationToken) =>
-        _handler.HandleAsync(
-            S3BatchItem.Create(record),
-            S3BatchContext.Create(context, record),
-            cancellationToken);
+        _handler.HandleAsync(record, context, cancellationToken);
 }
 
 public abstract class S3BatchFunction<THandler>
