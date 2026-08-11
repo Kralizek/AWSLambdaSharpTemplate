@@ -24,17 +24,19 @@ public static class RecordProcessorServiceCollectionExtensions
         where TRecordResult : LambdaRecordResult
         where TContext : RecordContext
         where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext> =>
-        AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(services, null);
+        AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(services, null, null, null);
 
     /// <summary>
-    /// Registers a record handler together with a processor and a source-owned activity enricher.
+    /// Registers a record handler together with a processor and source-owned telemetry callbacks.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
 #pragma warning disable S2436 // The generic roles mirror the record-processing model.
     public static IServiceCollection AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
 #pragma warning restore S2436
         this IServiceCollection services,
-        Action<Activity, TRecord, TContext>? enrichActivity)
+        Action<Activity, TRecord, TContext>? enrichActivity,
+        Func<TRecordResult, bool>? isSuccessfulResult,
+        Action<Activity, TRecordResult>? enrichResultActivity)
         where TRecordResult : LambdaRecordResult
         where TContext : RecordContext
         where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
@@ -46,7 +48,9 @@ public static class RecordProcessorServiceCollectionExtensions
             new RecordProcessor<TRecord, TRecordResult, TContext, THandler>(
                 serviceProvider.GetRequiredService<IServiceScopeFactory>(),
                 serviceProvider.GetRequiredService<ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>>>(),
-                enrichActivity));
+                enrichActivity,
+                isSuccessfulResult,
+                enrichResultActivity));
 
         return services;
     }
@@ -63,15 +67,21 @@ internal sealed class RecordProcessor<TRecord, TRecordResult, TContext, THandler
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>> _logger;
     private readonly Action<Activity, TRecord, TContext>? _enrichActivity;
+    private readonly Func<TRecordResult, bool>? _isSuccessfulResult;
+    private readonly Action<Activity, TRecordResult>? _enrichResultActivity;
 
     public RecordProcessor(
         IServiceScopeFactory scopeFactory,
         ILogger<RecordProcessor<TRecord, TRecordResult, TContext, THandler>> logger,
-        Action<Activity, TRecord, TContext>? enrichActivity = null)
+        Action<Activity, TRecord, TContext>? enrichActivity = null,
+        Func<TRecordResult, bool>? isSuccessfulResult = null,
+        Action<Activity, TRecordResult>? enrichResultActivity = null)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _enrichActivity = enrichActivity;
+        _isSuccessfulResult = isSuccessfulResult;
+        _enrichResultActivity = enrichResultActivity;
     }
 
     public async ValueTask<TRecordResult> ProcessAsync(
@@ -100,7 +110,22 @@ internal sealed class RecordProcessor<TRecord, TRecordResult, TContext, THandler
                 ?? throw new InvalidOperationException(
                     $"Record handler {typeof(THandler).Name} returned a null result.");
 
-            LambdaTelemetry.RecordProcessed("success", Stopwatch.GetElapsedTime(startedAt));
+            var isSuccessful = _isSuccessfulResult?.Invoke(result) ?? true;
+
+            if (activity is not null)
+            {
+                _enrichResultActivity?.Invoke(activity, result);
+
+                if (!isSuccessful)
+                {
+                    activity.SetStatus(ActivityStatusCode.Error);
+                }
+            }
+
+            LambdaTelemetry.RecordProcessed(
+                isSuccessful ? "success" : "failure",
+                Stopwatch.GetElapsedTime(startedAt));
+
             return result;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
