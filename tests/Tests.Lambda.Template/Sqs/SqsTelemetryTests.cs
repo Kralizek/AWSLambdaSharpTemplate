@@ -18,7 +18,7 @@ namespace Tests.Lambda.Sqs;
 public class SqsTelemetryTests
 {
     [Test]
-    public async Task Failed_result_marks_record_activity_as_error_and_records_failure_metric()
+    public async Task Partial_batch_failure_marks_only_failed_record_and_preserves_invocation_status()
     {
         var activities = new ConcurrentBag<Activity>();
         var measurements = new ConcurrentBag<(long Value, string? Outcome)>();
@@ -50,40 +50,53 @@ public class SqsTelemetryTests
         meterListener.Start();
 
         using var invocation = new Activity("lambda-invocation").Start();
-        var sut = new FailedSqsFunction();
+        var sut = new PartialFailureSqsFunction();
         var input = new SQSEvent
         {
             Records = new List<SQSEvent.SQSMessage>
             {
+                new() { MessageId = "first" },
                 new()
                 {
                     MessageId = "failed-message",
                     EventSourceArn = "arn:aws:sqs:eu-north-1:123456789012:orders"
-                }
+                },
+                new() { MessageId = "third" }
             }
         };
 
         var response = await sut.FunctionHandlerAsync(input, TestLambdaContexts.Create());
 
-        var recordActivity = activities.Single(activity => activity.DisplayName == "record.process");
+        var recordActivities = activities
+            .Where(activity => activity.DisplayName == "record.process")
+            .ToArray();
 
         Assert.Multiple(() =>
         {
-            Assert.That(recordActivity.Status, Is.EqualTo(ActivityStatusCode.Error));
-            Assert.That(recordActivity.GetTagItem("messaging.message.id"), Is.EqualTo("failed-message"));
+            Assert.That(recordActivities, Has.Length.EqualTo(3));
+            Assert.That(recordActivities.Count(activity => activity.Status == ActivityStatusCode.Error), Is.EqualTo(1));
+            Assert.That(
+                recordActivities.Single(activity => activity.Status == ActivityStatusCode.Error)
+                    .GetTagItem("messaging.message.id"),
+                Is.EqualTo("failed-message"));
+            Assert.That(invocation.Status, Is.Not.EqualTo(ActivityStatusCode.Error));
             Assert.That(response.BatchItemFailures.Single().ItemIdentifier, Is.EqualTo("failed-message"));
-            Assert.That(measurements, Does.Contain((1L, "failure")));
+            Assert.That(measurements.Count(measurement => measurement == (1L, "success")), Is.EqualTo(2));
+            Assert.That(measurements.Count(measurement => measurement == (1L, "failure")), Is.EqualTo(1));
         });
     }
 
-    private sealed class FailedSqsFunction : SqsFunction<FailedSqsHandler>;
+    private sealed class PartialFailureSqsFunction : SqsFunction<PartialFailureSqsHandler>;
 
-    private sealed class FailedSqsHandler : ISqsRecordHandler
+    private sealed class PartialFailureSqsHandler : ISqsRecordHandler
     {
         public ValueTask<SqsRecordResult> HandleAsync(
             SQSEvent.SQSMessage record,
             SqsMessageContext context,
             CancellationToken cancellationToken) =>
-            ValueTask.FromResult(SqsRecordResult.Failed("expected test failure"));
+            ValueTask.FromResult(
+                record.MessageId == "failed-message"
+                    ? SqsRecordResult.Failed("expected test failure")
+                    : SqsRecordResult.Success);
     }
 }
