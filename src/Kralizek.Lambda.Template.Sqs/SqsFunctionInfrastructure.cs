@@ -38,7 +38,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
 
     protected override void EnrichRecordActivity(Activity activity, SQSEvent.SQSMessage record, RecordContext context)
     {
-        activity.SetTag("messaging.system", "aws_sqs");
+        activity.SetTag("messaging.system", "aws.sqs");
         activity.SetTag("messaging.operation.name", "process");
         activity.SetTag("messaging.operation.type", "process");
         activity.SetTag("messaging.message.id", record.MessageId);
