@@ -30,7 +30,10 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(EnrichRecordActivity);
+        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
+            EnrichRecordActivity,
+            IsSuccessfulRecordResult,
+            EnrichRecordResultActivity);
     }
 
     /// <summary>
@@ -72,6 +75,26 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     /// High-cardinality record identifiers belong on activities and must not be copied to framework metric tags.
     /// </remarks>
     protected virtual void EnrichRecordActivity(Activity activity, TRecord record, TContext context)
+    {
+    }
+
+    /// <summary>
+    /// Determines whether a source-specific record result represents successful processing.
+    /// </summary>
+    /// <remarks>
+    /// Returning <see langword="false"/> marks the record activity as failed and records the low-cardinality
+    /// framework metric outcome as <c>failure</c>. Exceptions remain a distinct <c>error</c> outcome.
+    /// </remarks>
+    protected virtual bool IsSuccessfulRecordResult(TRecordResult result) => true;
+
+    /// <summary>
+    /// Adds source-specific result metadata to the activity after a record handler returns.
+    /// </summary>
+    /// <remarks>
+    /// Result metadata should use bounded values. Application-provided failure messages or other arbitrary text
+    /// should not be copied to framework telemetry.
+    /// </remarks>
+    protected virtual void EnrichRecordResultActivity(Activity activity, TRecordResult result)
     {
     }
 
