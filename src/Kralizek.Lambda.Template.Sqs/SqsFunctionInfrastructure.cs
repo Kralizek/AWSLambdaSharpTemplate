@@ -38,14 +38,14 @@ public abstract class SqsFunctionBase<TRecordHandler>
 
     protected override void EnrichRecordActivity(Activity activity, SQSEvent.SQSMessage record, RecordContext context)
     {
-        activity.SetTag("messaging.system", "aws.sqs");
+        activity.SetTag("messaging.system", "aws_sqs");
         activity.SetTag("messaging.operation.name", "process");
         activity.SetTag("messaging.operation.type", "process");
         activity.SetTag("messaging.message.id", record.MessageId);
 
         if (!string.IsNullOrWhiteSpace(record.EventSourceArn))
         {
-            activity.SetTag("cloud.resource_id", record.EventSourceArn);
+            activity.SetTag("kralizek.aws.sqs.queue.arn", record.EventSourceArn);
             activity.SetTag("messaging.destination.name", GetResourceName(record.EventSourceArn));
         }
     }
