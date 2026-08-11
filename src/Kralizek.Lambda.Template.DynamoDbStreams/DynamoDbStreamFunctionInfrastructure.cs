@@ -43,7 +43,6 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
 
         if (!string.IsNullOrWhiteSpace(record.EventSourceArn))
         {
-            activity.SetTag("cloud.resource_id", record.EventSourceArn);
             activity.SetTag("kralizek.aws.dynamodb.stream.arn", record.EventSourceArn);
         }
     }
