@@ -121,6 +121,7 @@ jobs:
                 <package pattern="Amazon.*" />
                 <package pattern="AWSSDK.*" />
                 <package pattern="Microsoft.*" />
+                <package pattern="OpenTelemetry" />
                 <package pattern="OpenTelemetry.*" />
                 <package pattern="Grpc.*" />
                 <package pattern="Google.Protobuf" />
