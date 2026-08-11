@@ -40,11 +40,13 @@ Nested processing through `IRecordProcessor` naturally creates deeper child acti
 
 Each record-oriented AWS source package enriches the record activity with transport- or event-specific metadata that it owns. Examples include SQS and SNS message identifiers, Kinesis sequence and partition information, DynamoDB Streams event metadata, and S3 bucket/object identifiers. Where OpenTelemetry defines a matching semantic convention, the source package uses that attribute name. Framework-specific attributes use the `kralizek.aws.*` namespace instead of claiming a standard `aws.*` attribute name.
 
-High-cardinality record identifiers belong on spans only. Framework metrics intentionally do not copy message IDs, object keys, sequence numbers, partition keys, resource ARNs, user names, or similar values into metric tags.
+Source packages also interpret their handler result types. A handler that returns a source-defined failure result marks the record span as `Error` even though the handler completed normally. This is distinct from a handler exception. SQS, Kinesis Streams, and DynamoDB Streams map their failure result cases this way. S3 Batch treats temporary and permanent failures as failed spans and also adds `kralizek.aws.s3.batch.result` with a bounded value describing the result case.
+
+High-cardinality record identifiers belong on spans only. Framework metrics intentionally do not copy message IDs, object keys, sequence numbers, partition keys, resource ARNs, user names, failure messages, or similar values into metric tags.
 
 Business-specific telemetry is application-owned. Handlers should create their own activities and meters for domain concepts rather than extending framework source metadata with business identifiers.
 
-Record activities are marked as errors when record processing throws or is canceled.
+Record activities are marked as errors when record processing throws, is canceled, or returns a source-defined failure result.
 
 ## Metrics
 
@@ -56,7 +58,14 @@ The shared meter currently emits:
 | `kralizek.lambda.records` | Counter | `{record}` | Processed records, tagged by outcome |
 | `kralizek.lambda.record.duration` | Histogram | `s` | Per-record processing duration, tagged by outcome |
 
-Record outcomes are `success`, `error`, or `canceled`.
+Record outcomes are:
+
+- `success`: the handler returned a source-defined successful result;
+- `failure`: the handler returned a source-defined failure result without throwing;
+- `error`: record processing threw an exception;
+- `canceled`: invocation cancellation interrupted record processing.
+
+Keeping `failure` separate from `error` distinguishes expected transport-level failure signaling from unexpected exceptions while retaining a bounded metric dimension.
 
 ## Generate a function with OpenTelemetry enabled
 
