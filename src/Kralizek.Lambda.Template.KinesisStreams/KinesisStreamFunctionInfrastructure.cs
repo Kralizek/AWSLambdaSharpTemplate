@@ -34,13 +34,15 @@ public abstract class KinesisStreamFunctionBase<TRecordHandler>
 
     protected override void EnrichRecordActivity(Activity activity, KinesisEvent.KinesisEventRecord record, RecordContext context)
     {
-        activity.SetTag("messaging.system", "aws_kinesis");
-        activity.SetTag("messaging.operation.name", "process");
-        activity.SetTag("messaging.operation.type", "process");
-        activity.SetTag("messaging.message.id", record.Kinesis?.SequenceNumber);
         activity.SetTag("kralizek.aws.kinesis.event_id", record.EventId);
         activity.SetTag("kralizek.aws.kinesis.sequence_number", record.Kinesis?.SequenceNumber);
         activity.SetTag("kralizek.aws.kinesis.partition_key", record.Kinesis?.PartitionKey);
+
+        if (!string.IsNullOrWhiteSpace(record.EventSourceArn))
+        {
+            activity.SetTag("aws.kinesis.stream_name", GetResourceName(record.EventSourceArn));
+            activity.SetTag("kralizek.aws.kinesis.stream.arn", record.EventSourceArn);
+        }
     }
 
     protected override bool IsSuccessfulRecordResult(KinesisStreamRecordResult result) =>
@@ -84,6 +86,12 @@ public abstract class KinesisStreamFunctionBase<TRecordHandler>
             record.Kinesis?.SequenceNumber);
 
         return ValueTask.FromResult(KinesisStreamRecordResult.Failed(exception.Message));
+    }
+
+    private static string GetResourceName(string arn)
+    {
+        var separator = arn.LastIndexOf('/');
+        return separator >= 0 && separator < arn.Length - 1 ? arn[(separator + 1)..] : arn;
     }
 }
 
