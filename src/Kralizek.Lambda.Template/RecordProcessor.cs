@@ -109,9 +109,9 @@ internal sealed class RecordProcessor<TRecord, TRecordResult, TContext, THandler
             LambdaTelemetry.RecordProcessed("canceled", Stopwatch.GetElapsedTime(startedAt));
             throw;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             LambdaTelemetry.RecordProcessed("error", Stopwatch.GetElapsedTime(startedAt));
             throw;
         }
