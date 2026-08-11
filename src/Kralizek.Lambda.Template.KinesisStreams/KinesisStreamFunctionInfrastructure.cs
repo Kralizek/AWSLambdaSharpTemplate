@@ -43,6 +43,9 @@ public abstract class KinesisStreamFunctionBase<TRecordHandler>
         activity.SetTag("kralizek.aws.kinesis.partition_key", record.Kinesis?.PartitionKey);
     }
 
+    protected override bool IsSuccessfulRecordResult(KinesisStreamRecordResult result) =>
+        result.Value is KinesisStreamRecordResult.SuccessCase;
+
     protected override StreamsEventResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = new List<StreamsEventResponse.BatchItemFailure>();
