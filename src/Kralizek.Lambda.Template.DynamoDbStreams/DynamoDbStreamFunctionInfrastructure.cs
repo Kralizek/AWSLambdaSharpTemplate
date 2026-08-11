@@ -48,6 +48,9 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
         }
     }
 
+    protected override bool IsSuccessfulRecordResult(DynamoDbStreamRecordResult result) =>
+        result.Value is DynamoDbStreamRecordResult.SuccessCase;
+
     protected override StreamsEventResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {
         var failures = new List<StreamsEventResponse.BatchItemFailure>();
