@@ -51,7 +51,7 @@ public abstract class SnsFunctionBase<TRecordHandler>
 
         if (!string.IsNullOrWhiteSpace(record.EventSubscriptionArn))
         {
-            activity.SetTag("cloud.resource_id", record.EventSubscriptionArn);
+            activity.SetTag("kralizek.aws.sns.subscription.arn", record.EventSubscriptionArn);
         }
     }
 
