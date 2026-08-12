@@ -201,8 +201,25 @@ public sealed class PreSignUpHandler : ICognitoPreSignUpHandler
 
 Cognito trigger bases specialize the request-function model with the corresponding AWS event contract. Pre-token-generation V1 and V2 use separate strongly typed runtime bases; the template's `--version` option selects the appropriate one.
 
+## Package family
+
+`Kralizek.Lambda.Templates` is the easiest entry point when starting a new Lambda function. The generated project references the runtime package appropriate for the selected template.
+
+| Package | Purpose |
+| --- | --- |
+| [`Kralizek.Lambda.Templates`](https://www.nuget.org/packages/Kralizek.Lambda.Templates) | `dotnet new` templates for the supported Lambda function models and AWS event sources. |
+| [`Kralizek.Lambda.Template.Abstractions`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Abstractions) | Runtime-independent handler contracts, contexts, record results and payload-decoder abstractions. |
+| [`Kralizek.Lambda.Template`](https://www.nuget.org/packages/Kralizek.Lambda.Template) | Core Lambda runtime, including Event, Request and Record function models, lifecycle, dependency injection and framework telemetry. |
+| [`Kralizek.Lambda.Template.Cognito`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Cognito) | Cognito User Pool trigger specializations and handler contracts. |
+| [`Kralizek.Lambda.Template.DynamoDbStreams`](https://www.nuget.org/packages/Kralizek.Lambda.Template.DynamoDbStreams) | DynamoDB Streams record processing and partial-batch response support. |
+| [`Kralizek.Lambda.Template.EventBridge`](https://www.nuget.org/packages/Kralizek.Lambda.Template.EventBridge) | EventBridge event-envelope specialization and source-specific context. |
+| [`Kralizek.Lambda.Template.KinesisStreams`](https://www.nuget.org/packages/Kralizek.Lambda.Template.KinesisStreams) | Kinesis Streams record processing, payload decoding and checkpoint/partial-batch behavior. |
+| [`Kralizek.Lambda.Template.S3`](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | Native S3 event notifications and S3 Batch Operations. |
+| [`Kralizek.Lambda.Template.Sns`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | SNS notification processing and payload decoding. |
+| [`Kralizek.Lambda.Template.Sqs`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | SQS message processing, payload decoding and partial-batch response support. |
+
 ## Package compatibility
 
-`Kralizek.Lambda.Templates`, `Kralizek.Lambda.Template`, and source-specific packages such as `Kralizek.Lambda.Template.Cognito`, `Kralizek.Lambda.Template.DynamoDbStreams`, `Kralizek.Lambda.Template.EventBridge`, `Kralizek.Lambda.Template.S3`, `Kralizek.Lambda.Template.Sns`, and `Kralizek.Lambda.Template.Sqs` use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
+The template package and all runtime packages use the same package version for a given release. A generated project therefore targets the exact runtime version that corresponds to the installed template package.
 
-For the runtime programming model and API documentation, see the `Kralizek.Lambda.Template` package.
+For most applications, install `Kralizek.Lambda.Templates` and let the selected template choose the runtime package. Reference individual runtime packages directly when building a function without the templates or when sharing application code against the abstractions package.
