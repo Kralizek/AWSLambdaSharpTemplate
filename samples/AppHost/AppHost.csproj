@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);ASPIRE004</NoWarn>
   </PropertyGroup>
 
