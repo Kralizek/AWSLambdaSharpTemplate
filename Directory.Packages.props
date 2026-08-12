@@ -18,6 +18,8 @@
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
     <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.2.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Hosting.AWS" Version="13.6.0" />
     <PackageVersion Include="DotNet.ReproducibleBuilds" Version="2.0.5" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
