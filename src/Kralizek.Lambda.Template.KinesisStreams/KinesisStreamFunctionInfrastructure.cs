@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,16 @@ public abstract class KinesisStreamFunctionBase<TRecordHandler>
 
     protected override IEnumerable<KinesisEvent.KinesisEventRecord> GetRecords(KinesisEvent envelope) =>
         envelope.Records ?? Enumerable.Empty<KinesisEvent.KinesisEventRecord>();
+
+    protected override void EnrichRecordActivity(Activity activity, KinesisEvent.KinesisEventRecord record, RecordContext context)
+    {
+        activity.SetTag("kralizek.aws.kinesis.event_id", record.EventId);
+        activity.SetTag("kralizek.aws.kinesis.sequence_number", record.Kinesis?.SequenceNumber);
+        activity.SetTag("kralizek.aws.kinesis.partition_key", record.Kinesis?.PartitionKey);
+    }
+
+    protected override bool IsSuccessfulRecordResult(KinesisStreamRecordResult result) =>
+        result.Value is KinesisStreamRecordResult.SuccessCase;
 
     protected override StreamsEventResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results)
     {

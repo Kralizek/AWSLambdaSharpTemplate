@@ -250,71 +250,101 @@ jobs:
           - name: Event
             short-name: lambda-template-event
             project-name: SmokeEvent
+            otel: false
+          - name: Event (OpenTelemetry)
+            short-name: lambda-template-event
+            project-name: SmokeEventOtel
+            otel: true
           - name: Request
             short-name: lambda-template-request
             project-name: SmokeRequest
+            otel: false
+          - name: Request (OpenTelemetry)
+            short-name: lambda-template-request
+            project-name: SmokeRequestOtel
+            otel: true
           - name: EventBridge
             short-name: lambda-template-eventbridge
             project-name: SmokeEventBridge
+            otel: false
           - name: DynamoDB Streams
             short-name: lambda-template-dynamodb-stream
             project-name: SmokeDynamoDbStream
+            otel: false
           - name: Kinesis Streams
             short-name: lambda-template-kinesis-stream
             project-name: SmokeKinesisStream
+            otel: false
           - name: S3
             short-name: lambda-template-s3
             project-name: SmokeS3
+            otel: false
           - name: S3 Batch
             short-name: lambda-template-s3-batch
             project-name: SmokeS3Batch
+            otel: false
           - name: SNS
             short-name: lambda-template-sns
             project-name: SmokeSns
+            otel: false
           - name: SQS
             short-name: lambda-template-sqs
             project-name: SmokeSqs
+            otel: false
           - name: Cognito Pre Sign-up
             short-name: lambda-template-cognito-pre-signup
             project-name: SmokeCognitoPreSignUp
+            otel: false
           - name: Cognito Post Confirmation
             short-name: lambda-template-cognito-post-confirmation
             project-name: SmokeCognitoPostConfirmation
+            otel: false
           - name: Cognito Pre Authentication
             short-name: lambda-template-cognito-pre-authentication
             project-name: SmokeCognitoPreAuthentication
+            otel: false
           - name: Cognito Post Authentication
             short-name: lambda-template-cognito-post-authentication
             project-name: SmokeCognitoPostAuthentication
+            otel: false
           - name: Cognito Define Auth Challenge
             short-name: lambda-template-cognito-define-auth-challenge
             project-name: SmokeCognitoDefineAuthChallenge
+            otel: false
           - name: Cognito Create Auth Challenge
             short-name: lambda-template-cognito-create-auth-challenge
             project-name: SmokeCognitoCreateAuthChallenge
+            otel: false
           - name: Cognito Verify Auth Challenge
             short-name: lambda-template-cognito-verify-auth-challenge
             project-name: SmokeCognitoVerifyAuthChallenge
+            otel: false
           - name: Cognito Custom Message
             short-name: lambda-template-cognito-custom-message
             project-name: SmokeCognitoCustomMessage
+            otel: false
           - name: Cognito User Migration
             short-name: lambda-template-cognito-user-migration
             project-name: SmokeCognitoUserMigration
+            otel: false
           - name: Cognito Custom Email Sender
             short-name: lambda-template-cognito-custom-email-sender
             project-name: SmokeCognitoCustomEmailSender
+            otel: false
           - name: Cognito Custom SMS Sender
             short-name: lambda-template-cognito-custom-sms-sender
             project-name: SmokeCognitoCustomSmsSender
+            otel: false
           - name: Cognito Pre Token Generation V1
             short-name: lambda-template-cognito-pre-token-generation
             project-name: SmokeCognitoPreTokenGenerationV1
             args: --version v1
+            otel: false
           - name: Cognito Pre Token Generation V2
             short-name: lambda-template-cognito-pre-token-generation
             project-name: SmokeCognitoPreTokenGenerationV2
             args: --version v2
+            otel: false
 
     steps:
       - name: Checkout
@@ -354,6 +384,7 @@ jobs:
             --profile SmokeProfile \
             --region eu-north-1 \
             --role SmokeRole \
+            ${{ matrix.otel && '--otel' || '' }} \
             ${{ matrix.args }}
 
       - name: Verify generated content
@@ -365,6 +396,16 @@ jobs:
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
           grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.project-name }}.csproj"
           ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
+
+          if [ "${{ matrix.otel }}" = "true" ]; then
+            grep -q 'OpenTelemetry.Instrumentation.AWSLambda' "$project/${{ matrix.project-name }}.csproj"
+            grep -q 'OpenTelemetry.Exporter.OpenTelemetryProtocol' "$project/${{ matrix.project-name }}.csproj"
+            grep -q 'AWSLambdaWrapper.TraceAsync' "$project/Function.cs"
+            grep -q 'ConfigureTracing' "$project/Function.cs"
+            grep -q 'ConfigureMetrics' "$project/Function.cs"
+          else
+            ! grep -R -q 'OpenTelemetry' "$project"
+          fi
 
       - name: Configure smoke-test package sources
         shell: bash
@@ -383,12 +424,7 @@ jobs:
                 <package pattern="Kralizek.Lambda.*" />
               </packageSource>
               <packageSource key="nuget.org">
-                <package pattern="Amazon.*" />
-                <package pattern="AWSSDK.*" />
-                <package pattern="Microsoft.*" />
-                <package pattern="System.*" />
-                <package pattern="runtime.*" />
-                <package pattern="NETStandard.Library" />
+                <package pattern="*" />
               </packageSource>
             </packageSourceMapping>
           </configuration>

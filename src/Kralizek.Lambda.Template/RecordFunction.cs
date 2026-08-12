@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,14 +30,19 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
         base.ConfigureFrameworkServices(services);
-        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>();
+        services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
+            EnrichRecordActivity,
+            IsSuccessfulRecordResult,
+            EnrichRecordResultActivity);
     }
 
     /// <summary>
     /// The entry point called by the Lambda runtime.
     /// </summary>
-    public async Task<TResponse> FunctionHandlerAsync(TEnvelope envelope, ILambdaContext lambdaContext)
+    public virtual async Task<TResponse> FunctionHandlerAsync(TEnvelope envelope, ILambdaContext lambdaContext)
     {
+        LambdaTelemetry.EnrichInvocation("record");
+
         using var cts = CreateCancellationTokenSource(lambdaContext);
         var context = CreateRecordContext(envelope, lambdaContext);
 
@@ -60,6 +66,37 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     /// Extracts the individual records from the envelope.
     /// </summary>
     protected abstract IEnumerable<TRecord> GetRecords(TEnvelope envelope);
+
+    /// <summary>
+    /// Adds source-specific transport or event metadata to the activity for one record.
+    /// </summary>
+    /// <remarks>
+    /// Implementations should keep business-specific telemetry in application-owned activities and meters.
+    /// High-cardinality record identifiers belong on activities and must not be copied to framework metric tags.
+    /// </remarks>
+    protected virtual void EnrichRecordActivity(Activity activity, TRecord record, TContext context)
+    {
+    }
+
+    /// <summary>
+    /// Determines whether a source-specific record result represents successful processing.
+    /// </summary>
+    /// <remarks>
+    /// Returning <see langword="false"/> marks the record activity as failed and records the low-cardinality
+    /// framework metric outcome as <c>failure</c>. Exceptions remain a distinct <c>error</c> outcome.
+    /// </remarks>
+    protected virtual bool IsSuccessfulRecordResult(TRecordResult result) => true;
+
+    /// <summary>
+    /// Adds source-specific result metadata to the activity after a record handler returns.
+    /// </summary>
+    /// <remarks>
+    /// Result metadata should use bounded values. Application-provided failure messages or other arbitrary text
+    /// should not be copied to framework telemetry.
+    /// </remarks>
+    protected virtual void EnrichRecordResultActivity(Activity activity, TRecordResult result)
+    {
+    }
 
     /// <summary>
     /// Creates the final source-specific response from the processed records and their results.

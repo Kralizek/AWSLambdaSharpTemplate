@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -32,10 +33,23 @@ public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : Lam
     protected abstract TContext CreateContext(TInput input, ILambdaContext context);
 
     /// <summary>
+    /// Adds source-specific metadata to the Lambda invocation activity.
+    /// </summary>
+    protected virtual void EnrichInvocationActivity(Activity activity, TInput input, ILambdaContext context)
+    {
+    }
+
+    /// <summary>
     /// The entry point called by the Lambda runtime.
     /// </summary>
-    public async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
+    public virtual async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
+        LambdaTelemetry.EnrichInvocation("request");
+        if (Activity.Current is { } activity)
+        {
+            EnrichInvocationActivity(activity, input, context);
+        }
+
         using var cts = CreateCancellationTokenSource(context);
         var requestContext = CreateContext(input, context);
 

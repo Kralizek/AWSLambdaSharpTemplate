@@ -1,4 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles><AWSProjectType>Lambda</AWSProjectType><PublishReadyToRun>true</PublishReadyToRun><CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup><PackageReference Include="Kralizek.Lambda.Template.Cognito" Version="__KRALIZEK_LAMBDA_VERSION__" /></ItemGroup>
+<!--#if (otel)-->
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.17.0" />
+  </ItemGroup>
+<!--#endif-->
 </Project>
