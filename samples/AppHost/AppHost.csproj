@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);ASPIRE004</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.AWS" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventFunction\EventFunction.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\RequestFunction\RequestFunction.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\SqsFunction\SqsFunction.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\EventFunction\EventFunction.csproj" />
+    <ProjectReference Include="..\RequestFunction\RequestFunction.csproj" />
+    <ProjectReference Include="..\SqsFunction\SqsFunction.csproj" />
   </ItemGroup>
 
 </Project>
