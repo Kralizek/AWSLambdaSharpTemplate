@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.AWS" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RequestFunction\RequestFunction.csproj" />
+    <ProjectReference Include="..\SqsFunction\SqsFunction.csproj" />
+  </ItemGroup>
+
+</Project>
