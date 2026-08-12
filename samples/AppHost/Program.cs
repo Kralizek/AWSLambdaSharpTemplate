@@ -6,6 +6,11 @@ var aws = builder.AddAWSSDKConfig()
     .WithProfile("default")
     .WithRegion(RegionEndpoint.EUWest1);
 
+builder.AddAWSLambdaFunction<Projects.EventFunction>(
+        "event-function",
+        "EventFunction::EventFunction.Function::FunctionHandlerAsync")
+    .WithReference(aws);
+
 builder.AddAWSLambdaFunction<Projects.RequestFunction>(
         "request-function",
         "RequestFunction::RequestFunction.Function::FunctionHandlerAsync")
