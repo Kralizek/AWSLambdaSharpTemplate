@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EventFunction\EventFunction.csproj" />
     <ProjectReference Include="..\RequestFunction\RequestFunction.csproj" />
     <ProjectReference Include="..\SqsFunction\SqsFunction.csproj" />
   </ItemGroup>
