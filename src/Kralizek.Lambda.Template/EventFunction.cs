@@ -20,11 +20,17 @@ public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
     where TContext : EventContext
     where THandler : class, IEventHandler<TInput, TContext>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        services.TryAddScoped<THandler>();
+        base.RegisterFrameworkServices(services);
+        ConfigureFrameworkServices(services);
     }
+
+    /// <summary>
+    /// Registers services required by this event-function specialization.
+    /// </summary>
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services) =>
+        services.TryAddScoped<THandler>();
 
     /// <summary>
     /// Creates the strongly typed context passed to the event handler.
