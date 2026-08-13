@@ -11,6 +11,7 @@
     <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
     <TrimMode>partial</TrimMode>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
 <!--#else-->
     <PublishReadyToRun>true</PublishReadyToRun>
 <!--#endif-->

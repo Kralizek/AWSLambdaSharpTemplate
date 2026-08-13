@@ -1,1 +1,766 @@
-{"include":[{"name":"Event","shortName":"lambda-template-event","projectName":"SmokeEvent","mustExist":["Function.cs","StringEventHandler.cs","SmokeEvent.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["EventFunction<string, StringEventHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Event (OpenTelemetry)","shortName":"lambda-template-event","projectName":"SmokeEventOtel","otel":true,"mustExist":["Function.cs","StringEventHandler.cs","SmokeEventOtel.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["EventFunction<string, StringEventHandler>","OpenTelemetry\\.Instrumentation\\.AWSLambda","AWSLambdaWrapper\\.TraceAsync"],"mustNotMatch":[]},{"name":"Request","shortName":"lambda-template-request","projectName":"SmokeRequest","mustExist":["Function.cs","ToUpperStringRequestHandler.cs","SmokeRequest.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["RequestFunction<string, string, ToUpperStringRequestHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Request (OpenTelemetry)","shortName":"lambda-template-request","projectName":"SmokeRequestOtel","otel":true,"mustExist":["Function.cs","ToUpperStringRequestHandler.cs","SmokeRequestOtel.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["RequestFunction<string, string, ToUpperStringRequestHandler>","OpenTelemetry\\.Instrumentation\\.AWSLambda","AWSLambdaWrapper\\.TraceAsync"],"mustNotMatch":[]},{"name":"EventBridge","shortName":"lambda-template-eventbridge","projectName":"SmokeEventBridge","mustExist":["Function.cs","OrderCreated.cs","OrderCreatedHandler.cs","SmokeEventBridge.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["EventBridgeFunction<OrderCreated, OrderCreatedHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"DynamoDB Streams","shortName":"lambda-template-dynamodb-stream","projectName":"SmokeDynamoDbStream","mustExist":["Function.cs","DynamoDbRecordHandler.cs","SmokeDynamoDbStream.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["DynamoDbStreamFunction<DynamoDbRecordHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Kinesis Streams","shortName":"lambda-template-kinesis-stream","projectName":"SmokeKinesisStream","mustExist":["Function.cs","OrderCreated.cs","OrderCreatedHandler.cs","SmokeKinesisStream.csproj"],"mustNotExist":["RawKinesisStreamRecordHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["KinesisStreamFunction<OrderCreated, OrderCreatedHandler>"],"mustNotMatch":["KinesisStreamFunction<RawKinesisStreamRecordHandler>","OpenTelemetry"]},{"name":"Kinesis Streams (raw)","shortName":"lambda-template-kinesis-stream","projectName":"SmokeKinesisStreamRaw","raw":true,"mustExist":["Function.cs","RawKinesisStreamRecordHandler.cs","SmokeKinesisStreamRaw.csproj"],"mustNotExist":["OrderCreated.cs","OrderCreatedHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["KinesisStreamFunction<RawKinesisStreamRecordHandler>"],"mustNotMatch":["KinesisStreamFunction<OrderCreated, OrderCreatedHandler>","OpenTelemetry"]},{"name":"S3","shortName":"lambda-template-s3","projectName":"SmokeS3","mustExist":["Function.cs","S3ObjectEventHandler.cs","SmokeS3.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["S3Function<S3ObjectEventHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"S3 Batch","shortName":"lambda-template-s3-batch","projectName":"SmokeS3Batch","mustExist":["Function.cs","S3BatchItemHandler.cs","SmokeS3Batch.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["S3BatchFunction<S3BatchItemHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"SNS","shortName":"lambda-template-sns","projectName":"SmokeSns","mustExist":["Function.cs","OrderCreated.cs","OrderCreatedHandler.cs","SmokeSns.csproj"],"mustNotExist":["RawSnsRecordHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["SnsFunction<OrderCreated, OrderCreatedHandler>"],"mustNotMatch":["SnsFunction<RawSnsRecordHandler>","OpenTelemetry"]},{"name":"SNS (raw)","shortName":"lambda-template-sns","projectName":"SmokeSnsRaw","raw":true,"mustExist":["Function.cs","RawSnsRecordHandler.cs","SmokeSnsRaw.csproj"],"mustNotExist":["OrderCreated.cs","OrderCreatedHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["SnsFunction<RawSnsRecordHandler>"],"mustNotMatch":["SnsFunction<OrderCreated, OrderCreatedHandler>","OpenTelemetry"]},{"name":"SQS","shortName":"lambda-template-sqs","projectName":"SmokeSqs","mustExist":["Function.cs","OrderCreated.cs","OrderCreatedHandler.cs","SmokeSqs.csproj"],"mustNotExist":["RawSqsRecordHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["SqsFunction<OrderCreated, OrderCreatedHandler>"],"mustNotMatch":["SqsFunction<RawSqsRecordHandler>","OpenTelemetry"]},{"name":"SQS (raw)","shortName":"lambda-template-sqs","projectName":"SmokeSqsRaw","raw":true,"mustExist":["Function.cs","RawSqsRecordHandler.cs","SmokeSqsRaw.csproj"],"mustNotExist":["OrderCreated.cs","OrderCreatedHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["SqsFunction<RawSqsRecordHandler>"],"mustNotMatch":["SqsFunction<OrderCreated, OrderCreatedHandler>","OpenTelemetry"]},{"name":"Cognito Pre Sign-up","shortName":"lambda-template-cognito-pre-signup","projectName":"SmokeCognitoPreSignUp","mustExist":["Function.cs","PreSignUpHandler.cs","SmokeCognitoPreSignUp.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPreSignUpFunction<PreSignUpHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Post Confirmation","shortName":"lambda-template-cognito-post-confirmation","projectName":"SmokeCognitoPostConfirmation","mustExist":["Function.cs","PostConfirmationHandler.cs","SmokeCognitoPostConfirmation.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPostConfirmationFunction<PostConfirmationHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Pre Authentication","shortName":"lambda-template-cognito-pre-authentication","projectName":"SmokeCognitoPreAuthentication","mustExist":["Function.cs","PreAuthenticationHandler.cs","SmokeCognitoPreAuthentication.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPreAuthenticationFunction<PreAuthenticationHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Post Authentication","shortName":"lambda-template-cognito-post-authentication","projectName":"SmokeCognitoPostAuthentication","mustExist":["Function.cs","PostAuthenticationHandler.cs","SmokeCognitoPostAuthentication.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPostAuthenticationFunction<PostAuthenticationHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Define Auth Challenge","shortName":"lambda-template-cognito-define-auth-challenge","projectName":"SmokeCognitoDefineAuthChallenge","mustExist":["Function.cs","DefineAuthChallengeHandler.cs","SmokeCognitoDefineAuthChallenge.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoDefineAuthChallengeFunction<DefineAuthChallengeHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Create Auth Challenge","shortName":"lambda-template-cognito-create-auth-challenge","projectName":"SmokeCognitoCreateAuthChallenge","mustExist":["Function.cs","CreateAuthChallengeHandler.cs","SmokeCognitoCreateAuthChallenge.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoCreateAuthChallengeFunction<CreateAuthChallengeHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Verify Auth Challenge","shortName":"lambda-template-cognito-verify-auth-challenge","projectName":"SmokeCognitoVerifyAuthChallenge","mustExist":["Function.cs","VerifyAuthChallengeHandler.cs","SmokeCognitoVerifyAuthChallenge.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoVerifyAuthChallengeFunction<VerifyAuthChallengeHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Custom Message","shortName":"lambda-template-cognito-custom-message","projectName":"SmokeCognitoCustomMessage","mustExist":["Function.cs","CustomMessageHandler.cs","SmokeCognitoCustomMessage.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoCustomMessageFunction<CustomMessageHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito User Migration","shortName":"lambda-template-cognito-user-migration","projectName":"SmokeCognitoUserMigration","mustExist":["Function.cs","UserMigrationHandler.cs","SmokeCognitoUserMigration.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoUserMigrationFunction<UserMigrationHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Custom Email Sender","shortName":"lambda-template-cognito-custom-email-sender","projectName":"SmokeCognitoCustomEmailSender","mustExist":["Function.cs","CustomEmailSenderHandler.cs","SmokeCognitoCustomEmailSender.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoCustomEmailSenderFunction<CustomEmailSenderHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Custom SMS Sender","shortName":"lambda-template-cognito-custom-sms-sender","projectName":"SmokeCognitoCustomSmsSender","mustExist":["Function.cs","CustomSmsSenderHandler.cs","SmokeCognitoCustomSmsSender.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoCustomSmsSenderFunction<CustomSmsSenderHandler>"],"mustNotMatch":["OpenTelemetry"]},{"name":"Cognito Pre Token Generation V1","shortName":"lambda-template-cognito-pre-token-generation","projectName":"SmokeCognitoPreTokenGenerationV1","version":"v1","mustExist":["Function.cs","PreTokenGenerationHandler.cs","SmokeCognitoPreTokenGenerationV1.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPreTokenGenerationFunction<PreTokenGenerationHandler>"],"mustNotMatch":["CognitoPreTokenGenerationV2Function<PreTokenGenerationHandler>","OpenTelemetry"]},{"name":"Cognito Pre Token Generation V2","shortName":"lambda-template-cognito-pre-token-generation","projectName":"SmokeCognitoPreTokenGenerationV2","version":"v2","mustExist":["Function.cs","PreTokenGenerationHandler.cs","SmokeCognitoPreTokenGenerationV2.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPreTokenGenerationV2Function<PreTokenGenerationHandler>"],"mustNotMatch":["CognitoPreTokenGenerationFunction<PreTokenGenerationHandler>","OpenTelemetry"]},{"name":"SQS (Native AOT)","shortName":"lambda-template-sqs","projectName":"SmokeSqsAot","aot":true,"mustExist":["Function.cs","Program.cs","OrderCreated.cs","OrderCreatedHandler.cs","SmokeSqsAot.csproj"],"mustNotExist":["RawSqsRecordHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["SqsFunction<OrderCreated, OrderCreatedHandler>","LambdaBootstrapBuilder","SourceGeneratorLambdaJsonSerializer","<PublishAot>true</PublishAot>","<OutputType>Exe</OutputType>","PayloadJsonSerializerContext\\.Default\\.OrderCreated","\"function-handler\": \"SmokeSqsAot\""],"mustNotMatch":["SqsFunction<RawSqsRecordHandler>","JsonStringPayloadDecoder<OrderCreated>","::SmokeSqsAot\\.Function::FunctionHandlerAsync","OpenTelemetry"]},{"name":"Cognito Post Confirmation (Native AOT)","shortName":"lambda-template-cognito-post-confirmation","projectName":"SmokeCognitoPostConfirmationAot","aot":true,"mustExist":["Function.cs","Program.cs","PostConfirmationHandler.cs","SmokeCognitoPostConfirmationAot.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["CognitoPostConfirmationFunction<PostConfirmationHandler>","LambdaBootstrapBuilder","SourceGeneratorLambdaJsonSerializer","<PublishAot>true</PublishAot>","<OutputType>Exe</OutputType>","\"function-handler\": \"SmokeCognitoPostConfirmationAot\""],"mustNotMatch":["::SmokeCognitoPostConfirmationAot\\.Function::FunctionHandlerAsync","OpenTelemetry"]},{"name":"EventBridge (Native AOT)","shortName":"lambda-template-eventbridge","projectName":"SmokeEventBridgeAot","aot":true,"mustExist":["Function.cs","Program.cs","OrderCreated.cs","OrderCreatedHandler.cs","SmokeEventBridgeAot.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["EventBridgeFunction<OrderCreated, OrderCreatedHandler>","LambdaBootstrapBuilder","SourceGeneratorLambdaJsonSerializer","<PublishAot>true</PublishAot>","<OutputType>Exe</OutputType>","JsonSerializable\\(typeof\\(OrderCreated\\)\\)","\"function-handler\": \"SmokeEventBridgeAot\""],"mustNotMatch":["::SmokeEventBridgeAot\\.Function::FunctionHandlerAsync","OpenTelemetry"]},{"name":"SNS (Native AOT, raw)","shortName":"lambda-template-sns","projectName":"SmokeSnsAotRaw","aot":true,"raw":true,"mustExist":["Function.cs","Program.cs","RawSnsRecordHandler.cs","SmokeSnsAotRaw.csproj"],"mustNotExist":["OrderCreated.cs","OrderCreatedHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["SnsFunction<RawSnsRecordHandler>","LambdaBootstrapBuilder","SourceGeneratorLambdaJsonSerializer","<PublishAot>true</PublishAot>","<OutputType>Exe</OutputType>","\"function-handler\": \"SmokeSnsAotRaw\""],"mustNotMatch":["SnsFunction<OrderCreated, OrderCreatedHandler>","JsonStringPayloadDecoder<OrderCreated>","JsonSerializable\\(typeof\\(OrderCreated\\)\\)","OpenTelemetry"]},{"name":"Event (Native AOT, OpenTelemetry)","shortName":"lambda-template-event","projectName":"SmokeEventAotOtel","aot":true,"otel":true,"mustExist":["Function.cs","Program.cs","StringEventHandler.cs","SmokeEventAotOtel.csproj"],"mustNotExist":["LambdaFunctionProject.csproj",".template.config"],"mustMatch":["EventFunction<string, StringEventHandler>","LambdaBootstrapBuilder","SourceGeneratorLambdaJsonSerializer","<PublishAot>true</PublishAot>","<OutputType>Exe</OutputType>","OpenTelemetry\\.Instrumentation\\.AWSLambda","AWSLambdaWrapper\\.TraceAsync","\"function-handler\": \"SmokeEventAotOtel\""],"mustNotMatch":[]},{"name":"Kinesis Streams (Native AOT, OpenTelemetry, raw)","shortName":"lambda-template-kinesis-stream","projectName":"SmokeKinesisAotOtelRaw","aot":true,"otel":true,"raw":true,"mustExist":["Function.cs","Program.cs","RawKinesisStreamRecordHandler.cs","SmokeKinesisAotOtelRaw.csproj"],"mustNotExist":["OrderCreated.cs","OrderCreatedHandler.cs","LambdaFunctionProject.csproj",".template.config"],"mustMatch":["KinesisStreamFunction<RawKinesisStreamRecordHandler>","LambdaBootstrapBuilder","SourceGeneratorLambdaJsonSerializer","<PublishAot>true</PublishAot>","<OutputType>Exe</OutputType>","OpenTelemetry\\.Instrumentation\\.AWSLambda","AWSLambdaWrapper\\.TraceAsync","\"function-handler\": \"SmokeKinesisAotOtelRaw\""],"mustNotMatch":["KinesisStreamFunction<OrderCreated, OrderCreatedHandler>","JsonBinaryPayloadDecoder<OrderCreated>","JsonSerializable\\(typeof\\(OrderCreated\\)\\)"]}]}
+{
+  "include": [
+    {
+      "name": "Event",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEvent",
+      "mustExist": [
+        "Function.cs",
+        "StringEventHandler.cs",
+        "SmokeEvent.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "EventFunction<string, StringEventHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Event (OpenTelemetry)",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEventOtel",
+      "otel": true,
+      "mustExist": [
+        "Function.cs",
+        "StringEventHandler.cs",
+        "SmokeEventOtel.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "EventFunction<string, StringEventHandler>",
+        "OpenTelemetry\\.Instrumentation\\.AWSLambda",
+        "AWSLambdaWrapper\\.TraceAsync"
+      ],
+      "mustNotMatch": []
+    },
+    {
+      "name": "Request",
+      "shortName": "lambda-template-request",
+      "projectName": "SmokeRequest",
+      "mustExist": [
+        "Function.cs",
+        "ToUpperStringRequestHandler.cs",
+        "SmokeRequest.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "RequestFunction<string, string, ToUpperStringRequestHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Request (OpenTelemetry)",
+      "shortName": "lambda-template-request",
+      "projectName": "SmokeRequestOtel",
+      "otel": true,
+      "mustExist": [
+        "Function.cs",
+        "ToUpperStringRequestHandler.cs",
+        "SmokeRequestOtel.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "RequestFunction<string, string, ToUpperStringRequestHandler>",
+        "OpenTelemetry\\.Instrumentation\\.AWSLambda",
+        "AWSLambdaWrapper\\.TraceAsync"
+      ],
+      "mustNotMatch": []
+    },
+    {
+      "name": "EventBridge",
+      "shortName": "lambda-template-eventbridge",
+      "projectName": "SmokeEventBridge",
+      "mustExist": [
+        "Function.cs",
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "SmokeEventBridge.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "EventBridgeFunction<OrderCreated, OrderCreatedHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "DynamoDB Streams",
+      "shortName": "lambda-template-dynamodb-stream",
+      "projectName": "SmokeDynamoDbStream",
+      "mustExist": [
+        "Function.cs",
+        "DynamoDbRecordHandler.cs",
+        "SmokeDynamoDbStream.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "DynamoDbStreamFunction<DynamoDbRecordHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Kinesis Streams",
+      "shortName": "lambda-template-kinesis-stream",
+      "projectName": "SmokeKinesisStream",
+      "mustExist": [
+        "Function.cs",
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "SmokeKinesisStream.csproj"
+      ],
+      "mustNotExist": [
+        "RawKinesisStreamRecordHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "KinesisStreamFunction<OrderCreated, OrderCreatedHandler>"
+      ],
+      "mustNotMatch": [
+        "KinesisStreamFunction<RawKinesisStreamRecordHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Kinesis Streams (raw)",
+      "shortName": "lambda-template-kinesis-stream",
+      "projectName": "SmokeKinesisStreamRaw",
+      "raw": true,
+      "mustExist": [
+        "Function.cs",
+        "RawKinesisStreamRecordHandler.cs",
+        "SmokeKinesisStreamRaw.csproj"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "KinesisStreamFunction<RawKinesisStreamRecordHandler>"
+      ],
+      "mustNotMatch": [
+        "KinesisStreamFunction<OrderCreated, OrderCreatedHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "S3",
+      "shortName": "lambda-template-s3",
+      "projectName": "SmokeS3",
+      "mustExist": [
+        "Function.cs",
+        "S3ObjectEventHandler.cs",
+        "SmokeS3.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "S3Function<S3ObjectEventHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "S3 Batch",
+      "shortName": "lambda-template-s3-batch",
+      "projectName": "SmokeS3Batch",
+      "mustExist": [
+        "Function.cs",
+        "S3BatchItemHandler.cs",
+        "SmokeS3Batch.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "S3BatchFunction<S3BatchItemHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "SNS",
+      "shortName": "lambda-template-sns",
+      "projectName": "SmokeSns",
+      "mustExist": [
+        "Function.cs",
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "SmokeSns.csproj"
+      ],
+      "mustNotExist": [
+        "RawSnsRecordHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "SnsFunction<OrderCreated, OrderCreatedHandler>"
+      ],
+      "mustNotMatch": [
+        "SnsFunction<RawSnsRecordHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "SNS (raw)",
+      "shortName": "lambda-template-sns",
+      "projectName": "SmokeSnsRaw",
+      "raw": true,
+      "mustExist": [
+        "Function.cs",
+        "RawSnsRecordHandler.cs",
+        "SmokeSnsRaw.csproj"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "SnsFunction<RawSnsRecordHandler>"
+      ],
+      "mustNotMatch": [
+        "SnsFunction<OrderCreated, OrderCreatedHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "SQS",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqs",
+      "mustExist": [
+        "Function.cs",
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "SmokeSqs.csproj"
+      ],
+      "mustNotExist": [
+        "RawSqsRecordHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "SqsFunction<OrderCreated, OrderCreatedHandler>"
+      ],
+      "mustNotMatch": [
+        "SqsFunction<RawSqsRecordHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "SQS (raw)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsRaw",
+      "raw": true,
+      "mustExist": [
+        "Function.cs",
+        "RawSqsRecordHandler.cs",
+        "SmokeSqsRaw.csproj"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "SqsFunction<RawSqsRecordHandler>"
+      ],
+      "mustNotMatch": [
+        "SqsFunction<OrderCreated, OrderCreatedHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Pre Sign-up",
+      "shortName": "lambda-template-cognito-pre-signup",
+      "projectName": "SmokeCognitoPreSignUp",
+      "mustExist": [
+        "Function.cs",
+        "PreSignUpHandler.cs",
+        "SmokeCognitoPreSignUp.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPreSignUpFunction<PreSignUpHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Post Confirmation",
+      "shortName": "lambda-template-cognito-post-confirmation",
+      "projectName": "SmokeCognitoPostConfirmation",
+      "mustExist": [
+        "Function.cs",
+        "PostConfirmationHandler.cs",
+        "SmokeCognitoPostConfirmation.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPostConfirmationFunction<PostConfirmationHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Pre Authentication",
+      "shortName": "lambda-template-cognito-pre-authentication",
+      "projectName": "SmokeCognitoPreAuthentication",
+      "mustExist": [
+        "Function.cs",
+        "PreAuthenticationHandler.cs",
+        "SmokeCognitoPreAuthentication.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPreAuthenticationFunction<PreAuthenticationHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Post Authentication",
+      "shortName": "lambda-template-cognito-post-authentication",
+      "projectName": "SmokeCognitoPostAuthentication",
+      "mustExist": [
+        "Function.cs",
+        "PostAuthenticationHandler.cs",
+        "SmokeCognitoPostAuthentication.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPostAuthenticationFunction<PostAuthenticationHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Define Auth Challenge",
+      "shortName": "lambda-template-cognito-define-auth-challenge",
+      "projectName": "SmokeCognitoDefineAuthChallenge",
+      "mustExist": [
+        "Function.cs",
+        "DefineAuthChallengeHandler.cs",
+        "SmokeCognitoDefineAuthChallenge.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoDefineAuthChallengeFunction<DefineAuthChallengeHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Create Auth Challenge",
+      "shortName": "lambda-template-cognito-create-auth-challenge",
+      "projectName": "SmokeCognitoCreateAuthChallenge",
+      "mustExist": [
+        "Function.cs",
+        "CreateAuthChallengeHandler.cs",
+        "SmokeCognitoCreateAuthChallenge.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoCreateAuthChallengeFunction<CreateAuthChallengeHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Verify Auth Challenge",
+      "shortName": "lambda-template-cognito-verify-auth-challenge",
+      "projectName": "SmokeCognitoVerifyAuthChallenge",
+      "mustExist": [
+        "Function.cs",
+        "VerifyAuthChallengeHandler.cs",
+        "SmokeCognitoVerifyAuthChallenge.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoVerifyAuthChallengeFunction<VerifyAuthChallengeHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Custom Message",
+      "shortName": "lambda-template-cognito-custom-message",
+      "projectName": "SmokeCognitoCustomMessage",
+      "mustExist": [
+        "Function.cs",
+        "CustomMessageHandler.cs",
+        "SmokeCognitoCustomMessage.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoCustomMessageFunction<CustomMessageHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito User Migration",
+      "shortName": "lambda-template-cognito-user-migration",
+      "projectName": "SmokeCognitoUserMigration",
+      "mustExist": [
+        "Function.cs",
+        "UserMigrationHandler.cs",
+        "SmokeCognitoUserMigration.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoUserMigrationFunction<UserMigrationHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Custom Email Sender",
+      "shortName": "lambda-template-cognito-custom-email-sender",
+      "projectName": "SmokeCognitoCustomEmailSender",
+      "mustExist": [
+        "Function.cs",
+        "CustomEmailSenderHandler.cs",
+        "SmokeCognitoCustomEmailSender.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoCustomEmailSenderFunction<CustomEmailSenderHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Custom SMS Sender",
+      "shortName": "lambda-template-cognito-custom-sms-sender",
+      "projectName": "SmokeCognitoCustomSmsSender",
+      "mustExist": [
+        "Function.cs",
+        "CustomSmsSenderHandler.cs",
+        "SmokeCognitoCustomSmsSender.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoCustomSmsSenderFunction<CustomSmsSenderHandler>"
+      ],
+      "mustNotMatch": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Pre Token Generation V1",
+      "shortName": "lambda-template-cognito-pre-token-generation",
+      "projectName": "SmokeCognitoPreTokenGenerationV1",
+      "version": "v1",
+      "mustExist": [
+        "Function.cs",
+        "PreTokenGenerationHandler.cs",
+        "SmokeCognitoPreTokenGenerationV1.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPreTokenGenerationFunction<PreTokenGenerationHandler>"
+      ],
+      "mustNotMatch": [
+        "CognitoPreTokenGenerationV2Function<PreTokenGenerationHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "Cognito Pre Token Generation V2",
+      "shortName": "lambda-template-cognito-pre-token-generation",
+      "projectName": "SmokeCognitoPreTokenGenerationV2",
+      "version": "v2",
+      "mustExist": [
+        "Function.cs",
+        "PreTokenGenerationHandler.cs",
+        "SmokeCognitoPreTokenGenerationV2.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPreTokenGenerationV2Function<PreTokenGenerationHandler>"
+      ],
+      "mustNotMatch": [
+        "CognitoPreTokenGenerationFunction<PreTokenGenerationHandler>",
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "name": "SQS (Native AOT)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsAot",
+      "aot": true,
+      "mustExist": [
+        "Function.cs",
+        "Program.cs",
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "SmokeSqsAot.csproj"
+      ],
+      "mustNotExist": [
+        "RawSqsRecordHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "SqsFunction<OrderCreated, OrderCreatedHandler>",
+        "LambdaBootstrapBuilder",
+        "SourceGeneratorLambdaJsonSerializer",
+        "<PublishAot>true</PublishAot>",
+        "<OutputType>Exe</OutputType>",
+        "PayloadJsonSerializerContext\\.Default\\.OrderCreated",
+        "\"function-handler\": \"SmokeSqsAot\""
+      ],
+      "mustNotMatch": [
+        "SqsFunction<RawSqsRecordHandler>",
+        "JsonStringPayloadDecoder<OrderCreated>",
+        "::SmokeSqsAot\\.Function::FunctionHandlerAsync",
+        "OpenTelemetry",
+        "DefaultLambdaJsonSerializer"
+      ]
+    },
+    {
+      "name": "Cognito Post Confirmation (Native AOT)",
+      "shortName": "lambda-template-cognito-post-confirmation",
+      "projectName": "SmokeCognitoPostConfirmationAot",
+      "aot": true,
+      "mustExist": [
+        "Function.cs",
+        "Program.cs",
+        "PostConfirmationHandler.cs",
+        "SmokeCognitoPostConfirmationAot.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "CognitoPostConfirmationFunction<PostConfirmationHandler>",
+        "LambdaBootstrapBuilder",
+        "SourceGeneratorLambdaJsonSerializer",
+        "<PublishAot>true</PublishAot>",
+        "<OutputType>Exe</OutputType>",
+        "\"function-handler\": \"SmokeCognitoPostConfirmationAot\""
+      ],
+      "mustNotMatch": [
+        "::SmokeCognitoPostConfirmationAot\\.Function::FunctionHandlerAsync",
+        "OpenTelemetry",
+        "DefaultLambdaJsonSerializer"
+      ]
+    },
+    {
+      "name": "EventBridge (Native AOT)",
+      "shortName": "lambda-template-eventbridge",
+      "projectName": "SmokeEventBridgeAot",
+      "aot": true,
+      "mustExist": [
+        "Function.cs",
+        "Program.cs",
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "SmokeEventBridgeAot.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "EventBridgeFunction<OrderCreated, OrderCreatedHandler>",
+        "LambdaBootstrapBuilder",
+        "SourceGeneratorLambdaJsonSerializer",
+        "<PublishAot>true</PublishAot>",
+        "<OutputType>Exe</OutputType>",
+        "JsonSerializable\\(typeof\\(OrderCreated\\)\\)",
+        "\"function-handler\": \"SmokeEventBridgeAot\""
+      ],
+      "mustNotMatch": [
+        "::SmokeEventBridgeAot\\.Function::FunctionHandlerAsync",
+        "OpenTelemetry",
+        "DefaultLambdaJsonSerializer"
+      ]
+    },
+    {
+      "name": "SNS (Native AOT, raw)",
+      "shortName": "lambda-template-sns",
+      "projectName": "SmokeSnsAotRaw",
+      "aot": true,
+      "raw": true,
+      "mustExist": [
+        "Function.cs",
+        "Program.cs",
+        "RawSnsRecordHandler.cs",
+        "SmokeSnsAotRaw.csproj"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "SnsFunction<RawSnsRecordHandler>",
+        "LambdaBootstrapBuilder",
+        "SourceGeneratorLambdaJsonSerializer",
+        "<PublishAot>true</PublishAot>",
+        "<OutputType>Exe</OutputType>",
+        "\"function-handler\": \"SmokeSnsAotRaw\""
+      ],
+      "mustNotMatch": [
+        "SnsFunction<OrderCreated, OrderCreatedHandler>",
+        "JsonStringPayloadDecoder<OrderCreated>",
+        "JsonSerializable\\(typeof\\(OrderCreated\\)\\)",
+        "OpenTelemetry",
+        "DefaultLambdaJsonSerializer"
+      ]
+    },
+    {
+      "name": "Event (Native AOT, OpenTelemetry)",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEventAotOtel",
+      "aot": true,
+      "otel": true,
+      "mustExist": [
+        "Function.cs",
+        "Program.cs",
+        "StringEventHandler.cs",
+        "SmokeEventAotOtel.csproj"
+      ],
+      "mustNotExist": [
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "EventFunction<string, StringEventHandler>",
+        "LambdaBootstrapBuilder",
+        "SourceGeneratorLambdaJsonSerializer",
+        "<PublishAot>true</PublishAot>",
+        "<OutputType>Exe</OutputType>",
+        "OpenTelemetry\\.Instrumentation\\.AWSLambda",
+        "AWSLambdaWrapper\\.TraceAsync",
+        "\"function-handler\": \"SmokeEventAotOtel\""
+      ],
+      "mustNotMatch": [
+        "DefaultLambdaJsonSerializer"
+      ]
+    },
+    {
+      "name": "Kinesis Streams (Native AOT, OpenTelemetry, raw)",
+      "shortName": "lambda-template-kinesis-stream",
+      "projectName": "SmokeKinesisAotOtelRaw",
+      "aot": true,
+      "otel": true,
+      "raw": true,
+      "mustExist": [
+        "Function.cs",
+        "Program.cs",
+        "RawKinesisStreamRecordHandler.cs",
+        "SmokeKinesisAotOtelRaw.csproj"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs",
+        "LambdaFunctionProject.csproj",
+        ".template.config"
+      ],
+      "mustMatch": [
+        "KinesisStreamFunction<RawKinesisStreamRecordHandler>",
+        "LambdaBootstrapBuilder",
+        "SourceGeneratorLambdaJsonSerializer",
+        "<PublishAot>true</PublishAot>",
+        "<OutputType>Exe</OutputType>",
+        "OpenTelemetry\\.Instrumentation\\.AWSLambda",
+        "AWSLambdaWrapper\\.TraceAsync",
+        "\"function-handler\": \"SmokeKinesisAotOtelRaw\""
+      ],
+      "mustNotMatch": [
+        "KinesisStreamFunction<OrderCreated, OrderCreatedHandler>",
+        "JsonBinaryPayloadDecoder<OrderCreated>",
+        "JsonSerializable\\(typeof\\(OrderCreated\\)\\)",
+        "DefaultLambdaJsonSerializer"
+      ]
+    }
+  ]
+}
