@@ -13,4 +13,22 @@ services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
 
 SQS and SNS use string decoders for message bodies. Kinesis Streams uses binary decoders for record data. EventBridge does not use a second decoder because `CloudWatchEvent<TDetail>.Detail` is deserialized directly by the Lambda serializer.
 
+## Native AOT
+
+Typed SQS, SNS, and Kinesis templates have a second JSON boundary inside the AWS event envelope. When generated with `--aot`, they explicitly replace the default reflection-based payload decoder with one backed by the generated `LambdaJsonSerializerContext`.
+
+For example, typed SQS uses:
+
+```csharp
+services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
+    new JsonStringPayloadDecoder<OrderCreated>(
+        LambdaJsonSerializerContext.Default.OrderCreated));
+```
+
+Kinesis uses the equivalent `JsonBinaryPayloadDecoder<T>` registration.
+
+The template owns metadata for AWS/framework boundary types and includes metadata for the generated sample payload because that sample depends on it. When application code replaces `OrderCreated` with its own contract, add that application type to the generated serializer context with `[JsonSerializable]` and update the decoder registration to use its generated `JsonTypeInfo<T>` property.
+
+Raw SQS, SNS, and Kinesis variants do not deserialize an application payload, so `--aot --raw` does not require application payload metadata or a custom payload decoder registration.
+
 Custom decoder packages can depend only on the abstractions package when they do not need the full runtime.
