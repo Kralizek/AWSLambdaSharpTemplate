@@ -250,30 +250,37 @@ jobs:
           - name: Event
             short-name: lambda-template-event
             project-name: SmokeEvent
+            raw: false
             otel: false
           - name: Event (OpenTelemetry)
             short-name: lambda-template-event
             project-name: SmokeEventOtel
+            raw: false
             otel: true
           - name: Request
             short-name: lambda-template-request
             project-name: SmokeRequest
+            raw: false
             otel: false
           - name: Request (OpenTelemetry)
             short-name: lambda-template-request
             project-name: SmokeRequestOtel
+            raw: false
             otel: true
           - name: EventBridge
             short-name: lambda-template-eventbridge
             project-name: SmokeEventBridge
+            raw: false
             otel: false
           - name: DynamoDB Streams
             short-name: lambda-template-dynamodb-stream
             project-name: SmokeDynamoDbStream
+            raw: false
             otel: false
           - name: Kinesis Streams
             short-name: lambda-template-kinesis-stream
             project-name: SmokeKinesisStream
+            raw: false
             otel: false
           - name: Kinesis Streams (raw)
             short-name: lambda-template-kinesis-stream
@@ -284,14 +291,17 @@ jobs:
           - name: S3
             short-name: lambda-template-s3
             project-name: SmokeS3
+            raw: false
             otel: false
           - name: S3 Batch
             short-name: lambda-template-s3-batch
             project-name: SmokeS3Batch
+            raw: false
             otel: false
           - name: SNS
             short-name: lambda-template-sns
             project-name: SmokeSns
+            raw: false
             otel: false
           - name: SNS (raw)
             short-name: lambda-template-sns
@@ -302,6 +312,7 @@ jobs:
           - name: SQS
             short-name: lambda-template-sqs
             project-name: SmokeSqs
+            raw: false
             otel: false
           - name: SQS (raw)
             short-name: lambda-template-sqs
@@ -312,56 +323,69 @@ jobs:
           - name: Cognito Pre Sign-up
             short-name: lambda-template-cognito-pre-signup
             project-name: SmokeCognitoPreSignUp
+            raw: false
             otel: false
           - name: Cognito Post Confirmation
             short-name: lambda-template-cognito-post-confirmation
             project-name: SmokeCognitoPostConfirmation
+            raw: false
             otel: false
           - name: Cognito Pre Authentication
             short-name: lambda-template-cognito-pre-authentication
             project-name: SmokeCognitoPreAuthentication
+            raw: false
             otel: false
           - name: Cognito Post Authentication
             short-name: lambda-template-cognito-post-authentication
             project-name: SmokeCognitoPostAuthentication
+            raw: false
             otel: false
           - name: Cognito Define Auth Challenge
             short-name: lambda-template-cognito-define-auth-challenge
             project-name: SmokeCognitoDefineAuthChallenge
+            raw: false
             otel: false
           - name: Cognito Create Auth Challenge
             short-name: lambda-template-cognito-create-auth-challenge
             project-name: SmokeCognitoCreateAuthChallenge
+            raw: false
             otel: false
           - name: Cognito Verify Auth Challenge
             short-name: lambda-template-cognito-verify-auth-challenge
             project-name: SmokeCognitoVerifyAuthChallenge
+            raw: false
             otel: false
           - name: Cognito Custom Message
             short-name: lambda-template-cognito-custom-message
             project-name: SmokeCognitoCustomMessage
+            raw: false
             otel: false
           - name: Cognito User Migration
             short-name: lambda-template-cognito-user-migration
             project-name: SmokeCognitoUserMigration
+            raw: false
             otel: false
           - name: Cognito Custom Email Sender
             short-name: lambda-template-cognito-custom-email-sender
             project-name: SmokeCognitoCustomEmailSender
+            raw: false
             otel: false
           - name: Cognito Custom SMS Sender
             short-name: lambda-template-cognito-custom-sms-sender
             project-name: SmokeCognitoCustomSmsSender
+            raw: false
             otel: false
           - name: Cognito Pre Token Generation V1
             short-name: lambda-template-cognito-pre-token-generation
             project-name: SmokeCognitoPreTokenGenerationV1
             args: --version v1
+            raw: false
             otel: false
           - name: Cognito Pre Token Generation V2
             short-name: lambda-template-cognito-pre-token-generation
             project-name: SmokeCognitoPreTokenGenerationV2
             args: --version v2
+            raw: false
             otel: false
 
     steps:
@@ -425,7 +449,7 @@ jobs:
             ! grep -R -q 'OpenTelemetry' "$project"
           fi
 
-          if [ "${{ matrix.raw || false }}" = "true" ]; then
+          if [ "${{ matrix.raw }}" = "true" ]; then
             test ! -f "$project/OrderCreated.cs"
             test ! -f "$project/OrderCreatedHandler.cs"
 
