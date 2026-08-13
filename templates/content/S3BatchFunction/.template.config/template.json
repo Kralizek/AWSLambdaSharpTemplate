@@ -15,6 +15,6 @@
     "otel": { "type": "parameter", "description": "Enable OpenTelemetry using the standard AWS Lambda instrumentation.", "datatype": "bool", "defaultValue": "false" },
     "aot": { "type": "parameter", "description": "Generate a Native AOT Lambda executable with source-generated JSON serialization.", "datatype": "bool", "defaultValue": "false" }
   },
-  "sources": [{ "modifiers": [{ "condition": "!aot", "exclude": ["LambdaAot.cs"] }] }],
+  "sources": [{ "modifiers": [{ "condition": "!aot", "exclude": ["Program.cs"] }] }],
   "primaryOutputs": [{ "path": "./LambdaFunctionProject.csproj" }]
 }
