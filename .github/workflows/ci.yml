@@ -275,6 +275,12 @@ jobs:
             short-name: lambda-template-kinesis-stream
             project-name: SmokeKinesisStream
             otel: false
+          - name: Kinesis Streams (raw)
+            short-name: lambda-template-kinesis-stream
+            project-name: SmokeKinesisStreamRaw
+            args: --raw
+            raw: true
+            otel: false
           - name: S3
             short-name: lambda-template-s3
             project-name: SmokeS3
@@ -287,9 +293,21 @@ jobs:
             short-name: lambda-template-sns
             project-name: SmokeSns
             otel: false
+          - name: SNS (raw)
+            short-name: lambda-template-sns
+            project-name: SmokeSnsRaw
+            args: --raw
+            raw: true
+            otel: false
           - name: SQS
             short-name: lambda-template-sqs
             project-name: SmokeSqs
+            otel: false
+          - name: SQS (raw)
+            short-name: lambda-template-sqs
+            project-name: SmokeSqsRaw
+            args: --raw
+            raw: true
             otel: false
           - name: Cognito Pre Sign-up
             short-name: lambda-template-cognito-pre-signup
@@ -405,6 +423,26 @@ jobs:
             grep -q 'ConfigureMetrics' "$project/Function.cs"
           else
             ! grep -R -q 'OpenTelemetry' "$project"
+          fi
+
+          if [ "${{ matrix.raw || false }}" = "true" ]; then
+            test ! -f "$project/OrderCreated.cs"
+            test ! -f "$project/OrderCreatedHandler.cs"
+
+            case "${{ matrix.short-name }}" in
+              lambda-template-kinesis-stream)
+                test -f "$project/RawKinesisStreamRecordHandler.cs"
+                grep -q 'KinesisStreamFunction<RawKinesisStreamRecordHandler>' "$project/Function.cs"
+                ;;
+              lambda-template-sns)
+                test -f "$project/RawSnsRecordHandler.cs"
+                grep -q 'SnsFunction<RawSnsRecordHandler>' "$project/Function.cs"
+                ;;
+              lambda-template-sqs)
+                test -f "$project/RawSqsRecordHandler.cs"
+                grep -q 'SqsFunction<RawSqsRecordHandler>' "$project/Function.cs"
+                ;;
+            esac
           fi
 
       - name: Configure smoke-test package sources
