@@ -10,11 +10,8 @@ public abstract class SqsFunction<THandler>
     : SqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         SqsServiceRegistration.AddRawHandler<THandler>(services);
-    }
 }
 
 /// <summary>
@@ -26,9 +23,6 @@ public abstract class SqsFunction<TMessage, THandler>
     : SqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         SqsServiceRegistration.AddDecodedHandler<TMessage, THandler>(services);
-    }
 }
