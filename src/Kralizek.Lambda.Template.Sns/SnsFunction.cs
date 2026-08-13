@@ -12,22 +12,23 @@ public abstract class SnsFunction<[DynamicallyAccessedMembers(DynamicallyAccesse
     : SnsFunctionBase<RawSnsRecordHandler<THandler>>
     where THandler : class, ISnsRecordHandler
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services) =>
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
+    {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
+    }
 }
 
 public abstract class SnsFunction<TNotification, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SnsFunctionBase<SnsRecordHandler<TNotification, THandler>>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
-        ConfigurePayloadServices(services);
         services.TryAddSingleton<IStringPayloadDecoder<TNotification>>(SnsPayloadDecoderFactory.Create<TNotification>);
     }
-
-    protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
 }
 
 internal static class SnsPayloadDecoderFactory

@@ -12,21 +12,23 @@ public abstract class KinesisStreamFunction<[DynamicallyAccessedMembers(Dynamica
     : KinesisStreamFunctionBase<RawKinesisStreamRecordHandler<THandler>>
     where THandler : class, IKinesisStreamRecordHandler
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services) => services.TryAddScoped<THandler>();
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
+    {
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+    }
 }
 
 public abstract class KinesisStreamFunction<TPayload, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : KinesisStreamFunctionBase<KinesisStreamRecordHandler<TPayload, THandler>>
     where THandler : class, IKinesisStreamRecordHandler<TPayload>
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
-        ConfigurePayloadServices(services);
         services.TryAddSingleton<IBinaryPayloadDecoder<TPayload>>(CreateDefaultDecoder);
     }
-
-    protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
 
     private static IBinaryPayloadDecoder<TPayload> CreateDefaultDecoder(IServiceProvider services)
     {

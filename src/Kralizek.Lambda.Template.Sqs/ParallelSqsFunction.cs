@@ -9,19 +9,21 @@ public abstract class ParallelSqsFunction<[DynamicallyAccessedMembers(Dynamicall
     : ParallelSqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services) => services.TryAddScoped<THandler>();
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
+    {
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+    }
 }
 
 public abstract class ParallelSqsFunction<TMessage, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
-        ConfigurePayloadServices(services);
         services.TryAddSingleton<IStringPayloadDecoder<TMessage>>(SqsPayloadDecoderFactory.Create<TMessage>);
     }
-
-    protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
 }

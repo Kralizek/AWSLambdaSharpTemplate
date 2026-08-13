@@ -12,25 +12,23 @@ public abstract class SqsFunction<[DynamicallyAccessedMembers(DynamicallyAccesse
     : SqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services) =>
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
+    {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
+    }
 }
 
 public abstract class SqsFunction<TMessage, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
-        ConfigurePayloadServices(services);
         services.TryAddSingleton<IStringPayloadDecoder<TMessage>>(SqsPayloadDecoderFactory.Create<TMessage>);
     }
-
-    /// <summary>
-    /// Registers services used to decode typed SQS payloads.
-    /// </summary>
-    protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
 }
 
 internal static class SqsPayloadDecoderFactory
