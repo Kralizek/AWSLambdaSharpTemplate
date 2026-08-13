@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+
 using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 #if (!raw)
@@ -27,17 +28,25 @@ public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
     private static readonly MeterProvider MeterProvider = ConfigureMetrics();
-    public override async Task<Amazon.Lambda.SQSEvents.SQSBatchResponse> FunctionHandlerAsync(Amazon.Lambda.SQSEvents.SQSEvent input, ILambdaContext context)
+
+    public override async Task<Amazon.Lambda.SQSEvents.SQSBatchResponse> FunctionHandlerAsync(
+        Amazon.Lambda.SQSEvents.SQSEvent input,
+        ILambdaContext context)
     {
         try
         {
-            return await AWSLambdaWrapper.TraceAsync(TracerProvider, base.FunctionHandlerAsync, input, context).ConfigureAwait(false);
+            return await AWSLambdaWrapper.TraceAsync(
+                TracerProvider,
+                base.FunctionHandlerAsync,
+                input,
+                context).ConfigureAwait(false);
         }
         finally
         {
             MeterProvider.ForceFlush();
         }
     }
+
     private static TracerProvider ConfigureTracing() =>
         Sdk.CreateTracerProviderBuilder()
             .AddSource(LambdaTelemetry.ActivitySourceName)
@@ -48,6 +57,7 @@ public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
             })
             .AddOtlpExporter()
             .Build();
+
     private static MeterProvider ConfigureMetrics() =>
         Sdk.CreateMeterProviderBuilder()
             .AddMeter(LambdaTelemetry.MeterName)

@@ -4,7 +4,7 @@ using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
-#if (aot && !raw)
+#if (!raw)
 using Microsoft.Extensions.DependencyInjection;
 #endif
 
@@ -27,12 +27,9 @@ public sealed class Function : KinesisStreamFunction<RawKinesisStreamRecordHandl
 public sealed class Function : KinesisStreamFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
-#if (aot && !raw)
-    protected override void ConfigurePayloadServices(IServiceCollection services)
-    {
-        services.AddSingleton<IBinaryPayloadDecoder<OrderCreated>>(
-            new JsonBinaryPayloadDecoder<OrderCreated>(PayloadJsonSerializerContext.Default.OrderCreated));
-    }
+#if (!raw)
+    protected override void ConfigurePayloadServices(IServiceCollection services) =>
+        services.AddSingleton(PayloadJsonSerializerContext.Default.OrderCreated);
 #endif
 
 #if (otel)

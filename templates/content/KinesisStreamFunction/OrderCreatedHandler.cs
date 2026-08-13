@@ -1,9 +1,6 @@
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-
-#if (aot)
-using System.Text.Json.Serialization;
-#endif
 
 using Kralizek.Lambda;
 
@@ -29,7 +26,5 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
     }
 }
 
-#if (aot)
 [JsonSerializable(typeof(OrderCreated))]
 internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
-#endif

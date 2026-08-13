@@ -4,7 +4,7 @@ using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
-#if (aot && !raw)
+#if (!raw)
 using Microsoft.Extensions.DependencyInjection;
 #endif
 
@@ -27,12 +27,9 @@ public sealed class Function : SnsFunction<RawSnsRecordHandler>
 public sealed class Function : SnsFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
-#if (aot && !raw)
-    protected override void ConfigurePayloadServices(IServiceCollection services)
-    {
-        services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
-            new JsonStringPayloadDecoder<OrderCreated>(PayloadJsonSerializerContext.Default.OrderCreated));
-    }
+#if (!raw)
+    protected override void ConfigurePayloadServices(IServiceCollection services) =>
+        services.AddSingleton(PayloadJsonSerializerContext.Default.OrderCreated);
 #endif
 
 #if (otel)
