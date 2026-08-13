@@ -30,10 +30,6 @@
         "name",
         "shortName",
         "projectName",
-        "otel",
-        "raw",
-        "mustExist",
-        "mustNotExist",
         "mustMatch",
         "mustNotMatch"
       ],
@@ -51,20 +47,24 @@
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "otel": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "raw": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "version": {
           "type": "string",
           "enum": ["v1", "v2"]
         },
         "mustExist": {
-          "$ref": "#/definitions/stringArray"
+          "$ref": "#/definitions/stringArray",
+          "default": []
         },
         "mustNotExist": {
-          "$ref": "#/definitions/stringArray"
+          "$ref": "#/definitions/stringArray",
+          "default": []
         },
         "mustMatch": {
           "$ref": "#/definitions/stringArray"
