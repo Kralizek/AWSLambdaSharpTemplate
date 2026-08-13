@@ -45,8 +45,33 @@
       "datatype": "bool",
       "replaces": "EnableOpenTelemetry",
       "defaultValue": "false"
+    },
+    "raw": {
+      "type": "parameter",
+      "description": "Generate a handler for raw AWS SQS records instead of decoded message payloads.",
+      "datatype": "bool",
+      "defaultValue": "false"
     }
   },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "raw",
+          "exclude": [
+            "OrderCreated.cs",
+            "OrderCreatedHandler.cs"
+          ]
+        },
+        {
+          "condition": "!raw",
+          "exclude": [
+            "RawSqsRecordHandler.cs"
+          ]
+        }
+      ]
+    }
+  ],
   "primaryOutputs": [
     { "path": "./LambdaFunctionProject.csproj" }
   ]
