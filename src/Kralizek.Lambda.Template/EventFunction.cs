@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -15,7 +16,7 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TContext">The context type passed to the handler.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the event.</typeparam>
 #pragma warning disable S2436 // The generic roles are intentional and make the event contract explicit.
-public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
+public abstract class EventFunction<TInput, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : LambdaFunction
 #pragma warning restore S2436
     where TContext : EventContext
     where THandler : class, IEventHandler<TInput, TContext>
@@ -60,7 +61,7 @@ public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
     }
 }
 
-public abstract class EventFunction<TInput, THandler> : EventFunction<TInput, EventContext, THandler>
+public abstract class EventFunction<TInput, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : EventFunction<TInput, EventContext, THandler>
     where THandler : class, IEventHandler<TInput, EventContext>
 {
     protected override EventContext CreateContext(TInput input, ILambdaContext context) =>
