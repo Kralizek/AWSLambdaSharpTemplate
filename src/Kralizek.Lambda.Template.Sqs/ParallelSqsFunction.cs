@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-public abstract class ParallelSqsFunction<THandler>
+public abstract class ParallelSqsFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
@@ -11,7 +13,7 @@ public abstract class ParallelSqsFunction<THandler>
         services.TryAddScoped<THandler>();
 }
 
-public abstract class ParallelSqsFunction<TMessage, THandler>
+public abstract class ParallelSqsFunction<TMessage, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
