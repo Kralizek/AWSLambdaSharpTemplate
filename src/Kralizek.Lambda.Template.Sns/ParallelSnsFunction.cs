@@ -21,8 +21,8 @@ public abstract class ParallelSnsFunction<TNotification, [DynamicallyAccessedMem
     {
         services.TryAddScoped<THandler>();
         ConfigurePayloadServices(services);
+        services.TryAddSingleton<IStringPayloadDecoder<TNotification>>(SnsPayloadDecoderFactory.Create<TNotification>);
     }
 
-    protected virtual void ConfigurePayloadServices(IServiceCollection services) =>
-        services.TryAddSingleton<IStringPayloadDecoder<TNotification>, JsonStringPayloadDecoder<TNotification>>();
+    protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
 }

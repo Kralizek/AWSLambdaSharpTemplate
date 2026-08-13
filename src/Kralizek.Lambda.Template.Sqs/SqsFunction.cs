@@ -24,15 +24,18 @@ public abstract class SqsFunction<TMessage, [DynamicallyAccessedMembers(Dynamica
     {
         services.TryAddScoped<THandler>();
         ConfigurePayloadServices(services);
-        services.TryAddSingleton<IStringPayloadDecoder<TMessage>>(CreateDefaultDecoder);
+        services.TryAddSingleton<IStringPayloadDecoder<TMessage>>(SqsPayloadDecoderFactory.Create<TMessage>);
     }
 
     /// <summary>
     /// Registers services used to decode typed SQS payloads.
     /// </summary>
     protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
+}
 
-    private static IStringPayloadDecoder<TMessage> CreateDefaultDecoder(IServiceProvider services)
+internal static class SqsPayloadDecoderFactory
+{
+    public static IStringPayloadDecoder<TMessage> Create<TMessage>(IServiceProvider services)
     {
         var typeInfo = services.GetService<JsonTypeInfo<TMessage>>();
         if (typeInfo is not null)
