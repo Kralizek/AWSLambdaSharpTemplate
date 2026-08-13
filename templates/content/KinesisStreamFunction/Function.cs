@@ -28,12 +28,9 @@ public sealed class Function : KinesisStreamFunction<OrderCreated, OrderCreatedH
 #endif
 {
 #if (aot && !raw)
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        services.AddScoped<OrderCreatedHandler>();
+    protected override void ConfigurePayloadServices(IServiceCollection services) =>
         services.AddSingleton<IBinaryPayloadDecoder<OrderCreated>>(
             new JsonBinaryPayloadDecoder<OrderCreated>(LambdaJsonSerializerContext.Default.OrderCreated));
-    }
 #endif
 
 #if (otel)
