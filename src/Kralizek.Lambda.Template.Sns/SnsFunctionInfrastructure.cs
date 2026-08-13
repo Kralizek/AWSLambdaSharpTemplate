@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
-
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
@@ -19,7 +17,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 /// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class SnsFunctionBase<TRecordHandler>
+public abstract class SnsFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler>
     : RecordFunction<
         SNSEvent,
         SNSEvent.SNSRecord,
@@ -63,7 +61,7 @@ public abstract class SnsFunctionBase<TRecordHandler>
 /// </summary>
 /// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class ParallelSnsFunctionBase<TRecordHandler> : SnsFunctionBase<TRecordHandler>
+public abstract class ParallelSnsFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler> : SnsFunctionBase<TRecordHandler>
     where TRecordHandler : class, IRecordHandler<SNSEvent.SNSRecord, SnsRecordResult, RecordContext>
 {
     /// <summary>
@@ -82,18 +80,4 @@ public abstract class ParallelSnsFunctionBase<TRecordHandler> : SnsFunctionBase<
             invocationServices,
             MaxDegreeOfParallelism,
             cancellationToken);
-}
-
-internal static class SnsServiceRegistration
-{
-    public static void AddRawHandler<THandler>(IServiceCollection services)
-        where THandler : class, ISnsRecordHandler =>
-        services.TryAddScoped<THandler>();
-
-    public static void AddDecodedHandler<TNotification, THandler>(IServiceCollection services)
-        where THandler : class, ISnsNotificationHandler<TNotification>
-    {
-        services.TryAddScoped<THandler>();
-        services.TryAddSingleton<IStringPayloadDecoder<TNotification>, JsonStringPayloadDecoder<TNotification>>();
-    }
 }
