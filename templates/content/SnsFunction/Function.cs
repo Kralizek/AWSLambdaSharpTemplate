@@ -15,13 +15,17 @@ using OpenTelemetry.Trace;
 
 namespace LambdaFunctionProject;
 
+#if (raw)
+public sealed class Function : SnsFunction<RawSnsRecordHandler>
+#else
 public sealed class Function : SnsFunction<OrderCreated, OrderCreatedHandler>
+#endif
 {
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
     private static readonly MeterProvider MeterProvider = ConfigureMetrics();
 
-    public override async Task<object?> FunctionHandlerAsync(
+    public override async Task<Amazon.Lambda.SNSEvents.SNSEvent> FunctionHandlerAsync(
         Amazon.Lambda.SNSEvents.SNSEvent input,
         ILambdaContext context)
     {
