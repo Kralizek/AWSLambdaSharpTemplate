@@ -30,6 +30,7 @@
         "name",
         "shortName",
         "projectName",
+        "when",
         "mustMatch",
         "mustNotMatch"
       ],
@@ -45,6 +46,19 @@
         "projectName": {
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "when": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["pr", "master", "release"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "aot": {
+          "type": "boolean",
+          "default": false
         },
         "otel": {
           "type": "boolean",

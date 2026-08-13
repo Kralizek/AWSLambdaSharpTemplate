@@ -243,15 +243,49 @@ jobs:
     permissions:
       contents: read
     outputs:
+      mode: ${{ steps.mode.outputs.mode }}
       matrix: ${{ steps.matrix.outputs.matrix }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Determine template smoke-test mode
+        id: mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          case "$EVENT_NAME" in
+            pull_request)
+              mode=pr
+              ;;
+            push)
+              if [ "$REF" != "refs/heads/master" ]; then
+                echo "Template smoke tests only support pushes to master."
+                exit 1
+              fi
+
+              mode=master
+              ;;
+            release|workflow_dispatch)
+              mode=release
+              ;;
+            *)
+              echo "Unsupported template smoke-test event: $EVENT_NAME"
+              exit 1
+              ;;
+          esac
+
+          echo "Selected template smoke-test mode: $mode"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
       - name: Read template smoke-test matrix
         shell: bash
-        run: jq -c . .github/template-smoke-tests.json > "$RUNNER_TEMP/template-smoke-tests.json"
+        run: jq -c . .github/template-smoke-tests.json > "$RUNNER_TEMP/template-smoke-tests.source.json"
 
       - name: Validate template smoke-test matrix
         run: >-
@@ -259,7 +293,18 @@ jobs:
           --spec=draft7
           --all-errors
           -s .github/template-smoke-tests.schema.json
-          -d "$RUNNER_TEMP/template-smoke-tests.json"
+          -d "$RUNNER_TEMP/template-smoke-tests.source.json"
+
+      - name: Filter template smoke-test matrix
+        env:
+          SMOKE_TEST_MODE: ${{ steps.mode.outputs.mode }}
+        shell: bash
+        run: >-
+          jq -ce --arg mode "$SMOKE_TEST_MODE"
+          '{include: [.include[] | select(.when | index($mode))]}
+          | if (.include | length) > 0 then . else error("No template smoke tests selected for mode: " + $mode) end'
+          "$RUNNER_TEMP/template-smoke-tests.source.json"
+          > "$RUNNER_TEMP/template-smoke-tests.json"
 
       - name: Export template smoke-test matrix
         id: matrix
@@ -307,8 +352,9 @@ jobs:
 
       - name: Instantiate ${{ matrix.name }} template
         env:
-          TEMPLATE_OTEL: ${{ matrix.otel }}
-          TEMPLATE_RAW: ${{ matrix.raw }}
+          TEMPLATE_AOT: ${{ matrix.aot || false }}
+          TEMPLATE_OTEL: ${{ matrix.otel || false }}
+          TEMPLATE_RAW: ${{ matrix.raw || false }}
           TEMPLATE_VERSION: ${{ matrix.version || '' }}
         shell: bash
         run: |
@@ -317,6 +363,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
 
           args=()
+          if [ "$TEMPLATE_AOT" = "true" ]; then
+            args+=(--aot)
+          fi
           if [ "$TEMPLATE_OTEL" = "true" ]; then
             args+=(--otel)
           fi
@@ -337,6 +386,10 @@ jobs:
 
       - name: Verify generated content
         env:
+          TEMPLATE_AOT: ${{ matrix.aot || false }}
+          TEMPLATE_OTEL: ${{ matrix.otel || false }}
+          TEMPLATE_RAW: ${{ matrix.raw || false }}
+          TEMPLATE_VERSION: ${{ matrix.version || '' }}
           MUST_EXIST: ${{ toJSON(matrix.mustExist) }}
           MUST_NOT_EXIST: ${{ toJSON(matrix.mustNotExist) }}
           MUST_MATCH: ${{ toJSON(matrix.mustMatch) }}
@@ -351,6 +404,20 @@ jobs:
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
           grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.projectName }}.csproj"
           ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
+
+          if [ "$TEMPLATE_AOT" = "true" ]; then
+            test -f "$project/Program.cs"
+            grep -q 'LambdaBootstrapBuilder' "$project/Program.cs"
+            ! grep -q 'DefaultLambdaJsonSerializer' "$project/Function.cs"
+            jq -e --arg handler "${{ matrix.projectName }}" \
+              '."function-handler" == $handler' \
+              "$project/aws-lambda-tools-defaults.json" > /dev/null
+          else
+            grep -q 'DefaultLambdaJsonSerializer' "$project/Function.cs"
+            jq -e \
+              '."function-handler" | endswith("::FunctionHandlerAsync")' \
+              "$project/aws-lambda-tools-defaults.json" > /dev/null
+          fi
 
           while IFS= read -r file; do
             [ -z "$file" ] || test -e "$project/$file"
@@ -404,11 +471,81 @@ jobs:
           --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
           --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
 
+      - name: Restore Native AOT runtime assets
+        if: matrix.aot == true
+        run: >-
+          dotnet restore
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
+          --runtime linux-x64
+          --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
+          --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
+
       - name: Build generated project
         run: >-
           dotnet build
           "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           --configuration $CONFIGURATION
+          --no-restore
+          --warnaserror
+
+      - name: Publish Native AOT generated project
+        if: matrix.aot == true
+        run: >-
+          dotnet publish
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
+          --configuration $CONFIGURATION
+          --runtime linux-x64
+          --self-contained true
+          --no-restore
+          --warnaserror
+
+  validate-native-aot-sqs-sample:
+    name: Native AOT SQS sample
+    needs: [prepare-version, prepare-template-smoke-tests]
+    if: needs.prepare-template-smoke-tests.outputs.mode != 'pr'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.props
+            **/*.targets
+
+      - name: Restore Native AOT SQS sample
+        run: >-
+          dotnet restore
+          samples/NativeAotSqsFunction
+          --runtime linux-x64
+
+      - name: Build Native AOT SQS sample
+        run: >-
+          dotnet build
+          samples/NativeAotSqsFunction
+          --configuration $CONFIGURATION
+          --no-restore
+          --warnaserror
+
+      - name: Publish Native AOT SQS sample
+        run: >-
+          dotnet publish
+          samples/NativeAotSqsFunction
+          --configuration $CONFIGURATION
+          --runtime linux-x64
+          --self-contained true
           --no-restore
           --warnaserror
 
@@ -424,7 +561,7 @@ jobs:
 
     steps:
       - name: Validate manual release source
-        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run && github.ref != 'refs/heads/master'
         run: |
           echo "Manual releases must be dispatched from master."
           exit 1
@@ -518,6 +655,7 @@ jobs:
           echo "Dry run: no packages or GitHub release will be published."
           echo "Release channel: ${{ inputs.release_channel }}"
           echo "Package version: $PACKAGE_VERSION"
+
           if [ "${{ inputs.release_channel }}" = "alpha" ]; then
             echo "Production release would publish to GitHub Packages and create a GitHub prerelease."
           elif [ "${{ inputs.release_channel }}" = "beta" ] || [ "${{ inputs.release_channel }}" = "rc" ]; then
