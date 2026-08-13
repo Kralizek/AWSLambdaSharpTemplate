@@ -1,62 +1,43 @@
 using System.Threading.Tasks;
-
 using Amazon.Lambda.Core;
-
 using Kralizek.Lambda;
-
-#if (aot && !raw)
+#if (!raw)
 using Microsoft.Extensions.DependencyInjection;
 #endif
-
 #if (otel)
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AWSLambda;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 #endif
-
 #if (!aot)
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 #endif
-
 namespace LambdaFunctionProject;
-
 #if (raw)
 public sealed class Function : SqsFunction<RawSqsRecordHandler>
 #else
 public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
-#if (aot && !raw)
-    protected override void ConfigurePayloadServices(IServiceCollection services)
-    {
-        services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
-            new JsonStringPayloadDecoder<OrderCreated>(PayloadJsonSerializerContext.Default.OrderCreated));
-    }
+#if (!raw)
+    protected override void ConfigurePayloadServices(IServiceCollection services) =>
+        services.AddSingleton(PayloadJsonSerializerContext.Default.OrderCreated);
 #endif
-
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
     private static readonly MeterProvider MeterProvider = ConfigureMetrics();
-
-    public override async Task<Amazon.Lambda.SQSEvents.SQSBatchResponse> FunctionHandlerAsync(
-        Amazon.Lambda.SQSEvents.SQSEvent input,
-        ILambdaContext context)
+    public override async Task<Amazon.Lambda.SQSEvents.SQSBatchResponse> FunctionHandlerAsync(Amazon.Lambda.SQSEvents.SQSEvent input, ILambdaContext context)
     {
         try
         {
-            return await AWSLambdaWrapper.TraceAsync(
-                TracerProvider,
-                base.FunctionHandlerAsync,
-                input,
-                context).ConfigureAwait(false);
+            return await AWSLambdaWrapper.TraceAsync(TracerProvider, base.FunctionHandlerAsync, input, context).ConfigureAwait(false);
         }
         finally
         {
             MeterProvider.ForceFlush();
         }
     }
-
     private static TracerProvider ConfigureTracing() =>
         Sdk.CreateTracerProviderBuilder()
             .AddSource(LambdaTelemetry.ActivitySourceName)
@@ -67,7 +48,6 @@ public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
             })
             .AddOtlpExporter()
             .Build();
-
     private static MeterProvider ConfigureMetrics() =>
         Sdk.CreateMeterProviderBuilder()
             .AddMeter(LambdaTelemetry.MeterName)
