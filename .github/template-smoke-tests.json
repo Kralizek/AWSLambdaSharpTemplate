@@ -1,0 +1,279 @@
+{
+  "include": [
+    {
+      "name": "Event",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEvent",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Event (OpenTelemetry)",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEventOtel",
+      "otel": true,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Request",
+      "shortName": "lambda-template-request",
+      "projectName": "SmokeRequest",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Request (OpenTelemetry)",
+      "shortName": "lambda-template-request",
+      "projectName": "SmokeRequestOtel",
+      "otel": true,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "EventBridge",
+      "shortName": "lambda-template-eventbridge",
+      "projectName": "SmokeEventBridge",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "DynamoDB Streams",
+      "shortName": "lambda-template-dynamodb-stream",
+      "projectName": "SmokeDynamoDbStream",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Kinesis Streams",
+      "shortName": "lambda-template-kinesis-stream",
+      "projectName": "SmokeKinesisStream",
+      "otel": false,
+      "raw": false,
+      "mustExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs"
+      ],
+      "mustNotExist": [
+        "RawKinesisStreamRecordHandler.cs"
+      ]
+    },
+    {
+      "name": "Kinesis Streams (raw)",
+      "shortName": "lambda-template-kinesis-stream",
+      "projectName": "SmokeKinesisStreamRaw",
+      "otel": false,
+      "raw": true,
+      "mustExist": [
+        "RawKinesisStreamRecordHandler.cs"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs"
+      ]
+    },
+    {
+      "name": "S3",
+      "shortName": "lambda-template-s3",
+      "projectName": "SmokeS3",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "S3 Batch",
+      "shortName": "lambda-template-s3-batch",
+      "projectName": "SmokeS3Batch",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "SNS",
+      "shortName": "lambda-template-sns",
+      "projectName": "SmokeSns",
+      "otel": false,
+      "raw": false,
+      "mustExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs"
+      ],
+      "mustNotExist": [
+        "RawSnsRecordHandler.cs"
+      ]
+    },
+    {
+      "name": "SNS (raw)",
+      "shortName": "lambda-template-sns",
+      "projectName": "SmokeSnsRaw",
+      "otel": false,
+      "raw": true,
+      "mustExist": [
+        "RawSnsRecordHandler.cs"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs"
+      ]
+    },
+    {
+      "name": "SQS",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqs",
+      "otel": false,
+      "raw": false,
+      "mustExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs"
+      ],
+      "mustNotExist": [
+        "RawSqsRecordHandler.cs"
+      ]
+    },
+    {
+      "name": "SQS (raw)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsRaw",
+      "otel": false,
+      "raw": true,
+      "mustExist": [
+        "RawSqsRecordHandler.cs"
+      ],
+      "mustNotExist": [
+        "OrderCreated.cs",
+        "OrderCreatedHandler.cs"
+      ]
+    },
+    {
+      "name": "Cognito Pre Sign-up",
+      "shortName": "lambda-template-cognito-pre-signup",
+      "projectName": "SmokeCognitoPreSignUp",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Post Confirmation",
+      "shortName": "lambda-template-cognito-post-confirmation",
+      "projectName": "SmokeCognitoPostConfirmation",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Pre Authentication",
+      "shortName": "lambda-template-cognito-pre-authentication",
+      "projectName": "SmokeCognitoPreAuthentication",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Post Authentication",
+      "shortName": "lambda-template-cognito-post-authentication",
+      "projectName": "SmokeCognitoPostAuthentication",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Define Auth Challenge",
+      "shortName": "lambda-template-cognito-define-auth-challenge",
+      "projectName": "SmokeCognitoDefineAuthChallenge",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Create Auth Challenge",
+      "shortName": "lambda-template-cognito-create-auth-challenge",
+      "projectName": "SmokeCognitoCreateAuthChallenge",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Verify Auth Challenge",
+      "shortName": "lambda-template-cognito-verify-auth-challenge",
+      "projectName": "SmokeCognitoVerifyAuthChallenge",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Custom Message",
+      "shortName": "lambda-template-cognito-custom-message",
+      "projectName": "SmokeCognitoCustomMessage",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito User Migration",
+      "shortName": "lambda-template-cognito-user-migration",
+      "projectName": "SmokeCognitoUserMigration",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Custom Email Sender",
+      "shortName": "lambda-template-cognito-custom-email-sender",
+      "projectName": "SmokeCognitoCustomEmailSender",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Custom SMS Sender",
+      "shortName": "lambda-template-cognito-custom-sms-sender",
+      "projectName": "SmokeCognitoCustomSmsSender",
+      "otel": false,
+      "raw": false,
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Pre Token Generation V1",
+      "shortName": "lambda-template-cognito-pre-token-generation",
+      "projectName": "SmokeCognitoPreTokenGenerationV1",
+      "otel": false,
+      "raw": false,
+      "version": "v1",
+      "mustExist": [],
+      "mustNotExist": []
+    },
+    {
+      "name": "Cognito Pre Token Generation V2",
+      "shortName": "lambda-template-cognito-pre-token-generation",
+      "projectName": "SmokeCognitoPreTokenGenerationV2",
+      "otel": false,
+      "raw": false,
+      "version": "v2",
+      "mustExist": [],
+      "mustNotExist": []
+    }
+  ]
+}
