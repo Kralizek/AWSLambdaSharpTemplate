@@ -28,12 +28,9 @@ public sealed class Function : SnsFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
 #if (aot && !raw)
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        services.AddScoped<OrderCreatedHandler>();
+    protected override void ConfigurePayloadServices(IServiceCollection services) =>
         services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
             new JsonStringPayloadDecoder<OrderCreated>(LambdaJsonSerializerContext.Default.OrderCreated));
-    }
 #endif
 
 #if (otel)
