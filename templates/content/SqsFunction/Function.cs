@@ -15,7 +15,11 @@ using OpenTelemetry.Trace;
 
 namespace LambdaFunctionProject;
 
+#if (raw)
+public sealed class Function : SqsFunction<RawSqsRecordHandler>
+#else
 public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
+#endif
 {
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
