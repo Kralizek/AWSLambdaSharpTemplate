@@ -250,9 +250,21 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Read template smoke-test matrix
+        shell: bash
+        run: jq -c . .github/template-smoke-tests.json > "$RUNNER_TEMP/template-smoke-tests.json"
+
+      - name: Validate template smoke-test matrix
+        run: >-
+          npx --yes ajv-cli@5.0.0 validate
+          --spec=draft7
+          --all-errors
+          -s .github/template-smoke-tests.schema.json
+          -d "$RUNNER_TEMP/template-smoke-tests.json"
+
+      - name: Export template smoke-test matrix
         id: matrix
         shell: bash
-        run: echo "matrix=$(jq -c . .github/template-smoke-tests.json)" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(cat "$RUNNER_TEMP/template-smoke-tests.json")" >> "$GITHUB_OUTPUT"
 
   template-smoke-test:
     name: Template smoke test (${{ matrix.name }})
@@ -327,6 +339,8 @@ jobs:
         env:
           MUST_EXIST: ${{ toJSON(matrix.mustExist) }}
           MUST_NOT_EXIST: ${{ toJSON(matrix.mustNotExist) }}
+          MUST_MATCH: ${{ toJSON(matrix.mustMatch) }}
+          MUST_NOT_MATCH: ${{ toJSON(matrix.mustNotMatch) }}
         shell: bash
         run: |
           set -euo pipefail
@@ -338,23 +352,27 @@ jobs:
           grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.projectName }}.csproj"
           ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
 
-          if [ "${{ matrix.otel }}" = "true" ]; then
-            grep -q 'OpenTelemetry.Instrumentation.AWSLambda' "$project/${{ matrix.projectName }}.csproj"
-            grep -q 'OpenTelemetry.Exporter.OpenTelemetryProtocol' "$project/${{ matrix.projectName }}.csproj"
-            grep -q 'AWSLambdaWrapper.TraceAsync' "$project/Function.cs"
-            grep -q 'ConfigureTracing' "$project/Function.cs"
-            grep -q 'ConfigureMetrics' "$project/Function.cs"
-          else
-            ! grep -R -q 'OpenTelemetry' "$project"
-          fi
-
           while IFS= read -r file; do
             [ -z "$file" ] || test -e "$project/$file"
-          done < <(jq -r '.[]' <<< "$MUST_EXIST")
+          done < <(jq -r '.[]?' <<< "$MUST_EXIST")
 
           while IFS= read -r file; do
             [ -z "$file" ] || test ! -e "$project/$file"
-          done < <(jq -r '.[]' <<< "$MUST_NOT_EXIST")
+          done < <(jq -r '.[]?' <<< "$MUST_NOT_EXIST")
+
+          while IFS= read -r pattern; do
+            if [ -n "$pattern" ] && ! grep -R -E -q -- "$pattern" "$project"; then
+              echo "Expected generated content to match regex: $pattern"
+              exit 1
+            fi
+          done < <(jq -r '.[]?' <<< "$MUST_MATCH")
+
+          while IFS= read -r pattern; do
+            if [ -n "$pattern" ] && grep -R -E -q -- "$pattern" "$project"; then
+              echo "Expected generated content not to match regex: $pattern"
+              exit 1
+            fi
+          done < <(jq -r '.[]?' <<< "$MUST_NOT_MATCH")
 
       - name: Configure smoke-test package sources
         shell: bash
