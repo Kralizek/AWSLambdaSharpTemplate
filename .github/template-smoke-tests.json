@@ -162,7 +162,7 @@
       "name": "Cognito Post Authentication",
       "shortName": "lambda-template-cognito-post-authentication",
       "projectName": "SmokeCognitoPostAuthentication",
-      "mustExist": ["Function.cs", "PostAuthenticationHandler.cs", "SmokeCognitoPostAuthentication.csproj"],
+      "mustExist": ["Function.cs", "PostAuthenticationHandler.cs", "SmokeCognitoPostAuthenticationAot.csproj"],
       "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["CognitoPostAuthenticationFunction<PostAuthenticationHandler>"],
       "mustNotMatch": ["OpenTelemetry"]
@@ -255,9 +255,9 @@
       "shortName": "lambda-template-sqs",
       "projectName": "SmokeSqsAot",
       "aot": true,
-      "mustExist": ["Function.cs", "LambdaAot.cs", "OrderCreated.cs", "OrderCreatedHandler.cs", "SmokeSqsAot.csproj"],
+      "mustExist": ["Function.cs", "Program.cs", "OrderCreated.cs", "OrderCreatedHandler.cs", "SmokeSqsAot.csproj"],
       "mustNotExist": ["RawSqsRecordHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
-      "mustMatch": ["SqsFunction<OrderCreated, OrderCreatedHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "JsonStringPayloadDecoder<OrderCreated>", "LambdaJsonSerializerContext\\.Default\\.OrderCreated", "\"function-handler\": \"SmokeSqsAot\""],
+      "mustMatch": ["SqsFunction<OrderCreated, OrderCreatedHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "JsonStringPayloadDecoder<OrderCreated>", "PayloadJsonSerializerContext\\.Default\\.OrderCreated", "\"function-handler\": \"SmokeSqsAot\""],
       "mustNotMatch": ["SqsFunction<RawSqsRecordHandler>", "::SmokeSqsAot\\.Function::FunctionHandlerAsync", "OpenTelemetry"]
     },
     {
@@ -265,7 +265,7 @@
       "shortName": "lambda-template-cognito-post-confirmation",
       "projectName": "SmokeCognitoPostConfirmationAot",
       "aot": true,
-      "mustExist": ["Function.cs", "LambdaAot.cs", "PostConfirmationHandler.cs", "SmokeCognitoPostConfirmationAot.csproj"],
+      "mustExist": ["Function.cs", "Program.cs", "PostConfirmationHandler.cs", "SmokeCognitoPostConfirmationAot.csproj"],
       "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["CognitoPostConfirmationFunction<PostConfirmationHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "\"function-handler\": \"SmokeCognitoPostConfirmationAot\""],
       "mustNotMatch": ["::SmokeCognitoPostConfirmationAot\\.Function::FunctionHandlerAsync", "OpenTelemetry"]
@@ -275,7 +275,7 @@
       "shortName": "lambda-template-eventbridge",
       "projectName": "SmokeEventBridgeAot",
       "aot": true,
-      "mustExist": ["Function.cs", "LambdaAot.cs", "OrderCreated.cs", "OrderCreatedHandler.cs", "SmokeEventBridgeAot.csproj"],
+      "mustExist": ["Function.cs", "Program.cs", "OrderCreated.cs", "OrderCreatedHandler.cs", "SmokeEventBridgeAot.csproj"],
       "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["EventBridgeFunction<OrderCreated, OrderCreatedHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "JsonSerializable\\(typeof\\(OrderCreated\\)\\)", "\"function-handler\": \"SmokeEventBridgeAot\""],
       "mustNotMatch": ["::SmokeEventBridgeAot\\.Function::FunctionHandlerAsync", "OpenTelemetry"]
@@ -286,7 +286,7 @@
       "projectName": "SmokeSnsAotRaw",
       "aot": true,
       "raw": true,
-      "mustExist": ["Function.cs", "LambdaAot.cs", "RawSnsRecordHandler.cs", "SmokeSnsAotRaw.csproj"],
+      "mustExist": ["Function.cs", "Program.cs", "RawSnsRecordHandler.cs", "SmokeSnsAotRaw.csproj"],
       "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["SnsFunction<RawSnsRecordHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "\"function-handler\": \"SmokeSnsAotRaw\""],
       "mustNotMatch": ["SnsFunction<OrderCreated, OrderCreatedHandler>", "JsonStringPayloadDecoder<OrderCreated>", "JsonSerializable\\(typeof\\(OrderCreated\\)\\)", "OpenTelemetry"]
@@ -297,7 +297,7 @@
       "projectName": "SmokeEventAotOtel",
       "aot": true,
       "otel": true,
-      "mustExist": ["Function.cs", "LambdaAot.cs", "StringEventHandler.cs", "SmokeEventAotOtel.csproj"],
+      "mustExist": ["Function.cs", "Program.cs", "StringEventHandler.cs", "SmokeEventAotOtel.csproj"],
       "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["EventFunction<string, StringEventHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "\"function-handler\": \"SmokeEventAotOtel\""],
       "mustNotMatch": []
@@ -309,7 +309,7 @@
       "aot": true,
       "otel": true,
       "raw": true,
-      "mustExist": ["Function.cs", "LambdaAot.cs", "RawKinesisStreamRecordHandler.cs", "SmokeKinesisAotOtelRaw.csproj"],
+      "mustExist": ["Function.cs", "Program.cs", "RawKinesisStreamRecordHandler.cs", "SmokeKinesisAotOtelRaw.csproj"],
       "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["KinesisStreamFunction<RawKinesisStreamRecordHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "\"function-handler\": \"SmokeKinesisAotOtelRaw\""],
       "mustNotMatch": ["KinesisStreamFunction<OrderCreated, OrderCreatedHandler>", "JsonBinaryPayloadDecoder<OrderCreated>", "JsonSerializable\\(typeof\\(OrderCreated\\)\\)"]
