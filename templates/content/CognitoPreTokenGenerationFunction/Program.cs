@@ -13,11 +13,18 @@ internal static class LambdaAot
         var function = new Function();
         var serializer = new SourceGeneratorLambdaJsonSerializer<LambdaJsonSerializerContext>();
 //#if (preTokenV2)
-        var bootstrap = LambdaBootstrapBuilder.Create<Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationV2Event, Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationV2Event>(function.FunctionHandlerAsync, serializer);
+        await LambdaBootstrapBuilder
+            .Create<Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationV2Event, Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationV2Event>(function.FunctionHandlerAsync, serializer)
+            .Build()
+            .RunAsync()
+            .ConfigureAwait(false);
 //#else
-        var bootstrap = LambdaBootstrapBuilder.Create<Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationEvent, Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationEvent>(function.FunctionHandlerAsync, serializer);
+        await LambdaBootstrapBuilder
+            .Create<Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationEvent, Amazon.Lambda.CognitoEvents.CognitoPreTokenGenerationEvent>(function.FunctionHandlerAsync, serializer)
+            .Build()
+            .RunAsync()
+            .ConfigureAwait(false);
 //#endif
-        await bootstrap.Build().RunAsync().ConfigureAwait(false);
     }
 }
 
