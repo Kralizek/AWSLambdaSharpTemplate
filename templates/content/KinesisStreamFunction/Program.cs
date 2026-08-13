@@ -23,4 +23,4 @@ internal static class Program
 
 [JsonSerializable(typeof(Amazon.Lambda.KinesisEvents.KinesisEvent))]
 [JsonSerializable(typeof(Amazon.Lambda.KinesisEvents.StreamsEventResponse))]
-internal partial class LambdaJsonSerializerContext;
+internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
