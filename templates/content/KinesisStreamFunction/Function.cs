@@ -4,6 +4,10 @@ using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
+#if (!raw)
+using Microsoft.Extensions.DependencyInjection;
+#endif
+
 #if (otel)
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AWSLambda;
@@ -11,7 +15,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 #endif
 
+#if (!aot)
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+#endif
 
 namespace LambdaFunctionProject;
 
@@ -21,6 +27,11 @@ public sealed class Function : KinesisStreamFunction<RawKinesisStreamRecordHandl
 public sealed class Function : KinesisStreamFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
+#if (!raw)
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
+        services.AddSingleton(PayloadJsonSerializerContext.Default.OrderCreated);
+#endif
+
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
     private static readonly MeterProvider MeterProvider = ConfigureMetrics();
