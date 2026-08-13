@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -31,9 +32,15 @@ public abstract class KinesisStreamFunction<TPayload, [DynamicallyAccessedMember
     {
         var typeInfo = services.GetService<JsonTypeInfo<TPayload>>();
         if (typeInfo is not null)
+        {
             return new JsonBinaryPayloadDecoder<TPayload>(typeInfo);
+        }
+
         if (JsonSerializer.IsReflectionEnabledByDefault)
+        {
             return new JsonBinaryPayloadDecoder<TPayload>();
+        }
+
         throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TPayload).Name}> is registered.");
     }
 }
