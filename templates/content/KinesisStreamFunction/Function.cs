@@ -28,7 +28,7 @@ public sealed class Function : KinesisStreamFunction<OrderCreated, OrderCreatedH
 #endif
 {
 #if (!raw)
-    protected override void ConfigurePayloadServices(IServiceCollection services) =>
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         services.AddSingleton(PayloadJsonSerializerContext.Default.OrderCreated);
 #endif
 
