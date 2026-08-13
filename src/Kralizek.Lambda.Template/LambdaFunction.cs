@@ -47,7 +47,7 @@ public abstract class LambdaFunction
             ConfigureLogging(logging);
         });
 
-        ConfigureFrameworkServices(services);
+        RegisterFrameworkServices(services);
         ConfigureServices(services, Configuration);
 
         ServiceProvider = services.BuildServiceProvider();
@@ -65,15 +65,15 @@ public abstract class LambdaFunction
     protected virtual void ConfigureConfiguration(IConfigurationBuilder configuration) { }
 
     /// <summary>
-    /// Registers services required by the function model and its specializations.
+    /// Registers services required by the function model before application services are configured.
     /// </summary>
     /// <remarks>
-    /// This extensibility point is intended for framework and third-party function specializations.
-    /// Application-level dependencies should be registered through <see cref="ConfigureServices(IServiceCollection,IConfiguration)"/> instead.
+    /// Function model roots seal this pipeline and expose their own independent
+    /// <c>ConfigureFrameworkServices</c> customization hooks.
     /// This method is invoked while the <see cref="LambdaFunction"/> base constructor is executing.
     /// Overrides must not depend on state initialized by a derived-class constructor.
     /// </remarks>
-    protected virtual void ConfigureFrameworkServices(IServiceCollection services) { }
+    protected virtual void RegisterFrameworkServices(IServiceCollection services) { }
 
     /// <summary>
     /// Override to configure additional logging providers and options.
