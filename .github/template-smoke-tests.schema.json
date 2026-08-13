@@ -33,7 +33,9 @@
         "otel",
         "raw",
         "mustExist",
-        "mustNotExist"
+        "mustNotExist",
+        "mustMatch",
+        "mustNotMatch"
       ],
       "properties": {
         "name": {
