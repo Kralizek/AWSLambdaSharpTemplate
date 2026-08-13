@@ -21,11 +21,17 @@ public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : Lam
     where TContext : RequestContext
     where THandler : class, IRequestHandler<TInput, TOutput, TContext>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        services.TryAddScoped<THandler>();
+        base.RegisterFrameworkServices(services);
+        ConfigureFrameworkServices(services);
     }
+
+    /// <summary>
+    /// Registers services required by this request-function specialization.
+    /// </summary>
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services) =>
+        services.TryAddScoped<THandler>();
 
     /// <summary>
     /// Creates the strongly typed context passed to the request handler.
