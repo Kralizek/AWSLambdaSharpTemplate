@@ -9,11 +9,8 @@ public abstract class KinesisStreamFunction<THandler>
     : KinesisStreamFunctionBase<RawKinesisStreamRecordHandler<THandler>>
     where THandler : class, IKinesisStreamRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         KinesisStreamServiceRegistration.AddRawHandler<THandler>(services);
-    }
 }
 
 /// <summary>
@@ -23,9 +20,6 @@ public abstract class KinesisStreamFunction<TPayload, THandler>
     : KinesisStreamFunctionBase<KinesisStreamRecordHandler<TPayload, THandler>>
     where THandler : class, IKinesisStreamRecordHandler<TPayload>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         KinesisStreamServiceRegistration.AddDecodedHandler<TPayload, THandler>(services);
-    }
 }
