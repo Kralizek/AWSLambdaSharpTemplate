@@ -15,19 +15,28 @@ SQS and SNS use string decoders for message bodies. Kinesis Streams uses binary 
 
 ## Native AOT
 
-Typed SQS, SNS, and Kinesis templates have a second JSON boundary inside the AWS event envelope. When generated with `--aot`, they explicitly replace the default reflection-based payload decoder with one backed by the generated `LambdaJsonSerializerContext`.
+Typed SQS, SNS, and Kinesis templates have a second JSON boundary inside the AWS event envelope. When generated with `--aot`, they replace only the default reflection-based payload decoder with one backed by a source-generated payload context. Handler registration remains part of the non-replaceable framework registration pipeline.
 
 For example, typed SQS uses:
 
 ```csharp
 services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
     new JsonStringPayloadDecoder<OrderCreated>(
-        LambdaJsonSerializerContext.Default.OrderCreated));
+        PayloadJsonSerializerContext.Default.OrderCreated));
 ```
+
+The generated handler-side file owns that metadata:
+
+```csharp
+[JsonSerializable(typeof(OrderCreated))]
+internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
+```
+
+`Program.cs` owns a separate `LambdaJsonSerializerContext` for the outer AWS Lambda request/response boundary. Keeping the two contexts separate makes the ownership explicit and avoids coupling nested application payload metadata to Lambda bootstrap plumbing.
 
 Kinesis uses the equivalent `JsonBinaryPayloadDecoder<T>` registration.
 
-The template owns metadata for AWS/framework boundary types and includes metadata for the generated sample payload because that sample depends on it. When application code replaces `OrderCreated` with its own contract, add that application type to the generated serializer context with `[JsonSerializable]` and update the decoder registration to use its generated `JsonTypeInfo<T>` property.
+When application code replaces `OrderCreated` with its own contract, add that application type to the payload serializer context and update the decoder registration to use its generated `JsonTypeInfo<T>` property.
 
 Raw SQS, SNS, and Kinesis variants do not deserialize an application payload, so `--aot --raw` does not require application payload metadata or a custom payload decoder registration.
 
