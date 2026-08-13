@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AWSProjectType>Lambda</AWSProjectType>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sqs\Kralizek.Lambda.Template.Sqs.csproj" />
+    <PackageReference Include="Amazon.Lambda.RuntimeSupport" />
+  </ItemGroup>
+
+</Project>
