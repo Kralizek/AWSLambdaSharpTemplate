@@ -1,25 +1,26 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-/// <summary>
-/// A function base class for Lambda functions triggered by Kinesis Streams that process raw records.
-/// </summary>
 public abstract class KinesisStreamFunction<THandler>
     : KinesisStreamFunctionBase<RawKinesisStreamRecordHandler<THandler>>
     where THandler : class, IKinesisStreamRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
-        KinesisStreamServiceRegistration.AddRawHandler<THandler>(services);
+    protected sealed override void ConfigureFrameworkServices(IServiceCollection services) =>
+        services.TryAddScoped<THandler>();
 }
 
-/// <summary>
-/// A function base class for Lambda functions triggered by Kinesis Streams that decode record data into application contracts.
-/// </summary>
 public abstract class KinesisStreamFunction<TPayload, THandler>
     : KinesisStreamFunctionBase<KinesisStreamRecordHandler<TPayload, THandler>>
     where THandler : class, IKinesisStreamRecordHandler<TPayload>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
-        KinesisStreamServiceRegistration.AddDecodedHandler<TPayload, THandler>(services);
+    protected sealed override void ConfigureFrameworkServices(IServiceCollection services)
+    {
+        services.TryAddScoped<THandler>();
+        ConfigurePayloadServices(services);
+    }
+
+    protected virtual void ConfigurePayloadServices(IServiceCollection services) =>
+        services.TryAddSingleton<IBinaryPayloadDecoder<TPayload>, JsonBinaryPayloadDecoder<TPayload>>();
 }
