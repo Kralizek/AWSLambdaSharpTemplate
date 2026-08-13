@@ -9,20 +9,21 @@ public abstract class ParallelSnsFunction<[DynamicallyAccessedMembers(Dynamicall
     : ParallelSnsFunctionBase<RawSnsRecordHandler<THandler>>
     where THandler : class, ISnsRecordHandler
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services) =>
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
+    {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
+    }
 }
 
 public abstract class ParallelSnsFunction<TNotification, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSnsFunctionBase<SnsRecordHandler<TNotification, THandler>>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
-    protected sealed override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
-        ConfigurePayloadServices(services);
         services.TryAddSingleton<IStringPayloadDecoder<TNotification>>(SnsPayloadDecoderFactory.Create<TNotification>);
     }
-
-    protected virtual void ConfigurePayloadServices(IServiceCollection services) { }
 }
