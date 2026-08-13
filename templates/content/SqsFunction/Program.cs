@@ -23,4 +23,4 @@ internal static class Program
 
 [JsonSerializable(typeof(Amazon.Lambda.SQSEvents.SQSEvent))]
 [JsonSerializable(typeof(Amazon.Lambda.SQSEvents.SQSBatchResponse))]
-internal partial class LambdaJsonSerializerContext;
+internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
