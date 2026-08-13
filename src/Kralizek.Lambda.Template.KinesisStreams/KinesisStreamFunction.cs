@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-public abstract class KinesisStreamFunction<THandler>
+public abstract class KinesisStreamFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : KinesisStreamFunctionBase<RawKinesisStreamRecordHandler<THandler>>
     where THandler : class, IKinesisStreamRecordHandler
 {
@@ -11,7 +13,7 @@ public abstract class KinesisStreamFunction<THandler>
         services.TryAddScoped<THandler>();
 }
 
-public abstract class KinesisStreamFunction<TPayload, THandler>
+public abstract class KinesisStreamFunction<TPayload, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : KinesisStreamFunctionBase<KinesisStreamRecordHandler<TPayload, THandler>>
     where THandler : class, IKinesisStreamRecordHandler<TPayload>
 {
