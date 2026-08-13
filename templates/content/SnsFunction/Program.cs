@@ -25,4 +25,4 @@ internal static class Program
 }
 
 [JsonSerializable(typeof(Amazon.Lambda.SNSEvents.SNSEvent))]
-internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
+internal partial class LambdaJsonSerializerContext;
