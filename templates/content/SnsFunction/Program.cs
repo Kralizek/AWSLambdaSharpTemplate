@@ -6,7 +6,7 @@ using Amazon.Lambda.Serialization.SystemTextJson;
 
 namespace LambdaFunctionProject;
 
-internal static class LambdaAot
+internal static class Program
 {
     private static async Task Main()
     {
@@ -25,7 +25,4 @@ internal static class LambdaAot
 }
 
 [JsonSerializable(typeof(Amazon.Lambda.SNSEvents.SNSEvent))]
-//#if (!raw)
-[JsonSerializable(typeof(OrderCreated))]
-//#endif
 internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
