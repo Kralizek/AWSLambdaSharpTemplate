@@ -31,5 +31,5 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
 
 #if (aot)
 [JsonSerializable(typeof(OrderCreated))]
-internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
+internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
 #endif
