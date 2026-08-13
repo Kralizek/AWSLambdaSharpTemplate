@@ -1,53 +1,20 @@
 {
   "author": "Renato Golia",
-  "classifications": [
-    "AWS",
-    "Lambda",
-    "EventBridge",
-    "Function",
-    "Template"
-  ],
+  "classifications": ["AWS", "Lambda", "EventBridge", "Function", "Template"],
   "name": "AWS Lambda EventBridge Function",
   "identity": "Kralizek.Lambda.Template.EventBridgeFunction",
   "groupIdentity": "Kralizek.Lambda.Template.EventBridgeFunction.CSharp",
   "shortName": "lambda-template-eventbridge",
-  "tags": {
-    "language": "C#",
-    "type": "project"
-  },
+  "tags": { "language": "C#", "type": "project" },
   "sourceName": "LambdaFunctionProject",
   "preferNameDirectory": true,
   "symbols": {
-    "profile": {
-      "type": "parameter",
-      "description": "The AWS credentials profile set in aws-lambda-tools-defaults.json and used as the default profile when interacting with AWS.",
-      "datatype": "string",
-      "replaces": "DefaultProfile",
-      "defaultValue": ""
-    },
-    "region": {
-      "type": "parameter",
-      "description": "The AWS region set in aws-lambda-tools-defaults.json and used as the default region when interacting with AWS.",
-      "datatype": "string",
-      "replaces": "DefaultRegion",
-      "defaultValue": ""
-    },
-    "role": {
-      "type": "parameter",
-      "description": "The AWS IAM role set in aws-lambda-tools-defaults.json and used as the default role when interacting with AWS.",
-      "datatype": "string",
-      "replaces": "DefaultRole",
-      "defaultValue": ""
-    },
-    "otel": {
-      "type": "parameter",
-      "description": "Enable OpenTelemetry using the standard AWS Lambda instrumentation.",
-      "datatype": "bool",
-      "replaces": "EnableOpenTelemetry",
-      "defaultValue": "false"
-    }
+    "profile": { "type": "parameter", "datatype": "string", "replaces": "DefaultProfile", "defaultValue": "" },
+    "region": { "type": "parameter", "datatype": "string", "replaces": "DefaultRegion", "defaultValue": "" },
+    "role": { "type": "parameter", "datatype": "string", "replaces": "DefaultRole", "defaultValue": "" },
+    "otel": { "type": "parameter", "description": "Enable OpenTelemetry using the standard AWS Lambda instrumentation.", "datatype": "bool", "defaultValue": "false" },
+    "aot": { "type": "parameter", "description": "Generate a Native AOT Lambda executable with source-generated JSON serialization.", "datatype": "bool", "defaultValue": "false" }
   },
-  "primaryOutputs": [
-    { "path": "./LambdaFunctionProject.csproj" }
-  ]
+  "sources": [{ "modifiers": [{ "condition": "!aot", "exclude": ["LambdaAot.cs"] }] }],
+  "primaryOutputs": [{ "path": "./LambdaFunctionProject.csproj" }]
 }

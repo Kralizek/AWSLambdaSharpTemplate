@@ -14,5 +14,10 @@
   "function-runtime": "dotnet10",
   "function-memory-size": 128,
   "function-timeout": 30,
+//#if (aot)
+  "function-handler": "LambdaFunctionProject",
+  "msbuild-parameters": "--self-contained true"
+//#else
   "function-handler": "LambdaFunctionProject::LambdaFunctionProject.Function::FunctionHandlerAsync"
+//#endif
 }

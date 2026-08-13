@@ -4,14 +4,24 @@
     <TargetFramework>net10.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
-    <PublishReadyToRun>true</PublishReadyToRun>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>enable</Nullable>
+<!--#if (aot)-->
+    <OutputType>Exe</OutputType>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <TrimMode>partial</TrimMode>
+<!--#else-->
+    <PublishReadyToRun>true</PublishReadyToRun>
+<!--#endif-->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.101.5" />
     <PackageReference Include="Kralizek.Lambda.Template.S3" Version="__KRALIZEK_LAMBDA_VERSION__" />
+<!--#if (aot)-->
+    <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="2.1.2" />
+<!--#endif-->
   </ItemGroup>
 
 <!--#if (otel)-->
