@@ -10,9 +10,6 @@ public abstract class DynamoDbStreamFunction<THandler>
     : DynamoDbStreamFunctionBase<RawDynamoDbStreamRecordHandler<THandler>>
     where THandler : class, IDynamoDbStreamRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         DynamoDbStreamServiceRegistration.AddHandler<THandler>(services);
-    }
 }
