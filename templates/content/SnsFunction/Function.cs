@@ -25,7 +25,7 @@ public sealed class Function : SnsFunction<OrderCreated, OrderCreatedHandler>
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
     private static readonly MeterProvider MeterProvider = ConfigureMetrics();
 
-    public override async Task<Amazon.Lambda.SNSEvents.SNSEvent> FunctionHandlerAsync(
+    public override async Task<object?> FunctionHandlerAsync(
         Amazon.Lambda.SNSEvents.SNSEvent input,
         ILambdaContext context)
     {
