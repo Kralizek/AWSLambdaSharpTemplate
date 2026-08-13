@@ -1,18 +1,14 @@
 using Kralizek.Lambda;
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace NativeAotSqsFunction;
 
 public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
 {
-    protected override void ConfigureServices(
-        IServiceCollection services,
-        IConfiguration configuration)
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureServices(services, configuration);
-
+        services.AddScoped<OrderCreatedHandler>();
         services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
             new JsonStringPayloadDecoder<OrderCreated>(LambdaJsonSerializerContext.Default.OrderCreated));
     }
