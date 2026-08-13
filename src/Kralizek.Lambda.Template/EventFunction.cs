@@ -23,30 +23,23 @@ public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
     protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
         base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
         ConfigureFrameworkServices(services);
     }
 
     /// <summary>
-    /// Registers services required by this event-function specialization.
+    /// Registers replaceable services for this event-function specialization.
     /// </summary>
-    protected virtual void ConfigureFrameworkServices(IServiceCollection services) =>
-        services.TryAddScoped<THandler>();
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services)
+    {
+    }
 
-    /// <summary>
-    /// Creates the strongly typed context passed to the event handler.
-    /// </summary>
     protected abstract TContext CreateContext(TInput input, ILambdaContext context);
 
-    /// <summary>
-    /// Adds source-specific metadata to the Lambda invocation activity.
-    /// </summary>
     protected virtual void EnrichInvocationActivity(Activity activity, TInput input, ILambdaContext context)
     {
     }
 
-    /// <summary>
-    /// The entry point called by the Lambda runtime.
-    /// </summary>
     public virtual async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
         LambdaTelemetry.EnrichInvocation("event");
@@ -67,9 +60,6 @@ public abstract class EventFunction<TInput, TContext, THandler> : LambdaFunction
     }
 }
 
-/// <summary>
-/// A function base class for handlers that use the standard <see cref="EventContext"/>.
-/// </summary>
 public abstract class EventFunction<TInput, THandler> : EventFunction<TInput, EventContext, THandler>
     where THandler : class, IEventHandler<TInput, EventContext>
 {
