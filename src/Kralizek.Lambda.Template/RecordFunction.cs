@@ -27,13 +27,23 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     where TContext : RecordContext
     where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
+        base.RegisterFrameworkServices(services);
+
         services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
             EnrichRecordActivity,
             IsSuccessfulRecordResult,
             EnrichRecordResultActivity);
+
+        ConfigureFrameworkServices(services);
+    }
+
+    /// <summary>
+    /// Registers services required by this record-function specialization.
+    /// </summary>
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services)
+    {
     }
 
     /// <summary>
