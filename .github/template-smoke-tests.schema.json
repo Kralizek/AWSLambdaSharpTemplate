@@ -46,6 +46,10 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
+        "aot": {
+          "type": "boolean",
+          "default": false
+        },
         "otel": {
           "type": "boolean",
           "default": false
