@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-public abstract class SnsFunction<THandler>
+public abstract class SnsFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SnsFunctionBase<RawSnsRecordHandler<THandler>>
     where THandler : class, ISnsRecordHandler
 {
@@ -11,7 +13,7 @@ public abstract class SnsFunction<THandler>
         services.TryAddScoped<THandler>();
 }
 
-public abstract class SnsFunction<TNotification, THandler>
+public abstract class SnsFunction<TNotification, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SnsFunctionBase<SnsRecordHandler<TNotification, THandler>>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
