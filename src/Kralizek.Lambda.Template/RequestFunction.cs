@@ -24,30 +24,23 @@ public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : Lam
     protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
         base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
         ConfigureFrameworkServices(services);
     }
 
     /// <summary>
-    /// Registers services required by this request-function specialization.
+    /// Registers replaceable services for this request-function specialization.
     /// </summary>
-    protected virtual void ConfigureFrameworkServices(IServiceCollection services) =>
-        services.TryAddScoped<THandler>();
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services)
+    {
+    }
 
-    /// <summary>
-    /// Creates the strongly typed context passed to the request handler.
-    /// </summary>
     protected abstract TContext CreateContext(TInput input, ILambdaContext context);
 
-    /// <summary>
-    /// Adds source-specific metadata to the Lambda invocation activity.
-    /// </summary>
     protected virtual void EnrichInvocationActivity(Activity activity, TInput input, ILambdaContext context)
     {
     }
 
-    /// <summary>
-    /// The entry point called by the Lambda runtime.
-    /// </summary>
     public virtual async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
         LambdaTelemetry.EnrichInvocation("request");
@@ -68,9 +61,6 @@ public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : Lam
     }
 }
 
-/// <summary>
-/// A function base class for handlers that use the standard <see cref="RequestContext"/>.
-/// </summary>
 #pragma warning disable S2436 // The three public roles intentionally hide the standard context type.
 public abstract class RequestFunction<TInput, TOutput, THandler> : RequestFunction<TInput, TOutput, RequestContext, THandler>
 #pragma warning restore S2436
