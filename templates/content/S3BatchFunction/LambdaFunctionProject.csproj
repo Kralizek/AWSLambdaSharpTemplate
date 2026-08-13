@@ -11,6 +11,16 @@
     <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
     <TrimMode>partial</TrimMode>
+    <!-- Amazon.Lambda.Serialization.SystemTextJson ships both the AOT-safe
+         SourceGeneratorLambdaJsonSerializer and the reflection-based DefaultLambdaJsonSerializer
+         and LambdaJsonSerializer in one assembly. TrimMode=partial retains all types from the
+         package (it is not marked Trimmable); the ILC emits IL3050 warnings for the unreachable
+         reflection-based methods. With default TrimmerSingleWarn=true, the ILC rolls these into
+         a single IL3053 severity-error that fails warnaserror builds even though this application
+         never calls those types. Setting false causes the ILC to emit individual IL3050
+         severity-warning diagnostics instead; MSBuild TreatWarningsAsErrors does not escalate
+         ILC-level warnings. All warnings originate within the AWS package itself; only
+         SourceGeneratorLambdaJsonSerializer is reachable at runtime. -->
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
 <!--#else-->
     <PublishReadyToRun>true</PublishReadyToRun>

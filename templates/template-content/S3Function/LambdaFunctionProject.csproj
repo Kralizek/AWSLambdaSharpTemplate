@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>enable</Nullable>
-<!--#if (aot)-->
+    <!--#if (aot)-->
     <OutputType>Exe</OutputType>
     <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
@@ -22,23 +21,21 @@
          ILC-level warnings. All warnings originate within the AWS package itself; only
          SourceGeneratorLambdaJsonSerializer is reachable at runtime. -->
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
-<!--#else-->
+    <!--#else-->
     <PublishReadyToRun>true</PublishReadyToRun>
-<!--#endif-->
+    <!--#endif-->
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Kralizek.Lambda.Template.DynamoDbStreams" Version="__KRALIZEK_LAMBDA_VERSION__" />
-<!--#if (aot)-->
+    <PackageReference Include="AWSSDK.S3" Version="4.0.101.5" />
+    <PackageReference Include="Kralizek.Lambda.Template.S3" Version="6.0.0-preview.1" />
+    <!--#if (aot)-->
     <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="2.1.2" />
-<!--#endif-->
+    <!--#endif-->
   </ItemGroup>
-
-<!--#if (otel)-->
+  <!--#if (otel)-->
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.17.0" />
   </ItemGroup>
-<!--#endif-->
-
+  <!--#endif-->
 </Project>
