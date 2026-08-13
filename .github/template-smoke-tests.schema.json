@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Kralizek/AWSLambdaSharpTemplate/.github/template-smoke-tests.schema.json",
+  "title": "Template smoke tests",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["include"],
+  "properties": {
+    "include": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/testCase"
+      }
+    }
+  },
+  "definitions": {
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "testCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "shortName",
+        "projectName",
+        "mustMatch",
+        "mustNotMatch"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shortName": {
+          "type": "string",
+          "pattern": "^lambda-template-[a-z0-9-]+$"
+        },
+        "projectName": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "otel": {
+          "type": "boolean",
+          "default": false
+        },
+        "raw": {
+          "type": "boolean",
+          "default": false
+        },
+        "version": {
+          "type": "string",
+          "enum": ["v1", "v2"]
+        },
+        "mustExist": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/stringArray"
+            }
+          ],
+          "default": []
+        },
+        "mustNotExist": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/stringArray"
+            }
+          ],
+          "default": []
+        },
+        "mustMatch": {
+          "$ref": "#/definitions/stringArray"
+        },
+        "mustNotMatch": {
+          "$ref": "#/definitions/stringArray"
+        }
+      }
+    }
+  }
+}

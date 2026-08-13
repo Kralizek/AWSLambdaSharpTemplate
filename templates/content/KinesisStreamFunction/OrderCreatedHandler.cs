@@ -1,24 +1,23 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.Lambda.KinesisEvents;
-
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Logging;
 
 namespace LambdaFunctionProject;
 
-public sealed class KinesisRecordHandler(ILogger<KinesisRecordHandler> logger)
-    : IKinesisStreamRecordHandler
+public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
+    : IKinesisStreamRecordHandler<OrderCreated>
 {
     public ValueTask<KinesisStreamRecordResult> HandleAsync(
-        KinesisEvent.KinesisEventRecord record,
+        OrderCreated payload,
         KinesisStreamRecordContext context,
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Processing Kinesis record from partition {PartitionKey} at sequence {SequenceNumber}",
+            "Processing order {OrderId} from partition {PartitionKey} at sequence {SequenceNumber}",
+            payload.OrderId,
             context.PartitionKey,
             context.SequenceNumber);
 

@@ -237,114 +237,44 @@ jobs:
           path: ${{ env.ARTIFACTS_PATH }}/packages
           key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
 
+  prepare-template-smoke-tests:
+    name: Prepare template smoke tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read template smoke-test matrix
+        shell: bash
+        run: jq -c . .github/template-smoke-tests.json > "$RUNNER_TEMP/template-smoke-tests.json"
+
+      - name: Validate template smoke-test matrix
+        run: >-
+          npx --yes ajv-cli@5.0.0 validate
+          --spec=draft7
+          --all-errors
+          -s .github/template-smoke-tests.schema.json
+          -d "$RUNNER_TEMP/template-smoke-tests.json"
+
+      - name: Export template smoke-test matrix
+        id: matrix
+        shell: bash
+        run: echo "matrix=$(cat "$RUNNER_TEMP/template-smoke-tests.json")" >> "$GITHUB_OUTPUT"
+
   template-smoke-test:
     name: Template smoke test (${{ matrix.name }})
-    needs: [prepare-version, smoke-pack]
+    needs: [prepare-version, smoke-pack, prepare-template-smoke-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Event
-            short-name: lambda-template-event
-            project-name: SmokeEvent
-            otel: false
-          - name: Event (OpenTelemetry)
-            short-name: lambda-template-event
-            project-name: SmokeEventOtel
-            otel: true
-          - name: Request
-            short-name: lambda-template-request
-            project-name: SmokeRequest
-            otel: false
-          - name: Request (OpenTelemetry)
-            short-name: lambda-template-request
-            project-name: SmokeRequestOtel
-            otel: true
-          - name: EventBridge
-            short-name: lambda-template-eventbridge
-            project-name: SmokeEventBridge
-            otel: false
-          - name: DynamoDB Streams
-            short-name: lambda-template-dynamodb-stream
-            project-name: SmokeDynamoDbStream
-            otel: false
-          - name: Kinesis Streams
-            short-name: lambda-template-kinesis-stream
-            project-name: SmokeKinesisStream
-            otel: false
-          - name: S3
-            short-name: lambda-template-s3
-            project-name: SmokeS3
-            otel: false
-          - name: S3 Batch
-            short-name: lambda-template-s3-batch
-            project-name: SmokeS3Batch
-            otel: false
-          - name: SNS
-            short-name: lambda-template-sns
-            project-name: SmokeSns
-            otel: false
-          - name: SQS
-            short-name: lambda-template-sqs
-            project-name: SmokeSqs
-            otel: false
-          - name: Cognito Pre Sign-up
-            short-name: lambda-template-cognito-pre-signup
-            project-name: SmokeCognitoPreSignUp
-            otel: false
-          - name: Cognito Post Confirmation
-            short-name: lambda-template-cognito-post-confirmation
-            project-name: SmokeCognitoPostConfirmation
-            otel: false
-          - name: Cognito Pre Authentication
-            short-name: lambda-template-cognito-pre-authentication
-            project-name: SmokeCognitoPreAuthentication
-            otel: false
-          - name: Cognito Post Authentication
-            short-name: lambda-template-cognito-post-authentication
-            project-name: SmokeCognitoPostAuthentication
-            otel: false
-          - name: Cognito Define Auth Challenge
-            short-name: lambda-template-cognito-define-auth-challenge
-            project-name: SmokeCognitoDefineAuthChallenge
-            otel: false
-          - name: Cognito Create Auth Challenge
-            short-name: lambda-template-cognito-create-auth-challenge
-            project-name: SmokeCognitoCreateAuthChallenge
-            otel: false
-          - name: Cognito Verify Auth Challenge
-            short-name: lambda-template-cognito-verify-auth-challenge
-            project-name: SmokeCognitoVerifyAuthChallenge
-            otel: false
-          - name: Cognito Custom Message
-            short-name: lambda-template-cognito-custom-message
-            project-name: SmokeCognitoCustomMessage
-            otel: false
-          - name: Cognito User Migration
-            short-name: lambda-template-cognito-user-migration
-            project-name: SmokeCognitoUserMigration
-            otel: false
-          - name: Cognito Custom Email Sender
-            short-name: lambda-template-cognito-custom-email-sender
-            project-name: SmokeCognitoCustomEmailSender
-            otel: false
-          - name: Cognito Custom SMS Sender
-            short-name: lambda-template-cognito-custom-sms-sender
-            project-name: SmokeCognitoCustomSmsSender
-            otel: false
-          - name: Cognito Pre Token Generation V1
-            short-name: lambda-template-cognito-pre-token-generation
-            project-name: SmokeCognitoPreTokenGenerationV1
-            args: --version v1
-            otel: false
-          - name: Cognito Pre Token Generation V2
-            short-name: lambda-template-cognito-pre-token-generation
-            project-name: SmokeCognitoPreTokenGenerationV2
-            args: --version v2
-            otel: false
+      matrix: ${{ fromJSON(needs.prepare-template-smoke-tests.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -373,39 +303,76 @@ jobs:
       - name: Install packaged templates
         run: |
           dotnet new install "$TEMPLATE_PACKAGE"
-          dotnet new list "${{ matrix.short-name }}"
+          dotnet new list "${{ matrix.shortName }}"
 
       - name: Instantiate ${{ matrix.name }} template
+        env:
+          TEMPLATE_OTEL: ${{ matrix.otel }}
+          TEMPLATE_RAW: ${{ matrix.raw }}
+          TEMPLATE_VERSION: ${{ matrix.version || '' }}
+        shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
-          dotnet new "${{ matrix.short-name }}" \
-            --name "${{ matrix.project-name }}" \
-            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}" \
+
+          args=()
+          if [ "$TEMPLATE_OTEL" = "true" ]; then
+            args+=(--otel)
+          fi
+          if [ "$TEMPLATE_RAW" = "true" ]; then
+            args+=(--raw)
+          fi
+          if [ -n "$TEMPLATE_VERSION" ]; then
+            args+=(--version "$TEMPLATE_VERSION")
+          fi
+
+          dotnet new "${{ matrix.shortName }}" \
+            --name "${{ matrix.projectName }}" \
+            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}" \
             --profile SmokeProfile \
             --region eu-north-1 \
             --role SmokeRole \
-            ${{ matrix.otel && '--otel' || '' }} \
-            ${{ matrix.args }}
+            "${args[@]}"
 
       - name: Verify generated content
+        env:
+          MUST_EXIST: ${{ toJSON(matrix.mustExist) }}
+          MUST_NOT_EXIST: ${{ toJSON(matrix.mustNotExist) }}
+          MUST_MATCH: ${{ toJSON(matrix.mustMatch) }}
+          MUST_NOT_MATCH: ${{ toJSON(matrix.mustNotMatch) }}
         shell: bash
         run: |
-          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          set -euo pipefail
+
+          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           grep -q 'SmokeProfile' "$project/aws-lambda-tools-defaults.json"
           grep -q 'eu-north-1' "$project/aws-lambda-tools-defaults.json"
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
-          grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.project-name }}.csproj"
+          grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.projectName }}.csproj"
           ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
 
-          if [ "${{ matrix.otel }}" = "true" ]; then
-            grep -q 'OpenTelemetry.Instrumentation.AWSLambda' "$project/${{ matrix.project-name }}.csproj"
-            grep -q 'OpenTelemetry.Exporter.OpenTelemetryProtocol' "$project/${{ matrix.project-name }}.csproj"
-            grep -q 'AWSLambdaWrapper.TraceAsync' "$project/Function.cs"
-            grep -q 'ConfigureTracing' "$project/Function.cs"
-            grep -q 'ConfigureMetrics' "$project/Function.cs"
-          else
-            ! grep -R -q 'OpenTelemetry' "$project"
-          fi
+          while IFS= read -r file; do
+            [ -z "$file" ] || test -e "$project/$file"
+          done < <(jq -r '.[]?' <<< "$MUST_EXIST")
+
+          while IFS= read -r file; do
+            [ -z "$file" ] || test ! -e "$project/$file"
+          done < <(jq -r '.[]?' <<< "$MUST_NOT_EXIST")
+
+          while IFS= read -r pattern; do
+            if [ -n "$pattern" ] && ! grep -R -E -q -- "$pattern" "$project"; then
+              echo "Expected generated content to match regex: $pattern"
+              exit 1
+            fi
+          done < <(jq -r '.[]?' <<< "$MUST_MATCH")
+
+          while IFS= read -r pattern; do
+            if [ -n "$pattern" ] && grep -R -E -q -- "$pattern" "$project"; then
+              echo "Expected generated content not to match regex: $pattern"
+              exit 1
+            fi
+          done < <(jq -r '.[]?' <<< "$MUST_NOT_MATCH")
 
       - name: Configure smoke-test package sources
         shell: bash
@@ -433,14 +400,14 @@ jobs:
       - name: Restore generated project
         run: >-
           dotnet restore
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
           --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
 
       - name: Build generated project
         run: >-
           dotnet build
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           --configuration $CONFIGURATION
           --no-restore
           --warnaserror
