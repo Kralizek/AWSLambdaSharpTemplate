@@ -1,6 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#if (aot)
+using System.Text.Json.Serialization;
+#endif
+
 using Kralizek.Lambda;
 
 using Microsoft.Extensions.Logging;
@@ -23,3 +27,8 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
         return ValueTask.FromResult(SqsRecordResult.Success);
     }
 }
+
+#if (aot)
+[JsonSerializable(typeof(OrderCreated))]
+internal partial class LambdaJsonSerializerContext;
+#endif
