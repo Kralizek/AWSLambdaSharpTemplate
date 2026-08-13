@@ -14,19 +14,27 @@
          SourceGeneratorLambdaJsonSerializer and the reflection-based DefaultLambdaJsonSerializer
          and LambdaJsonSerializer in one assembly. TrimMode=partial retains all types from the
          package (it is not marked Trimmable); the ILC emits IL3050 warnings for the unreachable
-         reflection-based methods. With default TrimmerSingleWarn=true, the ILC rolls these into
-         a single IL3053 severity-error that fails warnaserror builds even though this application
-         never calls those types. Setting false causes the ILC to emit individual IL3050
-         severity-warning diagnostics instead; MSBuild TreatWarningsAsErrors does not escalate
-         ILC-level warnings. All warnings originate within the AWS package itself; only
-         SourceGeneratorLambdaJsonSerializer is reachable at runtime. -->
+         reflection-based methods. With default TrimmerSingleWarn=true the ILC rolls these into a
+         single IL3053 severity-error that fails warnaserror builds even though this application
+         never calls those types.
+         * TrimmerSingleWarn=false: emit individual IL3050 severity-warning diagnostics instead of
+           the aggregate IL3053 error.
+         * IlcTreatWarningsAsErrors=false: prevent the SDK from forwarding warnaserror to the ILC
+           tool, so ILC itself emits warnings rather than errors.
+         * WarningsNotAsErrors: passes nowarnaserr:IL3050 to ILC and tells MSBuild not to promote
+           IL3050 to an error even when TreatWarningsAsErrors is active.
+         All IL3050 warnings originate within the AWS package; only SourceGeneratorLambdaJsonSerializer
+         is reachable at runtime in this application. Remove these three properties if the AWS package
+         ships a trimming-annotated build of Amazon.Lambda.Serialization.SystemTextJson. -->
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <IlcTreatWarningsAsErrors>false</IlcTreatWarningsAsErrors>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL3050</WarningsNotAsErrors>
     <!--#else-->
     <PublishReadyToRun>true</PublishReadyToRun>
     <!--#endif-->
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Kralizek.Lambda.Template.Sns" Version="6.0.0-preview.1" />
+    <PackageReference Include="Kralizek.Lambda.Template.Sns" Version="6.0.0-preview.2" />
     <!--#if (aot)-->
     <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="2.1.2" />
     <!--#endif-->
