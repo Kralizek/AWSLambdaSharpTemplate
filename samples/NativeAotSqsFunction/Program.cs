@@ -6,7 +6,7 @@ using Amazon.Lambda.Serialization.SystemTextJson;
 
 namespace NativeAotSqsFunction;
 
-internal static class LambdaAot
+internal static class Program
 {
     private static async Task Main()
     {
@@ -23,5 +23,4 @@ internal static class LambdaAot
 
 [JsonSerializable(typeof(Amazon.Lambda.SQSEvents.SQSEvent))]
 [JsonSerializable(typeof(Amazon.Lambda.SQSEvents.SQSBatchResponse))]
-[JsonSerializable(typeof(OrderCreated))]
 internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
