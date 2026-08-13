@@ -126,3 +126,42 @@ public sealed class JsonBinaryPayloadDecoder<TPayload> : IBinaryPayloadDecoder<T
     private static TPayload EnsureResult(TPayload? result) =>
         result ?? throw new JsonException($"JSON payload deserialized to null for {typeof(TPayload).FullName}.");
 }
+
+internal static class JsonPayloadDecoderFactory
+{
+    public static IStringPayloadDecoder<TPayload> CreateString<TPayload>(IServiceProvider services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        if (services.GetService(typeof(JsonTypeInfo<TPayload>)) is JsonTypeInfo<TPayload> typeInfo)
+        {
+            return new JsonStringPayloadDecoder<TPayload>(typeInfo);
+        }
+
+        if (JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            return new JsonStringPayloadDecoder<TPayload>();
+        }
+
+        throw new InvalidOperationException(
+            $"No JsonTypeInfo<{typeof(TPayload).Name}> is registered and reflection-based JSON serialization is disabled.");
+    }
+
+    public static IBinaryPayloadDecoder<TPayload> CreateBinary<TPayload>(IServiceProvider services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        if (services.GetService(typeof(JsonTypeInfo<TPayload>)) is JsonTypeInfo<TPayload> typeInfo)
+        {
+            return new JsonBinaryPayloadDecoder<TPayload>(typeInfo);
+        }
+
+        if (JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            return new JsonBinaryPayloadDecoder<TPayload>();
+        }
+
+        throw new InvalidOperationException(
+            $"No JsonTypeInfo<{typeof(TPayload).Name}> is registered and reflection-based JSON serialization is disabled.");
+    }
+}
