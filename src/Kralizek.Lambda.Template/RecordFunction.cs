@@ -68,50 +68,153 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         return CreateResponse(results);
     }
 
+    /// <summary>
+    /// Creates the source-specific context used while processing this invocation.
+    /// </summary>
     protected abstract TContext CreateRecordContext(TEnvelope envelope, ILambdaContext lambdaContext);
-    protected abstract IEnumerable<TRecord> GetRecords(TEnvelope envelope);
-    protected virtual void EnrichRecordActivity(Activity activity, TRecord record, TContext context) { }
-    protected virtual bool IsSuccessfulRecordResult(TRecordResult result) => true;
-    protected virtual void EnrichRecordResultActivity(Activity activity, TRecordResult result) { }
-    protected abstract TResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results);
-    protected virtual ValueTask<TRecordResult> HandleRecordExceptionAsync(TRecord record, Exception exception, TContext context, CancellationToken cancellationToken) => ValueTask.FromException<TRecordResult>(exception);
 
-    protected virtual async Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(TEnvelope envelope, TContext context, IServiceProvider invocationServices, CancellationToken cancellationToken)
+    /// <summary>
+    /// Extracts the individual records from the envelope.
+    /// </summary>
+    protected abstract IEnumerable<TRecord> GetRecords(TEnvelope envelope);
+
+    /// <summary>
+    /// Adds source-specific transport or event metadata to the activity for one record.
+    /// </summary>
+    /// <remarks>
+    /// Implementations should keep business-specific telemetry in application-owned activities and meters.
+    /// High-cardinality record identifiers belong on activities and must not be copied to framework metric tags.
+    /// </remarks>
+    protected virtual void EnrichRecordActivity(Activity activity, TRecord record, TContext context)
+    {
+    }
+
+    /// <summary>
+    /// Determines whether a source-specific record result represents successful processing.
+    /// </summary>
+    /// <remarks>
+    /// Returning <see langword="false"/> marks the record activity as failed and records the low-cardinality
+    /// framework metric outcome as <c>failure</c>. Exceptions remain a distinct <c>error</c> outcome.
+    /// </remarks>
+    protected virtual bool IsSuccessfulRecordResult(TRecordResult result) => true;
+
+    /// <summary>
+    /// Adds source-specific result metadata to the activity after a record handler returns.
+    /// </summary>
+    /// <remarks>
+    /// Result metadata should use bounded values. Application-provided failure messages or other arbitrary text
+    /// should not be copied to framework telemetry.
+    /// </remarks>
+    protected virtual void EnrichRecordResultActivity(Activity activity, TRecordResult result)
+    {
+    }
+
+    /// <summary>
+    /// Creates the final source-specific response from the processed records and their results.
+    /// </summary>
+    protected abstract TResponse CreateResponse(IReadOnlyCollection<RecordProcessingResult> results);
+
+    /// <summary>
+    /// Translates a record-handler exception into a source-specific record result.
+    /// </summary>
+    /// <remarks>
+    /// The default implementation rethrows the exception. Source-specific specializations may override
+    /// this method to produce a failed record result used for partial-batch or checkpoint responses.
+    /// Invocation cancellation bypasses this method and always aborts the invocation.
+    /// </remarks>
+    protected virtual ValueTask<TRecordResult> HandleRecordExceptionAsync(
+        TRecord record,
+        Exception exception,
+        TContext context,
+        CancellationToken cancellationToken) =>
+        ValueTask.FromException<TRecordResult>(exception);
+
+    /// <summary>
+    /// Processes all records sequentially and creates one scope per record.
+    /// </summary>
+    /// <remarks>
+    /// Source-specific specializations may override this method to select another scheduling policy,
+    /// such as bounded parallelism, while retaining the invocation scope owned by <see cref="FunctionHandlerAsync"/>.
+    /// </remarks>
+    protected virtual async Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsAsync(
+        TEnvelope envelope,
+        TContext context,
+        IServiceProvider invocationServices,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
         var results = new List<RecordProcessingResult>();
         var processor = invocationServices.GetRequiredService<IRecordProcessor<TRecord, TRecordResult, TContext>>();
+
         foreach (var record in GetRecords(envelope))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await ExecuteRecordAsync(processor, record, context, cancellationToken).ConfigureAwait(false);
+
+            var result = await ExecuteRecordAsync(
+                processor,
+                record,
+                context,
+                cancellationToken).ConfigureAwait(false);
+
             results.Add(new RecordProcessingResult(record, result));
         }
+
         return results;
     }
 
-    protected async Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsParallelAsync(TEnvelope envelope, TContext context, IServiceProvider invocationServices, int maxDegreeOfParallelism, CancellationToken cancellationToken)
+    /// <summary>
+    /// Processes records with bounded parallelism and creates one scope per record.
+    /// </summary>
+    protected async Task<IReadOnlyCollection<RecordProcessingResult>> ProcessRecordsParallelAsync(
+        TEnvelope envelope,
+        TContext context,
+        IServiceProvider invocationServices,
+        int maxDegreeOfParallelism,
+        CancellationToken cancellationToken)
     {
         if (maxDegreeOfParallelism < 2)
         {
-            throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism), "maxDegreeOfParallelism must be at least 2.");
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                "maxDegreeOfParallelism must be at least 2.");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
         var processor = invocationServices.GetRequiredService<IRecordProcessor<TRecord, TRecordResult, TContext>>();
         var records = GetRecords(envelope).ToArray();
         var results = new RecordProcessingResult[records.Length];
-        var options = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(Enumerable.Range(0, records.Length), options, async (index, ct) =>
+
+        var options = new ParallelOptions
         {
-            var record = records[index];
-            var result = await ExecuteRecordAsync(processor, record, context, ct).ConfigureAwait(false);
-            results[index] = new RecordProcessingResult(record, result);
-        }).ConfigureAwait(false);
+            MaxDegreeOfParallelism = maxDegreeOfParallelism,
+            CancellationToken = cancellationToken
+        };
+
+        await Parallel.ForEachAsync(
+            Enumerable.Range(0, records.Length),
+            options,
+            async (index, ct) =>
+            {
+                var record = records[index];
+                var result = await ExecuteRecordAsync(
+                    processor,
+                    record,
+                    context,
+                    ct).ConfigureAwait(false);
+
+                results[index] = new RecordProcessingResult(record, result);
+            }).ConfigureAwait(false);
+
         return results;
     }
 
-    private async ValueTask<TRecordResult> ExecuteRecordAsync(IRecordProcessor<TRecord, TRecordResult, TContext> processor, TRecord record, TContext context, CancellationToken cancellationToken)
+    private async ValueTask<TRecordResult> ExecuteRecordAsync(
+        IRecordProcessor<TRecord, TRecordResult, TContext> processor,
+        TRecord record,
+        TContext context,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -123,10 +226,19 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         }
         catch (Exception exception)
         {
-            var result = await HandleRecordExceptionAsync(record, exception, context, cancellationToken).ConfigureAwait(false);
-            return result ?? throw new InvalidOperationException($"Record exception handler for {typeof(THandler).Name} returned a null result.");
+            var result = await HandleRecordExceptionAsync(
+                record,
+                exception,
+                context,
+                cancellationToken).ConfigureAwait(false);
+
+            return result ?? throw new InvalidOperationException(
+                $"Record exception handler for {typeof(THandler).Name} returned a null result.");
         }
     }
 
+    /// <summary>
+    /// Associates an original record with the result produced while processing it.
+    /// </summary>
     protected readonly record struct RecordProcessingResult(TRecord Record, TRecordResult Result);
 }
