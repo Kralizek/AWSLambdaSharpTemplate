@@ -1,34 +1,51 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-/// <summary>
-/// A function base class for Lambda functions triggered by SQS that process raw SQS records.
-/// </summary>
-/// <typeparam name="THandler">The concrete handler type that processes each SQS record.</typeparam>
-public abstract class SqsFunction<THandler>
+public abstract class SqsFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SqsServiceRegistration.AddRawHandler<THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
     }
 }
 
-/// <summary>
-/// A function base class for Lambda functions triggered by SQS that decode message bodies into application contracts.
-/// </summary>
-/// <typeparam name="TMessage">The decoded message type.</typeparam>
-/// <typeparam name="THandler">The concrete handler type that processes each message.</typeparam>
-public abstract class SqsFunction<TMessage, THandler>
+public abstract class SqsFunction<TMessage, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SqsServiceRegistration.AddDecodedHandler<TMessage, THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+        services.TryAddSingleton<IStringPayloadDecoder<TMessage>>(SqsPayloadDecoderFactory.Create<TMessage>);
+    }
+}
+
+internal static class SqsPayloadDecoderFactory
+{
+    public static IStringPayloadDecoder<TMessage> Create<TMessage>(IServiceProvider services)
+    {
+        var typeInfo = services.GetService<JsonTypeInfo<TMessage>>();
+        if (typeInfo is not null)
+        {
+            return new JsonStringPayloadDecoder<TMessage>(typeInfo);
+        }
+
+        if (JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            return new JsonStringPayloadDecoder<TMessage>();
+        }
+
+        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TMessage).Name}> is registered.");
     }
 }

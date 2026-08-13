@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,14 +10,12 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.KinesisEvents;
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
 
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class KinesisStreamFunctionBase<TRecordHandler>
+public abstract class KinesisStreamFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler>
     : RecordFunction<
         KinesisEvent,
         KinesisEvent.KinesisEventRecord,
@@ -80,19 +79,5 @@ public abstract class KinesisStreamFunctionBase<TRecordHandler>
             record.Kinesis?.SequenceNumber);
 
         return ValueTask.FromResult(KinesisStreamRecordResult.Failed(exception.Message));
-    }
-}
-
-internal static class KinesisStreamServiceRegistration
-{
-    public static void AddRawHandler<THandler>(IServiceCollection services)
-        where THandler : class, IKinesisStreamRecordHandler =>
-        services.TryAddScoped<THandler>();
-
-    public static void AddDecodedHandler<TPayload, THandler>(IServiceCollection services)
-        where THandler : class, IKinesisStreamRecordHandler<TPayload>
-    {
-        services.TryAddScoped<THandler>();
-        services.TryAddSingleton<IBinaryPayloadDecoder<TPayload>, JsonBinaryPayloadDecoder<TPayload>>();
     }
 }

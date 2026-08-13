@@ -1,34 +1,29 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-/// <summary>
-/// An SNS function specialization that processes raw records with bounded parallelism.
-/// </summary>
-/// <typeparam name="THandler">The concrete handler type that processes each SNS record.</typeparam>
-public abstract class ParallelSnsFunction<THandler>
+public abstract class ParallelSnsFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSnsFunctionBase<RawSnsRecordHandler<THandler>>
     where THandler : class, ISnsRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SnsServiceRegistration.AddRawHandler<THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
     }
 }
 
-/// <summary>
-/// An SNS function specialization that processes decoded notifications with bounded parallelism.
-/// </summary>
-/// <typeparam name="TNotification">The decoded notification type.</typeparam>
-/// <typeparam name="THandler">The concrete handler type that processes each notification.</typeparam>
-public abstract class ParallelSnsFunction<TNotification, THandler>
+public abstract class ParallelSnsFunction<TNotification, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSnsFunctionBase<SnsRecordHandler<TNotification, THandler>>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SnsServiceRegistration.AddDecodedHandler<TNotification, THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+        services.TryAddSingleton<IStringPayloadDecoder<TNotification>>(SnsPayloadDecoderFactory.Create<TNotification>);
     }
 }

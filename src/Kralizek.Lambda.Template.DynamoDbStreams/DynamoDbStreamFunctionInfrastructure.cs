@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace Kralizek.Lambda;
 /// Infrastructure base for DynamoDB Streams function specializations.
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
+public abstract class DynamoDbStreamFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler>
     : RecordFunction<
         DynamoDBEvent,
         DynamoDBEvent.DynamodbStreamRecord,
@@ -94,7 +95,7 @@ public abstract class DynamoDbStreamFunctionBase<TRecordHandler>
 
 internal static class DynamoDbStreamServiceRegistration
 {
-    public static void AddHandler<THandler>(IServiceCollection services)
+    public static void AddHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(IServiceCollection services)
         where THandler : class, IDynamoDbStreamRecordHandler =>
         services.TryAddScoped<THandler>();
 }

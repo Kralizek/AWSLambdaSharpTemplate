@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +20,7 @@ public static class RecordProcessorServiceCollectionExtensions
     /// Registers a record handler together with a processor that creates an independent scope for every processed record.
     /// </summary>
 #pragma warning disable S2436 // The generic roles mirror the record-processing model.
-    public static IServiceCollection AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(this IServiceCollection services)
+    public static IServiceCollection AddRecordProcessor<TRecord, TRecordResult, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(this IServiceCollection services)
 #pragma warning restore S2436
         where TRecordResult : LambdaRecordResult
         where TContext : RecordContext
@@ -31,7 +32,7 @@ public static class RecordProcessorServiceCollectionExtensions
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
 #pragma warning disable S2436 // The generic roles mirror the record-processing model.
-    public static IServiceCollection AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
+    public static IServiceCollection AddRecordProcessor<TRecord, TRecordResult, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
 #pragma warning restore S2436
         this IServiceCollection services,
         Action<Activity, TRecord, TContext>? enrichActivity,

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,8 +10,6 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Kralizek.Lambda;
@@ -20,7 +19,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 /// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class SqsFunctionBase<TRecordHandler>
+public abstract class SqsFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler>
     : RecordFunction<
         SQSEvent,
         SQSEvent.SQSMessage,
@@ -91,7 +90,7 @@ public abstract class SqsFunctionBase<TRecordHandler>
 /// </summary>
 /// <typeparam name="TRecordHandler">The infrastructure record handler used by the specialization.</typeparam>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class ParallelSqsFunctionBase<TRecordHandler> : SqsFunctionBase<TRecordHandler>
+public abstract class ParallelSqsFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler> : SqsFunctionBase<TRecordHandler>
     where TRecordHandler : class, IRecordHandler<SQSEvent.SQSMessage, SqsRecordResult, RecordContext>
 {
     /// <summary>
@@ -110,18 +109,4 @@ public abstract class ParallelSqsFunctionBase<TRecordHandler> : SqsFunctionBase<
             invocationServices,
             MaxDegreeOfParallelism,
             cancellationToken);
-}
-
-internal static class SqsServiceRegistration
-{
-    public static void AddRawHandler<THandler>(IServiceCollection services)
-        where THandler : class, ISqsRecordHandler =>
-        services.TryAddScoped<THandler>();
-
-    public static void AddDecodedHandler<TMessage, THandler>(IServiceCollection services)
-        where THandler : class, ISqsMessageHandler<TMessage>
-    {
-        services.TryAddScoped<THandler>();
-        services.TryAddSingleton<IStringPayloadDecoder<TMessage>, JsonStringPayloadDecoder<TMessage>>();
-    }
 }

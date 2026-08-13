@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,19 +22,29 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TContext">The context passed to record handlers.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes each record.</typeparam>
 #pragma warning disable S2436 // The six generic roles are intentional and mirror the record-processing model from ADR #30.
-public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TResponse, TContext, THandler> : LambdaFunction
+public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TResponse, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : LambdaFunction
 #pragma warning restore S2436
     where TRecordResult : LambdaRecordResult
     where TContext : RecordContext
     where THandler : class, IRecordHandler<TRecord, TRecordResult, TContext>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
+        base.RegisterFrameworkServices(services);
+
         services.AddRecordProcessor<TRecord, TRecordResult, TContext, THandler>(
             EnrichRecordActivity,
             IsSuccessfulRecordResult,
             EnrichRecordResultActivity);
+
+        ConfigureFrameworkServices(services);
+    }
+
+    /// <summary>
+    /// Registers services required by this record-function specialization.
+    /// </summary>
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services)
+    {
     }
 
     /// <summary>
