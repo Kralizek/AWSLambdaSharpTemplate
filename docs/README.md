@@ -9,6 +9,7 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 - Migrating an existing application? Read [Migrating from v5 to v6](Migrating-from-v5-to-v6.md).
 - Composing nested record envelopes? Read [Record Processing](Record-Processing.md).
 - Adding traces and metrics? Read [OpenTelemetry](OpenTelemetry.md).
+- Publishing with Native AOT? Read [Native AOT](Native-AOT.md).
 
 ## AWS integrations
 
@@ -42,4 +43,4 @@ Then list the available templates:
 dotnet new list lambda-template
 ```
 
-Generated projects target .NET 10 and use the standard AWS Lambda .NET tooling. Add `--otel` to any project template to generate the standard AWS Lambda OpenTelemetry wrapper and collect the framework's built-in traces and metrics.
+Generated projects target .NET 10 and use the standard AWS Lambda .NET tooling. Add `--otel` for OpenTelemetry instrumentation and `--aot` for Native AOT hosting and source-generated Lambda serialization. Source templates that support raw records can also compose these choices with `--raw`.
