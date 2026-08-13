@@ -307,6 +307,7 @@ jobs:
 
       - name: Instantiate ${{ matrix.name }} template
         env:
+          TEMPLATE_AOT: ${{ matrix.aot }}
           TEMPLATE_OTEL: ${{ matrix.otel }}
           TEMPLATE_RAW: ${{ matrix.raw }}
           TEMPLATE_VERSION: ${{ matrix.version || '' }}
@@ -317,6 +318,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
 
           args=()
+          if [ "$TEMPLATE_AOT" = "true" ]; then
+            args+=(--aot)
+          fi
           if [ "$TEMPLATE_OTEL" = "true" ]; then
             args+=(--otel)
           fi
@@ -404,11 +408,31 @@ jobs:
           --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
           --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
 
+      - name: Restore Native AOT runtime assets
+        if: matrix.aot == true
+        run: >-
+          dotnet restore
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
+          --runtime linux-x64
+          --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
+          --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
+
       - name: Build generated project
         run: >-
           dotnet build
           "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           --configuration $CONFIGURATION
+          --no-restore
+          --warnaserror
+
+      - name: Publish Native AOT generated project
+        if: matrix.aot == true
+        run: >-
+          dotnet publish
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
+          --configuration $CONFIGURATION
+          --runtime linux-x64
+          --self-contained true
           --no-restore
           --warnaserror
 
@@ -518,6 +542,7 @@ jobs:
           echo "Dry run: no packages or GitHub release will be published."
           echo "Release channel: ${{ inputs.release_channel }}"
           echo "Package version: $PACKAGE_VERSION"
+
           if [ "${{ inputs.release_channel }}" = "alpha" ]; then
             echo "Production release would publish to GitHub Packages and create a GitHub prerelease."
           elif [ "${{ inputs.release_channel }}" = "beta" ] || [ "${{ inputs.release_channel }}" = "rc" ]; then
