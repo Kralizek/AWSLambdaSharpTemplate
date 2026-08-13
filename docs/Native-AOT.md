@@ -19,24 +19,32 @@ A regular generated project exposes `FunctionHandlerAsync` as the Lambda handler
 - deploys the executable assembly name as the handler;
 - publishes self-contained.
 
-The generated `LambdaAot.cs` keeps these hosting details separate from `Function.cs` so application customization remains focused on the function and handler.
+The generated `Program.cs` keeps these hosting details separate from `Function.cs` so application customization remains focused on the function and handler.
 
 ## Serialization metadata
 
-Native AOT requires serialization metadata to be known at build time. The generated `LambdaJsonSerializerContext` contains the AWS boundary types implied by the selected template. Application-owned types must be added by the application.
+Native AOT requires serialization metadata to be known at build time. The generated host owns a source-generated context for the Lambda boundary types implied by the selected template.
 
-For example, an SQS template owns the metadata for `SQSEvent` and `SQSBatchResponse`. The sample payload type is also included because the generated sample depends on it:
+For decoded SQS, SNS, and Kinesis templates there is a second, application-owned serialization context beside the generated handler. That context contains the nested payload type and is used by the payload decoder.
+
+For example, typed SQS effectively has two contexts:
 
 ```csharp
+// Program.cs
 [JsonSerializable(typeof(SQSEvent))]
 [JsonSerializable(typeof(SQSBatchResponse))]
-[JsonSerializable(typeof(OrderCreated))]
 internal partial class LambdaJsonSerializerContext : JsonSerializerContext;
 ```
 
-When replacing `OrderCreated` with an application contract, update the source-generated context accordingly.
+```csharp
+// OrderCreatedHandler.cs
+[JsonSerializable(typeof(OrderCreated))]
+internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
+```
 
-A useful ownership rule is: **the template adds every type it knows the generated function requires; the application adds every type introduced by application code.**
+When replacing `OrderCreated` with an application contract, update the payload context accordingly.
+
+A useful ownership rule is: **the generated host owns Lambda boundary metadata; application code owns nested application payload metadata.**
 
 ## Nested payload decoding
 
@@ -45,7 +53,9 @@ SQS, SNS, and Kinesis Streams have two serialization boundaries in decoded mode:
 1. AWS Lambda deserializes the outer event envelope.
 2. The framework decodes the record payload into the application type.
 
-For AOT-generated decoded templates, the second step uses the existing `JsonStringPayloadDecoder<T>` or `JsonBinaryPayloadDecoder<T>` with generated `JsonTypeInfo<T>` metadata. This avoids falling back to reflection-based `System.Text.Json` inside record processing.
+For AOT-generated decoded templates, the second step uses the existing `JsonStringPayloadDecoder<T>` or `JsonBinaryPayloadDecoder<T>` with generated `JsonTypeInfo<T>` metadata from `PayloadJsonSerializerContext`. This avoids falling back to reflection-based `System.Text.Json` inside record processing.
+
+The source-specific function keeps handler registration in the non-replaceable framework-registration path. AOT customizes only the payload-decoder registration through the payload-services hook.
 
 Raw record mode does not need application payload metadata because no nested payload decoding occurs.
 
@@ -77,4 +87,4 @@ Native AOT publishing is platform-sensitive. Build and publish on a Linux enviro
 
 ## Sample
 
-See `samples/NativeAotSqsFunction` for a typed SQS example showing the executable bootstrap, generated boundary metadata, and an AOT-safe nested JSON decoder.
+See `samples/NativeAotSqsFunction` for a typed SQS example showing the executable bootstrap, generated boundary metadata, separate payload metadata, and an AOT-safe nested JSON decoder.
