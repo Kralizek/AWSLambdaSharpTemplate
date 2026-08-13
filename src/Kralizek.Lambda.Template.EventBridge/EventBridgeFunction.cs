@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 using Amazon.Lambda.CloudWatchEvents;
 using Amazon.Lambda.Core;
@@ -10,7 +11,7 @@ namespace Kralizek.Lambda;
 /// </summary>
 /// <typeparam name="TDetail">The strongly typed EventBridge event detail.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the event.</typeparam>
-public abstract class EventBridgeFunction<TDetail, THandler>
+public abstract class EventBridgeFunction<TDetail, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : EventFunction<CloudWatchEvent<TDetail>, THandler>
     where THandler : class, IEventBridgeHandler<TDetail>
 {
