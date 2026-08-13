@@ -15,7 +15,11 @@ using OpenTelemetry.Trace;
 
 namespace LambdaFunctionProject;
 
-public sealed class Function : KinesisStreamFunction<KinesisRecordHandler>
+#if (raw)
+public sealed class Function : KinesisStreamFunction<RawKinesisStreamRecordHandler>
+#else
+public sealed class Function : KinesisStreamFunction<OrderCreated, OrderCreatedHandler>
+#endif
 {
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
