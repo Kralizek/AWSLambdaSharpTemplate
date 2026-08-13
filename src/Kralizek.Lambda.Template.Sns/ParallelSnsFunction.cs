@@ -10,11 +10,8 @@ public abstract class ParallelSnsFunction<THandler>
     : ParallelSnsFunctionBase<RawSnsRecordHandler<THandler>>
     where THandler : class, ISnsRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         SnsServiceRegistration.AddRawHandler<THandler>(services);
-    }
 }
 
 /// <summary>
@@ -26,9 +23,6 @@ public abstract class ParallelSnsFunction<TNotification, THandler>
     : ParallelSnsFunctionBase<SnsRecordHandler<TNotification, THandler>>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
-        base.ConfigureFrameworkServices(services);
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         SnsServiceRegistration.AddDecodedHandler<TNotification, THandler>(services);
-    }
 }
