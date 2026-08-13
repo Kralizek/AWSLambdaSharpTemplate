@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,3 +24,6 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
         return ValueTask.FromResult(SqsRecordResult.Success);
     }
 }
+
+[JsonSerializable(typeof(OrderCreated))]
+internal partial class LambdaJsonSerializerContext;
