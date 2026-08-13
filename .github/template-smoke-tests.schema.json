@@ -59,11 +59,19 @@
           "enum": ["v1", "v2"]
         },
         "mustExist": {
-          "$ref": "#/definitions/stringArray",
+          "allOf": [
+            {
+              "$ref": "#/definitions/stringArray"
+            }
+          ],
           "default": []
         },
         "mustNotExist": {
-          "$ref": "#/definitions/stringArray",
+          "allOf": [
+            {
+              "$ref": "#/definitions/stringArray"
+            }
+          ],
           "default": []
         },
         "mustMatch": {
