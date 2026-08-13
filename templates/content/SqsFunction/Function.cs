@@ -5,7 +5,6 @@ using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 
 #if (aot && !raw)
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 #endif
 
@@ -16,7 +15,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 #endif
 
+#if (!aot)
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+#endif
 
 namespace LambdaFunctionProject;
 
@@ -27,12 +28,9 @@ public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
 #if (aot && !raw)
-    protected override void ConfigureServices(
-        IServiceCollection services,
-        IConfiguration configuration)
+    protected override void ConfigureFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureServices(services, configuration);
-
+        services.AddScoped<OrderCreatedHandler>();
         services.AddSingleton<IStringPayloadDecoder<OrderCreated>>(
             new JsonStringPayloadDecoder<OrderCreated>(LambdaJsonSerializerContext.Default.OrderCreated));
     }
