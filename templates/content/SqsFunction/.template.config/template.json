@@ -17,7 +17,7 @@
     "aot": { "type": "parameter", "description": "Generate a Native AOT Lambda executable with source-generated JSON serialization.", "datatype": "bool", "defaultValue": "false" }
   },
   "sources": [{ "modifiers": [
-    { "condition": "!aot", "exclude": ["LambdaAot.cs"] },
+    { "condition": "!aot", "exclude": ["Program.cs"] },
     { "condition": "raw", "exclude": ["OrderCreated.cs", "OrderCreatedHandler.cs"] },
     { "condition": "!raw", "exclude": ["RawSqsRecordHandler.cs"] }
   ] }],
