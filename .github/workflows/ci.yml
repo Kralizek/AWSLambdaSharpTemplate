@@ -237,156 +237,32 @@ jobs:
           path: ${{ env.ARTIFACTS_PATH }}/packages
           key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
 
+  prepare-template-smoke-tests:
+    name: Prepare template smoke tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read template smoke-test matrix
+        id: matrix
+        shell: bash
+        run: echo "matrix=$(jq -c . .github/template-smoke-tests.json)" >> "$GITHUB_OUTPUT"
+
   template-smoke-test:
     name: Template smoke test (${{ matrix.name }})
-    needs: [prepare-version, smoke-pack]
+    needs: [prepare-version, smoke-pack, prepare-template-smoke-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Event
-            short-name: lambda-template-event
-            project-name: SmokeEvent
-            raw: false
-            otel: false
-          - name: Event (OpenTelemetry)
-            short-name: lambda-template-event
-            project-name: SmokeEventOtel
-            raw: false
-            otel: true
-          - name: Request
-            short-name: lambda-template-request
-            project-name: SmokeRequest
-            raw: false
-            otel: false
-          - name: Request (OpenTelemetry)
-            short-name: lambda-template-request
-            project-name: SmokeRequestOtel
-            raw: false
-            otel: true
-          - name: EventBridge
-            short-name: lambda-template-eventbridge
-            project-name: SmokeEventBridge
-            raw: false
-            otel: false
-          - name: DynamoDB Streams
-            short-name: lambda-template-dynamodb-stream
-            project-name: SmokeDynamoDbStream
-            raw: false
-            otel: false
-          - name: Kinesis Streams
-            short-name: lambda-template-kinesis-stream
-            project-name: SmokeKinesisStream
-            raw: false
-            otel: false
-          - name: Kinesis Streams (raw)
-            short-name: lambda-template-kinesis-stream
-            project-name: SmokeKinesisStreamRaw
-            args: --raw
-            raw: true
-            otel: false
-          - name: S3
-            short-name: lambda-template-s3
-            project-name: SmokeS3
-            raw: false
-            otel: false
-          - name: S3 Batch
-            short-name: lambda-template-s3-batch
-            project-name: SmokeS3Batch
-            raw: false
-            otel: false
-          - name: SNS
-            short-name: lambda-template-sns
-            project-name: SmokeSns
-            raw: false
-            otel: false
-          - name: SNS (raw)
-            short-name: lambda-template-sns
-            project-name: SmokeSnsRaw
-            args: --raw
-            raw: true
-            otel: false
-          - name: SQS
-            short-name: lambda-template-sqs
-            project-name: SmokeSqs
-            raw: false
-            otel: false
-          - name: SQS (raw)
-            short-name: lambda-template-sqs
-            project-name: SmokeSqsRaw
-            args: --raw
-            raw: true
-            otel: false
-          - name: Cognito Pre Sign-up
-            short-name: lambda-template-cognito-pre-signup
-            project-name: SmokeCognitoPreSignUp
-            raw: false
-            otel: false
-          - name: Cognito Post Confirmation
-            short-name: lambda-template-cognito-post-confirmation
-            project-name: SmokeCognitoPostConfirmation
-            raw: false
-            otel: false
-          - name: Cognito Pre Authentication
-            short-name: lambda-template-cognito-pre-authentication
-            project-name: SmokeCognitoPreAuthentication
-            raw: false
-            otel: false
-          - name: Cognito Post Authentication
-            short-name: lambda-template-cognito-post-authentication
-            project-name: SmokeCognitoPostAuthentication
-            raw: false
-            otel: false
-          - name: Cognito Define Auth Challenge
-            short-name: lambda-template-cognito-define-auth-challenge
-            project-name: SmokeCognitoDefineAuthChallenge
-            raw: false
-            otel: false
-          - name: Cognito Create Auth Challenge
-            short-name: lambda-template-cognito-create-auth-challenge
-            project-name: SmokeCognitoCreateAuthChallenge
-            raw: false
-            otel: false
-          - name: Cognito Verify Auth Challenge
-            short-name: lambda-template-cognito-verify-auth-challenge
-            project-name: SmokeCognitoVerifyAuthChallenge
-            raw: false
-            otel: false
-          - name: Cognito Custom Message
-            short-name: lambda-template-cognito-custom-message
-            project-name: SmokeCognitoCustomMessage
-            raw: false
-            otel: false
-          - name: Cognito User Migration
-            short-name: lambda-template-cognito-user-migration
-            project-name: SmokeCognitoUserMigration
-            raw: false
-            otel: false
-          - name: Cognito Custom Email Sender
-            short-name: lambda-template-cognito-custom-email-sender
-            project-name: SmokeCognitoCustomEmailSender
-            raw: false
-            otel: false
-          - name: Cognito Custom SMS Sender
-            short-name: lambda-template-cognito-custom-sms-sender
-            project-name: SmokeCognitoCustomSmsSender
-            raw: false
-            otel: false
-          - name: Cognito Pre Token Generation V1
-            short-name: lambda-template-cognito-pre-token-generation
-            project-name: SmokeCognitoPreTokenGenerationV1
-            args: --version v1
-            raw: false
-            otel: false
-          - name: Cognito Pre Token Generation V2
-            short-name: lambda-template-cognito-pre-token-generation
-            project-name: SmokeCognitoPreTokenGenerationV2
-            args: --version v2
-            raw: false
-            otel: false
+      matrix: ${{ fromJSON(needs.prepare-template-smoke-tests.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -415,33 +291,56 @@ jobs:
       - name: Install packaged templates
         run: |
           dotnet new install "$TEMPLATE_PACKAGE"
-          dotnet new list "${{ matrix.short-name }}"
+          dotnet new list "${{ matrix.shortName }}"
 
       - name: Instantiate ${{ matrix.name }} template
+        env:
+          TEMPLATE_OTEL: ${{ matrix.otel }}
+          TEMPLATE_RAW: ${{ matrix.raw }}
+          TEMPLATE_VERSION: ${{ matrix.version || '' }}
+        shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
-          dotnet new "${{ matrix.short-name }}" \
-            --name "${{ matrix.project-name }}" \
-            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}" \
+
+          args=()
+          if [ "$TEMPLATE_OTEL" = "true" ]; then
+            args+=(--otel)
+          fi
+          if [ "$TEMPLATE_RAW" = "true" ]; then
+            args+=(--raw)
+          fi
+          if [ -n "$TEMPLATE_VERSION" ]; then
+            args+=(--version "$TEMPLATE_VERSION")
+          fi
+
+          dotnet new "${{ matrix.shortName }}" \
+            --name "${{ matrix.projectName }}" \
+            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}" \
             --profile SmokeProfile \
             --region eu-north-1 \
             --role SmokeRole \
-            ${{ matrix.otel && '--otel' || '' }} \
-            ${{ matrix.args }}
+            "${args[@]}"
 
       - name: Verify generated content
+        env:
+          MUST_EXIST: ${{ toJSON(matrix.mustExist) }}
+          MUST_NOT_EXIST: ${{ toJSON(matrix.mustNotExist) }}
         shell: bash
         run: |
-          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          set -euo pipefail
+
+          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           grep -q 'SmokeProfile' "$project/aws-lambda-tools-defaults.json"
           grep -q 'eu-north-1' "$project/aws-lambda-tools-defaults.json"
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
-          grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.project-name }}.csproj"
+          grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.projectName }}.csproj"
           ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
 
           if [ "${{ matrix.otel }}" = "true" ]; then
-            grep -q 'OpenTelemetry.Instrumentation.AWSLambda' "$project/${{ matrix.project-name }}.csproj"
-            grep -q 'OpenTelemetry.Exporter.OpenTelemetryProtocol' "$project/${{ matrix.project-name }}.csproj"
+            grep -q 'OpenTelemetry.Instrumentation.AWSLambda' "$project/${{ matrix.projectName }}.csproj"
+            grep -q 'OpenTelemetry.Exporter.OpenTelemetryProtocol' "$project/${{ matrix.projectName }}.csproj"
             grep -q 'AWSLambdaWrapper.TraceAsync' "$project/Function.cs"
             grep -q 'ConfigureTracing' "$project/Function.cs"
             grep -q 'ConfigureMetrics' "$project/Function.cs"
@@ -449,25 +348,13 @@ jobs:
             ! grep -R -q 'OpenTelemetry' "$project"
           fi
 
-          if [ "${{ matrix.raw }}" = "true" ]; then
-            test ! -f "$project/OrderCreated.cs"
-            test ! -f "$project/OrderCreatedHandler.cs"
+          while IFS= read -r file; do
+            [ -z "$file" ] || test -e "$project/$file"
+          done < <(jq -r '.[]' <<< "$MUST_EXIST")
 
-            case "${{ matrix.short-name }}" in
-              lambda-template-kinesis-stream)
-                test -f "$project/RawKinesisStreamRecordHandler.cs"
-                grep -q 'KinesisStreamFunction<RawKinesisStreamRecordHandler>' "$project/Function.cs"
-                ;;
-              lambda-template-sns)
-                test -f "$project/RawSnsRecordHandler.cs"
-                grep -q 'SnsFunction<RawSnsRecordHandler>' "$project/Function.cs"
-                ;;
-              lambda-template-sqs)
-                test -f "$project/RawSqsRecordHandler.cs"
-                grep -q 'SqsFunction<RawSqsRecordHandler>' "$project/Function.cs"
-                ;;
-            esac
-          fi
+          while IFS= read -r file; do
+            [ -z "$file" ] || test ! -e "$project/$file"
+          done < <(jq -r '.[]' <<< "$MUST_NOT_EXIST")
 
       - name: Configure smoke-test package sources
         shell: bash
@@ -495,14 +382,14 @@ jobs:
       - name: Restore generated project
         run: >-
           dotnet restore
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
           --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
 
       - name: Build generated project
         run: >-
           dotnet build
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.project-name }}"
+          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
           --configuration $CONFIGURATION
           --no-restore
           --warnaserror
