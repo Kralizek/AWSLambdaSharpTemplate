@@ -46,6 +46,6 @@ internal static class SqsPayloadDecoderFactory
             return new JsonStringPayloadDecoder<TMessage>();
         }
 
-        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TMessage).Name}> is registered.");
+        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TMessage).Name}> is registered. Register source-generated JsonTypeInfo<{typeof(TMessage).Name}> metadata or provide a custom IStringPayloadDecoder<{typeof(TMessage).Name}>.");
     }
 }
