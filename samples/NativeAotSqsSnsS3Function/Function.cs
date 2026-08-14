@@ -73,7 +73,7 @@ public sealed class S3EventDispatcher
         RecordContext context,
         CancellationToken cancellationToken)
     {
-        foreach (var record in s3Event.Records ?? new List<S3Event.S3EventNotificationRecord>())
+        foreach (var record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? System.Array.Empty<S3Event.S3EventNotificationRecord>())
         {
             await _processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
         }
