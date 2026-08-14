@@ -43,6 +43,6 @@ public abstract class KinesisStreamFunction<TPayload, [DynamicallyAccessedMember
             return new JsonBinaryPayloadDecoder<TPayload>();
         }
 
-        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TPayload).Name}> is registered.");
+        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TPayload).Name}> is registered. Register source-generated JsonTypeInfo<{typeof(TPayload).Name}> metadata or provide a custom IBinaryPayloadDecoder<{typeof(TPayload).Name}>.");
     }
 }
