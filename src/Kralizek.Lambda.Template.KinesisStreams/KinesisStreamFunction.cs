@@ -1,31 +1,48 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-/// <summary>
-/// A function base class for Lambda functions triggered by Kinesis Streams that process raw records.
-/// </summary>
-public abstract class KinesisStreamFunction<THandler>
+public abstract class KinesisStreamFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : KinesisStreamFunctionBase<RawKinesisStreamRecordHandler<THandler>>
     where THandler : class, IKinesisStreamRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        KinesisStreamServiceRegistration.AddRawHandler<THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
     }
 }
 
-/// <summary>
-/// A function base class for Lambda functions triggered by Kinesis Streams that decode record data into application contracts.
-/// </summary>
-public abstract class KinesisStreamFunction<TPayload, THandler>
+public abstract class KinesisStreamFunction<TPayload, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : KinesisStreamFunctionBase<KinesisStreamRecordHandler<TPayload, THandler>>
     where THandler : class, IKinesisStreamRecordHandler<TPayload>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        KinesisStreamServiceRegistration.AddDecodedHandler<TPayload, THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+        services.TryAddSingleton<IBinaryPayloadDecoder<TPayload>>(CreateDefaultDecoder);
+    }
+
+    private static IBinaryPayloadDecoder<TPayload> CreateDefaultDecoder(IServiceProvider services)
+    {
+        var typeInfo = services.GetService<JsonTypeInfo<TPayload>>();
+        if (typeInfo is not null)
+        {
+            return new JsonBinaryPayloadDecoder<TPayload>(typeInfo);
+        }
+
+        if (JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            return new JsonBinaryPayloadDecoder<TPayload>();
+        }
+
+        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TPayload).Name}> is registered. Register source-generated JsonTypeInfo<{typeof(TPayload).Name}> metadata or provide a custom IBinaryPayloadDecoder<{typeof(TPayload).Name}>.");
     }
 }

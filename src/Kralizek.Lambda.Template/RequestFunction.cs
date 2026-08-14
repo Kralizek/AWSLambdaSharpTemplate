@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -16,32 +17,31 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TContext">The context type passed to the handler.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the request.</typeparam>
 #pragma warning disable S2436 // The generic roles are intentional and make the request contract explicit.
-public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : LambdaFunction
+public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : LambdaFunction
 #pragma warning restore S2436
     where TContext : RequestContext
     where THandler : class, IRequestHandler<TInput, TOutput, TContext>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
+        base.RegisterFrameworkServices(services);
         services.TryAddScoped<THandler>();
+        ConfigureFrameworkServices(services);
     }
 
     /// <summary>
-    /// Creates the strongly typed context passed to the request handler.
+    /// Registers replaceable services for this request-function specialization.
     /// </summary>
+    protected virtual void ConfigureFrameworkServices(IServiceCollection services)
+    {
+    }
+
     protected abstract TContext CreateContext(TInput input, ILambdaContext context);
 
-    /// <summary>
-    /// Adds source-specific metadata to the Lambda invocation activity.
-    /// </summary>
     protected virtual void EnrichInvocationActivity(Activity activity, TInput input, ILambdaContext context)
     {
     }
 
-    /// <summary>
-    /// The entry point called by the Lambda runtime.
-    /// </summary>
     public virtual async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
         LambdaTelemetry.EnrichInvocation("request");
@@ -62,11 +62,8 @@ public abstract class RequestFunction<TInput, TOutput, TContext, THandler> : Lam
     }
 }
 
-/// <summary>
-/// A function base class for handlers that use the standard <see cref="RequestContext"/>.
-/// </summary>
 #pragma warning disable S2436 // The three public roles intentionally hide the standard context type.
-public abstract class RequestFunction<TInput, TOutput, THandler> : RequestFunction<TInput, TOutput, RequestContext, THandler>
+public abstract class RequestFunction<TInput, TOutput, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : RequestFunction<TInput, TOutput, RequestContext, THandler>
 #pragma warning restore S2436
     where THandler : class, IRequestHandler<TInput, TOutput, RequestContext>
 {

@@ -7,7 +7,9 @@ using OpenTelemetry.Instrumentation.AWSLambda;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 #endif
+#if (!aot)
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+#endif
 namespace LambdaFunctionProject;
 #if (preTokenV2)
 public sealed class Function : CognitoPreTokenGenerationV2Function<PreTokenGenerationHandler>

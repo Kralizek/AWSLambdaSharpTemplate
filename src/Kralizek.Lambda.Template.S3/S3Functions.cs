@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -33,7 +34,7 @@ public static class S3ServiceCollectionExtensions
     /// <summary>
     /// Registers an S3 object-event handler and the record processor that adapts AWS S3 records to the public S3 programming model.
     /// </summary>
-    public static IServiceCollection AddS3ObjectEventProcessing<THandler>(this IServiceCollection services)
+    public static IServiceCollection AddS3ObjectEventProcessing<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(this IServiceCollection services)
         where THandler : class, IS3ObjectEventHandler
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -53,7 +54,7 @@ public static class S3ServiceCollectionExtensions
 }
 
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class S3FunctionBase<TRecordHandler>
+public abstract class S3FunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler>
     : RecordFunction<S3Event, S3Event.S3EventNotificationRecord, S3RecordResult, object?, RecordContext, TRecordHandler>
     where TRecordHandler : class, IRecordHandler<S3Event.S3EventNotificationRecord, S3RecordResult, RecordContext>
 {
@@ -96,7 +97,7 @@ public sealed class RawS3ObjectEventHandler<THandler>
     }
 }
 
-public abstract class S3Function<THandler>
+public abstract class S3Function<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : S3FunctionBase<RawS3ObjectEventHandler<THandler>>
     where THandler : class, IS3ObjectEventHandler
 {
@@ -108,7 +109,7 @@ public abstract class S3Function<THandler>
 }
 
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class S3BatchFunctionBase<TRecordHandler>
+public abstract class S3BatchFunctionBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRecordHandler>
     : RecordFunction<S3BatchEvent, S3BatchTask, S3BatchResult, S3BatchResponse, RecordContext, TRecordHandler>
     where TRecordHandler : class, IRecordHandler<S3BatchTask, S3BatchResult, RecordContext>
 {
@@ -216,7 +217,7 @@ public sealed class RawS3BatchItemHandler<THandler>
             cancellationToken);
 }
 
-public abstract class S3BatchFunction<THandler>
+public abstract class S3BatchFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : S3BatchFunctionBase<RawS3BatchItemHandler<THandler>>
     where THandler : class, IS3BatchItemHandler
 {

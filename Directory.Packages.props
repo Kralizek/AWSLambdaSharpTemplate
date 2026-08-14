@@ -11,8 +11,9 @@
     <PackageVersion Include="Amazon.Lambda.DynamoDBEvents" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.KinesisEvents" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.Logging.AspNetCore" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="2.1.2" />
     <PackageVersion Include="Amazon.Lambda.S3Events" Version="4.0.0" />
-    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
     <PackageVersion Include="Amazon.Lambda.SNSEvents" Version="3.0.0" />
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
     <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.2.0" />

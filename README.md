@@ -23,6 +23,8 @@ dotnet new list lambda-template
 
 See [Project Templates](docs/Project-Templates.md) for the supported templates and when to use each one.
 
+The template options are independent where supported: `--raw` chooses the record/payload shape, `--aot` chooses executable hosting and source-generated Lambda serialization, and `--otel` adds Lambda invocation instrumentation.
+
 ## Package family
 
 `Kralizek.Lambda.Templates` is the easiest entry point when starting a new Lambda function. The generated project references the runtime package appropriate for the selected template.

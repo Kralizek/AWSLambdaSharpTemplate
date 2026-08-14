@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,3 +25,6 @@ public sealed class OrderCreatedHandler(ILogger<OrderCreatedHandler> logger)
         return ValueTask.FromResult(KinesisStreamRecordResult.Success);
     }
 }
+
+[JsonSerializable(typeof(OrderCreated))]
+internal partial class PayloadJsonSerializerContext : JsonSerializerContext;

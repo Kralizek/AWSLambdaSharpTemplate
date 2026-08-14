@@ -89,4 +89,18 @@ When `--otel` is enabled, the generated project:
 
 The OTLP exporter keeps the generated function portable across local Aspire development, ADOT, and other OpenTelemetry collectors or backends without changing the framework instrumentation model.
 
+AWS Lambda instrumentation creates and propagates the Lambda invocation span. It does not instrument outgoing AWS SDK calls; add the appropriate client instrumentation when an application needs telemetry for those calls.
+
 AWS X-Ray context extraction remains enabled by default so generated functions can participate in X-Ray propagation. The generated tracing configuration includes a commented `DisableAwsXRayContextExtraction = true` setting. Enable it when X-Ray is not being used and the Lambda-provided X-Ray context prevents OpenTelemetry spans from being recorded.
+
+## Native AOT composition
+
+`--aot` and `--otel` are independent template choices. Native AOT uses the executable `Program.cs` bootstrap with `LambdaBootstrapBuilder` and source-generated JSON metadata; OpenTelemetry continues to wrap the inherited `FunctionHandlerAsync` with `AWSLambdaWrapper.TraceAsync`.
+
+```bash
+dotnet new lambda-template-event --aot --otel
+```
+
+The AOT bootstrap invokes the generated function method, and that method remains responsible for the standard AWS Lambda OpenTelemetry wrapper. The runtime libraries still contain no OpenTelemetry SDK dependency: `--otel` adds those application-level package references and configuration to the generated project.
+
+See [Native AOT](Native-AOT.md) for the complete AOT hosting and serialization model.

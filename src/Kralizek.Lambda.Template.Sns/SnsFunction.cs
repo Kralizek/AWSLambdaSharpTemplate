@@ -1,34 +1,51 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-/// <summary>
-/// A function base class for Lambda functions triggered by SNS that process raw SNS records.
-/// </summary>
-/// <typeparam name="THandler">The concrete handler type that processes each SNS record.</typeparam>
-public abstract class SnsFunction<THandler>
+public abstract class SnsFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SnsFunctionBase<RawSnsRecordHandler<THandler>>
     where THandler : class, ISnsRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SnsServiceRegistration.AddRawHandler<THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
     }
 }
 
-/// <summary>
-/// A function base class for Lambda functions triggered by SNS that decode message payloads into application contracts.
-/// </summary>
-/// <typeparam name="TNotification">The decoded notification type.</typeparam>
-/// <typeparam name="THandler">The concrete handler type that processes each notification.</typeparam>
-public abstract class SnsFunction<TNotification, THandler>
+public abstract class SnsFunction<TNotification, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : SnsFunctionBase<SnsRecordHandler<TNotification, THandler>>
     where THandler : class, ISnsNotificationHandler<TNotification>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SnsServiceRegistration.AddDecodedHandler<TNotification, THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+        services.TryAddSingleton<IStringPayloadDecoder<TNotification>>(SnsPayloadDecoderFactory.Create<TNotification>);
+    }
+}
+
+internal static class SnsPayloadDecoderFactory
+{
+    public static IStringPayloadDecoder<TNotification> Create<TNotification>(IServiceProvider services)
+    {
+        var typeInfo = services.GetService<JsonTypeInfo<TNotification>>();
+        if (typeInfo is not null)
+        {
+            return new JsonStringPayloadDecoder<TNotification>(typeInfo);
+        }
+
+        if (JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            return new JsonStringPayloadDecoder<TNotification>();
+        }
+
+        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TNotification).Name}> is registered. Register source-generated JsonTypeInfo<{typeof(TNotification).Name}> metadata or provide a custom IStringPayloadDecoder<{typeof(TNotification).Name}>.");
     }
 }

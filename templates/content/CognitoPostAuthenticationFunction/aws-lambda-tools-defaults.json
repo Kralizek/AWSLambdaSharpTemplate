@@ -1,1 +1,23 @@
-{"profile":"DefaultProfile","region":"DefaultRegion","configuration":"Release","framework":"net10.0","function-name":"LambdaFunctionProject","function-role":"DefaultRole","function-runtime":"dotnet10","function-memory-size":128,"function-timeout":30,"function-handler":"LambdaFunctionProject::LambdaFunctionProject.Function::FunctionHandlerAsync"}
+{
+  "Information": [
+    "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET CLI.",
+    "To learn more about the Lambda commands with the .NET CLI execute the following command at the command line in the project root directory.",
+    "dotnet lambda help",
+    "All the command line options for the Lambda command can be specified in this file."
+  ],
+  "profile": "DefaultProfile",
+  "region": "DefaultRegion",
+  "configuration": "Release",
+  "framework": "net10.0",
+  "function-name": "LambdaFunctionProject",
+  "function-role": "DefaultRole",
+  "function-runtime": "dotnet10",
+  "function-memory-size": 128,
+  "function-timeout": 30,
+//#if (aot)
+  "function-handler": "LambdaFunctionProject",
+  "msbuild-parameters": "--self-contained true"
+//#else
+  "function-handler": "LambdaFunctionProject::LambdaFunctionProject.Function::FunctionHandlerAsync"
+//#endif
+}

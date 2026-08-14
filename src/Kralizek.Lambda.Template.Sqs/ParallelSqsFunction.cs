@@ -1,34 +1,29 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Kralizek.Lambda;
 
-/// <summary>
-/// An SQS function specialization that processes raw records with bounded parallelism.
-/// </summary>
-/// <typeparam name="THandler">The concrete handler type that processes each SQS record.</typeparam>
-public abstract class ParallelSqsFunction<THandler>
+public abstract class ParallelSqsFunction<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSqsFunctionBase<RawSqsRecordHandler<THandler>>
     where THandler : class, ISqsRecordHandler
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SqsServiceRegistration.AddRawHandler<THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
     }
 }
 
-/// <summary>
-/// An SQS function specialization that processes decoded messages with bounded parallelism.
-/// </summary>
-/// <typeparam name="TMessage">The decoded message type.</typeparam>
-/// <typeparam name="THandler">The concrete handler type that processes each message.</typeparam>
-public abstract class ParallelSqsFunction<TMessage, THandler>
+public abstract class ParallelSqsFunction<TMessage, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>
     : ParallelSqsFunctionBase<SqsRecordHandler<TMessage, THandler>>
     where THandler : class, ISqsMessageHandler<TMessage>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
+    protected sealed override void RegisterFrameworkServices(IServiceCollection services)
     {
-        base.ConfigureFrameworkServices(services);
-        SqsServiceRegistration.AddDecodedHandler<TMessage, THandler>(services);
+        base.RegisterFrameworkServices(services);
+        services.TryAddScoped<THandler>();
+        services.TryAddSingleton<IStringPayloadDecoder<TMessage>>(SqsPayloadDecoderFactory.Create<TMessage>);
     }
 }
