@@ -26,7 +26,8 @@ public sealed class Function : SqsFunction<SnsEnvelope, SnsEnvelopedS3DeliveryHa
     {
         services.AddS3ObjectEventProcessing<S3ObjectEventHandler>();
         services.TryAddScoped<S3EventDispatcher>();
-        services.TryAddSingleton<IStringPayloadDecoder<S3Event>, JsonStringPayloadDecoder<S3Event>>();
+        services.TryAddSingleton<IStringPayloadDecoder<S3Event>>(
+            new JsonStringPayloadDecoder<S3Event>(PayloadJsonSerializerContext.Default.S3Event));
     }
 }
 
