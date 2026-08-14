@@ -16,11 +16,8 @@ namespace NativeAotSqsSnsS3Function;
 
 public sealed class Function : SqsFunction<SnsEnvelope, SnsEnvelopedS3DeliveryHandler>
 {
-    protected override void ConfigureFrameworkServices(IServiceCollection services)
-    {
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         services.AddSingleton(PayloadJsonSerializerContext.Default.SnsEnvelope);
-        services.AddSingleton(PayloadJsonSerializerContext.Default.S3Event);
-    }
 
     protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
