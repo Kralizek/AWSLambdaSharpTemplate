@@ -34,7 +34,7 @@ There are three distinct serialization steps in this topology:
 internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
 ```
 
-`Function.ConfigureFrameworkServices` registers both generated `JsonTypeInfo<T>` instances so the framework's normal typed decoders remain usable under Native AOT:
+`Function.ConfigureFrameworkServices` registers the generated metadata used by the outer SQS payload decoder:
 
 ```csharp
 protected override void ConfigureFrameworkServices(IServiceCollection services)
@@ -44,7 +44,14 @@ protected override void ConfigureFrameworkServices(IServiceCollection services)
 }
 ```
 
-No AOT-specific decoder or handler is required. `SnsEnvelopedS3DeliveryHandler`, `S3EventDispatcher`, and `S3ObjectEventHandler` use the same framework contracts as the non-AOT sample.
+The inner SNS `Message` decoding is registered explicitly with its generated `JsonTypeInfo<S3Event>` so DI cannot select a reflection-based `JsonStringPayloadDecoder<S3Event>` constructor:
+
+```csharp
+services.TryAddSingleton<IStringPayloadDecoder<S3Event>>(
+    new JsonStringPayloadDecoder<S3Event>(PayloadJsonSerializerContext.Default.S3Event));
+```
+
+The handler and record-processing contracts remain unchanged. `SnsEnvelopedS3DeliveryHandler`, `S3EventDispatcher`, and `S3ObjectEventHandler` use the same framework contracts as the non-AOT sample.
 
 ## Publishing
 
