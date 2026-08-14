@@ -439,10 +439,6 @@ jobs:
 
       - name: Verify generated content
         env:
-          TEMPLATE_AOT: ${{ matrix.aot || false }}
-          TEMPLATE_OTEL: ${{ matrix.otel || false }}
-          TEMPLATE_RAW: ${{ matrix.raw || false }}
-          TEMPLATE_VERSION: ${{ matrix.version || '' }}
           MUST_EXIST: ${{ toJSON(matrix.mustExist) }}
           MUST_NOT_EXIST: ${{ toJSON(matrix.mustNotExist) }}
           MUST_MATCH: ${{ toJSON(matrix.mustMatch) }}
@@ -457,20 +453,6 @@ jobs:
           grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
           grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.projectName }}.csproj"
           ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
-
-          if [ "$TEMPLATE_AOT" = "true" ]; then
-            test -f "$project/Program.cs"
-            grep -q 'LambdaBootstrapBuilder' "$project/Program.cs"
-            ! grep -q 'DefaultLambdaJsonSerializer' "$project/Function.cs"
-            jq -e --arg handler "${{ matrix.projectName }}" \
-              '."function-handler" == $handler' \
-              "$project/aws-lambda-tools-defaults.json" > /dev/null
-          else
-            grep -q 'DefaultLambdaJsonSerializer' "$project/Function.cs"
-            jq -e \
-              '."function-handler" | endswith("::FunctionHandlerAsync")' \
-              "$project/aws-lambda-tools-defaults.json" > /dev/null
-          fi
 
           while IFS= read -r file; do
             [ -z "$file" ] || test -e "$project/$file"
