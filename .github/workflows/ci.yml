@@ -311,6 +311,59 @@ jobs:
         shell: bash
         run: echo "matrix=$(cat "$RUNNER_TEMP/template-smoke-tests.json")" >> "$GITHUB_OUTPUT"
 
+  prepare-native-aot-samples:
+    name: Prepare Native AOT samples
+    needs: prepare-template-smoke-tests
+    if: needs.prepare-template-smoke-tests.outputs.mode != 'pr'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Discover Native AOT samples
+        id: matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY' > "$RUNNER_TEMP/native-aot-samples.json"
+          import json
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          samples = []
+
+          for project in sorted(Path("samples").glob("**/*.csproj")):
+              root = ET.parse(project).getroot()
+              publish_aot = any(
+                  element.text is not None and element.text.strip().lower() == "true"
+                  for element in root.iter()
+                  if element.tag.endswith("PublishAot")
+              )
+
+              if publish_aot:
+                  samples.append(
+                      {
+                          "projectName": project.stem,
+                          "projectPath": project.as_posix(),
+                      }
+                  )
+
+          if not samples:
+              raise SystemExit("No Native AOT sample projects found under samples/**/*.csproj with <PublishAot>true</PublishAot>.")
+
+          print(json.dumps({"include": samples}, separators=(",", ":")))
+          PY
+
+          echo "Discovered Native AOT samples:"
+          cat "$RUNNER_TEMP/native-aot-samples.json"
+          echo "matrix=$(cat "$RUNNER_TEMP/native-aot-samples.json")" >> "$GITHUB_OUTPUT"
+
   template-smoke-test:
     name: Template smoke test (${{ matrix.name }})
     needs: [prepare-version, smoke-pack, prepare-template-smoke-tests]
@@ -499,15 +552,18 @@ jobs:
           --no-restore
           --warnaserror
 
-  validate-native-aot-sqs-sample:
-    name: Native AOT SQS sample
-    needs: [prepare-version, prepare-template-smoke-tests]
+  validate-native-aot-sample:
+    name: Native AOT sample (${{ matrix.projectName }})
+    needs: [prepare-version, prepare-template-smoke-tests, prepare-native-aot-samples]
     if: needs.prepare-template-smoke-tests.outputs.mode != 'pr'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     env:
       MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-native-aot-samples.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -525,24 +581,24 @@ jobs:
             **/*.props
             **/*.targets
 
-      - name: Restore Native AOT SQS sample
+      - name: Restore Native AOT sample
         run: >-
           dotnet restore
-          samples/NativeAotSqsFunction
+          ${{ matrix.projectPath }}
           --runtime linux-x64
 
-      - name: Build Native AOT SQS sample
+      - name: Build Native AOT sample
         run: >-
           dotnet build
-          samples/NativeAotSqsFunction
+          ${{ matrix.projectPath }}
           --configuration $CONFIGURATION
           --no-restore
           --warnaserror
 
-      - name: Publish Native AOT SQS sample
+      - name: Publish Native AOT sample
         run: >-
           dotnet publish
-          samples/NativeAotSqsFunction
+          ${{ matrix.projectPath }}
           --configuration $CONFIGURATION
           --runtime linux-x64
           --self-contained true
@@ -551,7 +607,7 @@ jobs:
 
   publish:
     name: Publish
-    needs: [prepare-version, validate-and-pack, template-smoke-test]
+    needs: [prepare-version, validate-and-pack, template-smoke-test, validate-native-aot-sample]
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
