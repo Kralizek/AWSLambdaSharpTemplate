@@ -1,0 +1,13 @@
+{
+  "profile": "default",
+  "region": "eu-north-1",
+  "configuration": "Release",
+  "framework": "net10.0",
+  "function-name": "NativeAotSqsSnsS3Function",
+  "function-role": "NativeAotSqsSnsS3FunctionRole",
+  "function-runtime": "dotnet10",
+  "function-memory-size": 128,
+  "function-timeout": 30,
+  "function-handler": "NativeAotSqsSnsS3Function",
+  "msbuild-parameters": "--self-contained true"
+}
