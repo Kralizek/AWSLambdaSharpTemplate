@@ -555,7 +555,7 @@ jobs:
   validate-native-aot-sample:
     name: Native AOT sample (${{ matrix.projectName }})
     needs: [prepare-version, prepare-template-smoke-tests, prepare-native-aot-samples]
-    if: needs.prepare-template-smoke-tests.outputs.mode != 'pr'
+    if: needs.prepare-template-smoke-tests.outputs.mode != 'pr' && needs.prepare-native-aot-samples.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -608,7 +608,7 @@ jobs:
   publish:
     name: Publish
     needs: [prepare-version, validate-and-pack, template-smoke-test, validate-native-aot-sample]
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'release') && needs.validate-native-aot-sample.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
