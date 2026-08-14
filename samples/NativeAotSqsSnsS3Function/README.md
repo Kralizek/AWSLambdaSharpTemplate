@@ -40,7 +40,6 @@ internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
 protected override void ConfigureFrameworkServices(IServiceCollection services)
 {
     services.AddSingleton(PayloadJsonSerializerContext.Default.SnsEnvelope);
-    services.AddSingleton(PayloadJsonSerializerContext.Default.S3Event);
 }
 ```
 
