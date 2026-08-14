@@ -46,6 +46,6 @@ internal static class SnsPayloadDecoderFactory
             return new JsonStringPayloadDecoder<TNotification>();
         }
 
-        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TNotification).Name}> is registered.");
+        throw new InvalidOperationException($"No JsonTypeInfo<{typeof(TNotification).Name}> is registered. Register source-generated JsonTypeInfo<{typeof(TNotification).Name}> metadata or provide a custom IStringPayloadDecoder<{typeof(TNotification).Name}>.");
     }
 }
