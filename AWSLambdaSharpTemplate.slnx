@@ -6,6 +6,7 @@
     <Project Path="samples/EventFunction/EventFunction.csproj" />
     <Project Path="samples/KinesisStreamFunction/KinesisStreamFunction.csproj" />
     <Project Path="samples/NativeAotSqsFunction/NativeAotSqsFunction.csproj" />
+    <Project Path="samples/NativeAotSqsSnsS3Function/NativeAotSqsSnsS3Function.csproj" />
     <Project Path="samples/OpenTelemetryEventFunction/OpenTelemetryEventFunction.csproj" />
     <Project Path="samples/OpenTelemetryRequestFunction/OpenTelemetryRequestFunction.csproj" />
     <Project Path="samples/OpenTelemetrySqsFunction/OpenTelemetrySqsFunction.csproj" />

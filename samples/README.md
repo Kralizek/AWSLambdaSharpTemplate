@@ -11,6 +11,7 @@ Each sample README shows the expected Lambda input shape and how that input maps
 | A Lambda that consumes an event and returns no application response | [EventFunction](EventFunction/) | `EventFunction<TInput, THandler>`, handler DI, logging, and `EventContext` |
 | A Lambda with a typed request and response | [RequestFunction](RequestFunction/) | `RequestFunction<TInput, TOutput, THandler>` and `RequestContext` |
 | Native AOT hosting for a typed SQS function | [NativeAotSqsFunction](NativeAotSqsFunction/) | executable Lambda bootstrap, source-generated boundary metadata, and an AOT-safe nested JSON decoder |
+| Native AOT for S3 events delivered through an SNS envelope and SQS | [NativeAotSqsSnsS3Function](NativeAotSqsSnsS3Function/) | source-generated metadata across the Lambda boundary and both nested JSON decoding layers |
 | OpenTelemetry instrumentation for a request/response Lambda | [OpenTelemetryRequestFunction](OpenTelemetryRequestFunction/) | wrapping the inherited request handler with `AWSLambdaWrapper.TraceAsync` and exporting the invocation span |
 | OpenTelemetry instrumentation for an event Lambda | [OpenTelemetryEventFunction](OpenTelemetryEventFunction/) | the same standard AWS Lambda OpenTelemetry wrapper pattern applied to `EventFunction` |
 | OpenTelemetry instrumentation for SQS record processing | [OpenTelemetrySqsFunction](OpenTelemetrySqsFunction/) | wrapping a typed SQS record function while preserving `SQSBatchResponse` and partial batch failures |
@@ -39,6 +40,8 @@ Compare [OpenTelemetryRequestFunction](OpenTelemetryRequestFunction/), [OpenTele
 
 Compare [NativeAotSqsFunction](NativeAotSqsFunction/) with [SqsFunction](SqsFunction/). The handler and framework programming model remain the same; the Native AOT sample adds the executable runtime bootstrap, source-generated Lambda boundary metadata, and generated `JsonTypeInfo<T>` metadata for the nested application payload decoder.
 
+For a deeper nested payload, compare [NativeAotSqsSnsS3Function](NativeAotSqsSnsS3Function/) with [SqsSnsS3Function](SqsSnsS3Function/). The application flow is unchanged, but Native AOT requires generated metadata for the outer `SnsEnvelope` and the inner `S3Event` in addition to the Lambda `SQSEvent`/`SQSBatchResponse` boundary.
+
 ### Decoded vs raw messages
 
 Compare [SqsFunction](SqsFunction/) with [RawSqsFunction](RawSqsFunction/), or [SnsFunction](SnsFunction/) with [RawSnsFunction](RawSnsFunction/). The decoded samples let the framework turn the message payload into an application type before invoking the handler. The raw samples keep the AWS record as the handler input when message attributes or the original envelope are central to the application logic.
@@ -65,6 +68,7 @@ Native AOT projects should additionally be published for the Lambda target runti
 
 ```bash
 dotnet publish samples/NativeAotSqsFunction -c Release -r linux-x64 --self-contained true --warnaserror
+dotnet publish samples/NativeAotSqsSnsS3Function -c Release -r linux-x64 --self-contained true --warnaserror
 ```
 
 Deployment-oriented samples may also contain `aws-lambda-tools-defaults.json` with example deployment settings. Treat those values as examples and replace profile, role, region, event-source configuration, and other infrastructure settings for your environment.
