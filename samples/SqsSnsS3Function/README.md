@@ -1,16 +1,17 @@
 # SQS → SNS envelope → S3 sample
 
-Use this sample when S3 notifications are published to SNS, delivered to SQS using the **standard SNS JSON envelope**, and finally consumed by Lambda. It demonstrates the extra decoding layer plus nested S3 record composition.
+Use this sample when S3 notifications are published to SNS, delivered to SQS using the **standard SNS JSON envelope**, and finally consumed by Lambda. The SQS handler owns the topology-specific envelope decoding and delegates each inner S3 record to the framework's normal S3 record-processing pipeline.
 
 ```text
 S3 bucket
   → SNS topic (standard delivery)
   → SQS queue
   → SQSEvent
-  → SqsFunction<SnsEnvelope, SnsEnvelopedS3DeliveryHandler>
-  → decode SnsEnvelope.Message to S3Event
-  → S3EventDispatcher
-  → IRecordProcessor<S3 record, S3RecordResult, RecordContext>
+  → SqsFunction<SqsSnsS3Handler>
+  → SqsSnsS3Handler
+      → decode SQSMessage.Body to SnsEnvelope
+      → decode SnsEnvelope.Message to S3Event
+      → IRecordProcessor<S3 record, S3RecordResult, RecordContext>
   → S3ObjectEventHandler
 ```
 
@@ -83,17 +84,15 @@ SQSEvent
                 └── S3 record
 ```
 
-`Function` derives from `SqsFunction<SnsEnvelope, SnsEnvelopedS3DeliveryHandler>`, so the outer SQS integration first decodes the body into the sample's minimal `SnsEnvelope` model.
-
 ## How the pieces fit
+
+`Function` derives from the raw `SqsFunction<SqsSnsS3Handler>` specialization because the SQS body contains more than one nested application payload. The framework still owns SQS record iteration, per-message handling, and partial-batch failure translation.
+
+`SqsSnsS3Handler` handles one outer SQS record. It decodes `SQSMessage.Body` to the sample's minimal `SnsEnvelope`, decodes `SnsEnvelope.Message` to `S3Event`, then iterates the inner S3 records. This keeps the complete SNS/S3 envelope chain in one topology-specific handler.
 
 `SnsEnvelope` contains only the `Message` property because that is the only SNS metadata this sample needs. Applications can extend the model when they need more of the envelope.
 
-`SnsEnvelopedS3DeliveryHandler` handles one **outer SQS record**. It uses `IStringPayloadDecoder<S3Event>` to decode `SnsEnvelope.Message`, then passes the resulting S3 event to `S3EventDispatcher`. This second decoding step is the main application difference from raw SNS delivery.
-
-`S3EventDispatcher` expands `S3Event.Records` and calls `IRecordProcessor` once for each inner S3 record. The processor gives every inner record its own DI scope and runs the same canonical S3 adapter/application-handler path used by direct S3 functions.
-
-`services.AddS3ObjectEventProcessing<S3ObjectEventHandler>()` registers that S3 record-processing path, while the explicit `IStringPayloadDecoder<S3Event>` registration handles the SNS `Message` string.
+`services.AddS3ObjectEventProcessing<S3ObjectEventHandler>()` registers the canonical S3 record processor. `SqsSnsS3Handler` calls that `IRecordProcessor` once for each inner S3 record, preserving the framework's S3 per-record DI scope, telemetry, adapter behavior, and `S3RecordContext` creation.
 
 `S3ObjectEventHandler` remains an ordinary `IS3ObjectEventHandler`. Its `S3RecordContext` carries forward the outer context properties, so `context.GetSqsMessage()` can still recover the containing SQS message without sharing scoped services between the outer and inner handlers.
 
@@ -101,10 +100,9 @@ Inner S3 records are processed sequentially and fail fast. The AWS retry/acknowl
 
 ## Look at
 
-- `Function` for the outer SQS specialization, S3 processor registration, and S3 decoder registration.
+- `Function` for raw SQS hosting plus SNS/S3 decoder and S3 processor registration.
+- `SqsSnsS3Handler` for the complete nested-envelope decoding and inner-record orchestration.
 - `SnsEnvelope` for the minimal preserved SNS envelope.
-- `SnsEnvelopedS3DeliveryHandler` for the second decoding layer.
-- `S3EventDispatcher` for nested iteration through `IRecordProcessor`.
 - `S3ObjectEventHandler` for the normal S3 application-handler contract and propagated SQS context.
 
-For the same topology with SNS Raw Message Delivery enabled, compare [SqsRawSnsS3Function](../SqsRawSnsS3Function/). The infrastructure difference is essentially one subscription setting; the payload and decoding path are what change.
+For the same topology with SNS Raw Message Delivery enabled, compare [SqsRawSnsS3Function](../SqsRawSnsS3Function/). In that shape the SQS body is already an `S3Event`, so the typed `SqsFunction<S3Event, ...>` programming model remains the natural fit.
