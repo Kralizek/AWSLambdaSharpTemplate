@@ -4,12 +4,12 @@ on:
   workflow_call:
     inputs:
       release-mode:
-        description: Publish benchmark history for release runs
+        description: Publish benchmark history and attach the snapshot to an existing GitHub release
         required: false
         type: boolean
         default: false
       release-tag:
-        description: GitHub release tag retained for caller compatibility
+        description: GitHub release tag used when release mode is enabled
         required: false
         type: string
         default: ''
@@ -46,11 +46,18 @@ jobs:
           --exporters json
           --artifacts "$RUNNER_TEMP/BenchmarkDotNet.Artifacts"
 
-      - name: Upload BenchmarkDotNet artifacts
+      - name: Package benchmark snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          zip -r benchmark-results.zip BenchmarkDotNet.Artifacts
+
+      - name: Upload benchmark snapshot
         uses: actions/upload-artifact@v7
         with:
           name: benchmark-results-${{ github.run_id }}
-          path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
+          path: ${{ runner.temp }}/benchmark-results.zip
           if-no-files-found: error
 
       - name: Publish benchmark history
@@ -58,3 +65,42 @@ jobs:
         uses: martincostello/benchmarkdotnet-results-publisher@b8fe7bb9691c4fdcda7dee630aa09493e81004b8 # v2
         with:
           results-path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
+
+  attach:
+    name: Attach benchmark snapshot
+    if: inputs.release-mode == true
+    needs: snapshot
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+
+    steps:
+      - name: Download benchmark snapshot
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmark-results-${{ github.run_id }}
+          path: ${{ runner.temp }}/benchmark-release
+
+      - name: Attach snapshot to GitHub release when available
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "Release mode requires a release tag."
+            exit 1
+          fi
+
+          if ! gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "No GitHub release exists for $RELEASE_TAG; keeping the benchmark snapshot as a workflow artifact."
+            exit 0
+          fi
+
+          gh release upload "$RELEASE_TAG" \
+            "$RUNNER_TEMP/benchmark-release/benchmark-results.zip" \
+            --repo "${{ github.repository }}" \
+            --clobber
