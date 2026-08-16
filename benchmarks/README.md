@@ -21,7 +21,7 @@ Run benchmark commands from the `benchmarks` directory so the benchmark-specific
 
 ## Standard runner
 
-Use `BenchmarkRunner` when collecting results that should be retained or compared later. Suites are stable semantic identifiers; the runner owns the mapping from a suite to the BenchmarkDotNet filter used to execute it.
+Use `BenchmarkRunner` when collecting results that should be retained or compared later. Its command line is implemented with Spectre.Console.Cli. Suites are stable semantic identifiers; the runner owns the mapping from a suite to the BenchmarkDotNet filter used to execute it.
 
 List available suites:
 
@@ -101,6 +101,16 @@ results/
 The root `README.md` and `metadata.json` describe the whole collection. Each suite run remains independently self-contained with its own homepage, manifest, and BenchmarkDotNet artifacts. Paths recorded in collection and run manifests are relative, so the output root can be copied, zipped, or attached to a release without rewriting metadata.
 
 Machine identity and execution-provider details remain metadata so local and hosted-runner results use the same directory structure.
+
+## Release snapshots
+
+After a successful `CI` run originating from a published release or a manual release workflow, `.github/workflows/release-benchmarks.yml` checks out the exact CI head commit and collects every registered suite with `--all`.
+
+The complete collection is zipped and retained as a GitHub Actions artifact. This also happens for manual dry runs, including alpha, beta, and RC validation runs. If a GitHub release matching the packed version exists, a separate write-enabled job attaches the same ZIP to that release. Dry runs have no matching release, so their snapshots remain workflow artifacts only.
+
+The collection job has read-only repository permissions. The separate attachment job has write permission but never checks out or executes repository code.
+
+Release snapshots run on GitHub-hosted hardware and are intended as per-release records rather than a stable regression baseline.
 
 ## Direct BenchmarkDotNet execution
 
