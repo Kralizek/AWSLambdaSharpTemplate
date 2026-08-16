@@ -185,7 +185,19 @@ internal static class BenchmarkCollector
             ExitCode: null);
 
         var metadataPath = Path.Combine(runDirectory, "metadata.json");
+        var readmePath = Path.Combine(runDirectory, "README.md");
+        var runPath = GetRunPath(context.OutputRoot, runDirectory);
+
         await WriteJsonAsync(metadataPath, metadata, cancellationToken);
+        await WriteRunReadmeAsync(readmePath, metadata, [], cancellationToken);
+
+        var runningCollection = UpdateCollectionSuite(
+            collectionMetadata,
+            suiteIndex,
+            RunningStatus,
+            runPath);
+        await WriteCollectionAsync(context, runningCollection, cancellationToken);
+
         await Console.Out.WriteLineAsync($"Collecting suite '{suite.Id}' into {displayRunDirectory}");
 
         var benchmarkExitCode = await ProcessRunner.RunAsync(
@@ -203,15 +215,14 @@ internal static class BenchmarkCollector
             context.BenchmarkRoot,
             cancellationToken);
 
-        var runPath = GetRunPath(context.OutputRoot, runDirectory);
         if (benchmarkExitCode != 0)
         {
-            await WriteJsonAsync(
-                metadataPath,
-                metadata with { Status = FailedStatus, ExitCode = benchmarkExitCode },
-                cancellationToken);
+            var failedMetadata = metadata with { Status = FailedStatus, ExitCode = benchmarkExitCode };
+            await WriteJsonAsync(metadataPath, failedMetadata, cancellationToken);
+            await WriteRunReadmeAsync(readmePath, failedMetadata, [], cancellationToken);
+
             var failedCollection = UpdateCollectionSuite(
-                collectionMetadata,
+                runningCollection,
                 suiteIndex,
                 FailedStatus,
                 runPath) with { Status = FailedStatus };
@@ -225,12 +236,13 @@ internal static class BenchmarkCollector
             const int missingReportExitCode = 3;
             await Console.Error.WriteLineAsync(
                 $"Suite '{suite.Id}' completed successfully but produced no GitHub Markdown report.");
-            await WriteJsonAsync(
-                metadataPath,
-                metadata with { Status = FailedStatus, ExitCode = missingReportExitCode },
-                cancellationToken);
+
+            var failedMetadata = metadata with { Status = FailedStatus, ExitCode = missingReportExitCode };
+            await WriteJsonAsync(metadataPath, failedMetadata, cancellationToken);
+            await WriteRunReadmeAsync(readmePath, failedMetadata, [], cancellationToken);
+
             var failedCollection = UpdateCollectionSuite(
-                collectionMetadata,
+                runningCollection,
                 suiteIndex,
                 FailedStatus,
                 runPath) with { Status = FailedStatus };
@@ -241,13 +253,13 @@ internal static class BenchmarkCollector
         var completedMetadata = metadata with { Status = CompletedStatus, ExitCode = 0 };
         await WriteJsonAsync(metadataPath, completedMetadata, cancellationToken);
         await WriteRunReadmeAsync(
-            Path.Combine(runDirectory, "README.md"),
+            readmePath,
             completedMetadata,
             reports,
             cancellationToken);
 
         var completedCollection = UpdateCollectionSuite(
-            collectionMetadata,
+            runningCollection,
             suiteIndex,
             CompletedStatus,
             runPath);
@@ -350,8 +362,14 @@ internal static class BenchmarkCollector
             metadata.Machine,
             metadata.DotNet,
             metadata.Automation);
+        builder.AppendLine($"| Status | {metadata.Status} |");
         builder.AppendLine($"| Suite | `{metadata.Suite.Id}` |");
         builder.AppendLine($"| Filter | `{metadata.Suite.Filter}` |");
+
+        if (metadata.ExitCode is not null)
+        {
+            builder.AppendLine($"| Exit code | {metadata.ExitCode} |");
+        }
 
         foreach (var report in reports)
         {
