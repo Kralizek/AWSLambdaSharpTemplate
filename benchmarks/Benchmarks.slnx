@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="BenchmarkWorkloads/BenchmarkWorkloads.csproj" />
+    <Project Path="Benchmarks/Benchmarks.csproj" />
+    <Project Path="RawSdkTarget/RawSdkTarget.csproj" />
+    <Project Path="V5Target/V5Target.csproj" />
+    <Project Path="V6Target/V6Target.csproj" />
+  </Folder>
+</Solution>
