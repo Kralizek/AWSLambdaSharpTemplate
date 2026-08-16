@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout benchmark source
@@ -46,22 +46,30 @@ jobs:
           --exporters json
           --artifacts "$RUNNER_TEMP/BenchmarkDotNet.Artifacts"
 
-      - name: Package benchmark snapshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP"
-          zip -r benchmark-results.zip BenchmarkDotNet.Artifacts
-
-      - name: Upload benchmark snapshot
+      - name: Upload BenchmarkDotNet artifacts
         uses: actions/upload-artifact@v7
         with:
           name: benchmark-results-${{ github.run_id }}
-          path: ${{ runner.temp }}/benchmark-results.zip
+          path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
           if-no-files-found: error
 
+  publish-history:
+    name: Publish benchmark history
+    if: inputs.release-mode == true
+    needs: snapshot
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+
+    steps:
+      - name: Download BenchmarkDotNet artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmark-results-${{ github.run_id }}
+          path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
+
       - name: Publish benchmark history
-        if: inputs.release-mode == true
         uses: martincostello/benchmarkdotnet-results-publisher@b8fe7bb9691c4fdcda7dee630aa09493e81004b8 # v2
         with:
           results-path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
@@ -76,11 +84,18 @@ jobs:
       contents: write
 
     steps:
-      - name: Download benchmark snapshot
+      - name: Download BenchmarkDotNet artifacts
         uses: actions/download-artifact@v8
         with:
           name: benchmark-results-${{ github.run_id }}
-          path: ${{ runner.temp }}/benchmark-release
+          path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
+
+      - name: Package benchmark snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          zip -r benchmark-results.zip BenchmarkDotNet.Artifacts
 
       - name: Attach snapshot to GitHub release when available
         env:
@@ -101,6 +116,6 @@ jobs:
           fi
 
           gh release upload "$RELEASE_TAG" \
-            "$RUNNER_TEMP/benchmark-release/benchmark-results.zip" \
+            "$RUNNER_TEMP/benchmark-results.zip" \
             --repo "${{ github.repository }}" \
             --clobber
