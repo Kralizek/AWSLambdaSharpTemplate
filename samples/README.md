@@ -58,6 +58,72 @@ Both use the typed SQS programming model for the payload that actually appears i
 
 ## Running the samples
 
+### Lambda execution role
+
+Deploying a sample requires an IAM role that AWS Lambda can assume. The shared baseline role only needs the Lambda trust policy and permission to write function logs. Event-source or application permissions, such as access to S3 objects, are deliberately not included here and should be added only when a specific sample requires them.
+
+With the AWS CLI:
+
+```bash
+cat > /tmp/klt-sample-lambda-trust-policy.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+
+aws iam create-role \
+  --role-name klt-samples-lambda \
+  --assume-role-policy-document file:///tmp/klt-sample-lambda-trust-policy.json
+
+aws iam attach-role-policy \
+  --role-name klt-samples-lambda \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+aws iam get-role \
+  --role-name klt-samples-lambda \
+  --query 'Role.Arn' \
+  --output text
+```
+
+Use the returned ARN as the Lambda execution role in the sample deployment configuration.
+
+The equivalent Terraform resources are:
+
+```hcl
+resource "aws_iam_role" "sample_lambda" {
+  name = "klt-samples-lambda"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "sample_lambda_basic_execution" {
+  role       = aws_iam_role.sample_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+```
+
+Use `aws_iam_role.sample_lambda.arn` as the Lambda execution role. Add any sample-specific permissions separately and keep them scoped to the resources used by that sample.
+
 The projects use project references to the packages in this repository and are part of the solution. Build all samples from the repository root with:
 
 ```bash
