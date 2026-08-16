@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.S3Events;
-using Amazon.Lambda.SQSEvents;
 
 using Kralizek.Lambda;
 
@@ -16,13 +15,14 @@ using Microsoft.Extensions.Logging;
 
 namespace NativeAotSqsSnsS3Function;
 
-public sealed class Function : SqsFunction<SqsSnsS3Handler>
+public sealed class Function : SqsFunction<SnsEnvelope, SqsSnsS3Handler>
 {
+    protected override void ConfigureFrameworkServices(IServiceCollection services) =>
+        services.AddSingleton(PayloadJsonSerializerContext.Default.SnsEnvelope);
+
     protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddS3ObjectEventProcessing<S3ObjectEventHandler>();
-        services.TryAddSingleton<IStringPayloadDecoder<SnsEnvelope>>(
-            new JsonStringPayloadDecoder<SnsEnvelope>(PayloadJsonSerializerContext.Default.SnsEnvelope));
         services.TryAddSingleton<IStringPayloadDecoder<S3Event>>(
             new JsonStringPayloadDecoder<S3Event>(PayloadJsonSerializerContext.Default.S3Event));
     }
@@ -33,9 +33,8 @@ public sealed record SnsEnvelope
     public string Message { get; init; } = string.Empty;
 }
 
-public sealed class SqsSnsS3Handler : ISqsRecordHandler
+public sealed class SqsSnsS3Handler : ISqsMessageHandler<SnsEnvelope>
 {
-    private readonly IStringPayloadDecoder<SnsEnvelope> _snsDecoder;
     private readonly IStringPayloadDecoder<S3Event> _s3Decoder;
     private readonly IRecordProcessor<
         S3Event.S3EventNotificationRecord,
@@ -43,26 +42,23 @@ public sealed class SqsSnsS3Handler : ISqsRecordHandler
         RecordContext> _s3Processor;
 
     public SqsSnsS3Handler(
-        IStringPayloadDecoder<SnsEnvelope> snsDecoder,
         IStringPayloadDecoder<S3Event> s3Decoder,
         IRecordProcessor<S3Event.S3EventNotificationRecord, S3RecordResult, RecordContext> s3Processor)
     {
-        _snsDecoder = snsDecoder;
         _s3Decoder = s3Decoder;
         _s3Processor = s3Processor;
     }
 
     public async ValueTask<SqsRecordResult> HandleAsync(
-        SQSEvent.SQSMessage record,
+        SnsEnvelope message,
         SqsMessageContext context,
         CancellationToken cancellationToken)
     {
-        var snsEnvelope = await _snsDecoder.DecodeAsync(record.Body, cancellationToken).ConfigureAwait(false);
-        var s3Event = await _s3Decoder.DecodeAsync(snsEnvelope.Message, cancellationToken).ConfigureAwait(false);
+        var s3Event = await _s3Decoder.DecodeAsync(message.Message, cancellationToken).ConfigureAwait(false);
 
-        foreach (var s3Record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? Array.Empty<S3Event.S3EventNotificationRecord>())
+        foreach (var record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? Array.Empty<S3Event.S3EventNotificationRecord>())
         {
-            await _s3Processor.ProcessAsync(s3Record, context, cancellationToken).ConfigureAwait(false);
+            await _s3Processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
         }
 
         return SqsRecordResult.Success;
