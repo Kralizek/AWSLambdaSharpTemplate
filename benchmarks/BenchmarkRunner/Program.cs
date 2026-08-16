@@ -30,6 +30,9 @@ repositoryRoot = repositoryRoot.Trim();
 
 var benchmarkRoot = Path.Combine(repositoryRoot, "benchmarks");
 var benchmarkProject = Path.Combine(benchmarkRoot, "Benchmarks", "Benchmarks.csproj");
+var outputRoot = options.OutputDirectory is null
+    ? Path.Combine(benchmarkRoot, "results")
+    : Path.GetFullPath(options.OutputDirectory, Environment.CurrentDirectory);
 
 var commit = (await ProcessRunner.CaptureAsync("git", ["rev-parse", "HEAD"], repositoryRoot)).Trim();
 var shortCommit = (await ProcessRunner.CaptureAsync("git", ["rev-parse", "--short=8", "HEAD"], repositoryRoot)).Trim();
@@ -45,12 +48,12 @@ if (dirty && !options.AllowDirty)
 var sdkVersion = (await ProcessRunner.CaptureAsync("dotnet", ["--version"], benchmarkRoot)).Trim();
 var cpuModel = await MachineInfo.GetCpuModelAsync();
 var timestamp = DateTimeOffset.UtcNow;
-var runDirectory = CreateRunDirectory(benchmarkRoot, suite.Id, timestamp, shortCommit);
+var runDirectory = CreateRunDirectory(outputRoot, suite.Id, timestamp, shortCommit);
 var artifactsDirectory = Path.Combine(runDirectory, "artifacts");
 Directory.CreateDirectory(artifactsDirectory);
 
-var relativeRunDirectory = Path.GetRelativePath(repositoryRoot, runDirectory).Replace('\\', '/');
-var relativeArtifactsDirectory = Path.GetRelativePath(repositoryRoot, artifactsDirectory).Replace('\\', '/');
+var displayRunDirectory = GetDisplayPath(repositoryRoot, runDirectory);
+var relativeArtifactsDirectory = Path.GetRelativePath(runDirectory, artifactsDirectory).Replace('\\', '/');
 
 var metadata = new BenchmarkRunMetadata(
     SchemaVersion: 1,
@@ -80,7 +83,7 @@ var metadata = new BenchmarkRunMetadata(
 var metadataPath = Path.Combine(runDirectory, "metadata.json");
 await WriteMetadataAsync(metadataPath, metadata);
 
-Console.WriteLine($"Collecting suite '{suite.Id}' into {relativeRunDirectory}");
+Console.WriteLine($"Collecting suite '{suite.Id}' into {displayRunDirectory}");
 
 var buildExitCode = await ProcessRunner.RunAsync(
     "dotnet",
@@ -129,12 +132,12 @@ var completedMetadata = metadata with { Status = "completed", ExitCode = 0 };
 await WriteMetadataAsync(metadataPath, completedMetadata);
 await WriteReadmeAsync(Path.Combine(runDirectory, "README.md"), completedMetadata, reports);
 
-Console.WriteLine($"Benchmark run completed: {relativeRunDirectory}");
+Console.WriteLine($"Benchmark run completed: {displayRunDirectory}");
 return 0;
 
-static string CreateRunDirectory(string benchmarkRoot, string suiteId, DateTimeOffset timestamp, string shortCommit)
+static string CreateRunDirectory(string outputRoot, string suiteId, DateTimeOffset timestamp, string shortCommit)
 {
-    var suiteDirectory = Path.Combine(benchmarkRoot, "results", suiteId);
+    var suiteDirectory = Path.Combine(outputRoot, suiteId);
     Directory.CreateDirectory(suiteDirectory);
 
     var baseName = $"{timestamp:yyyy-MM-ddTHHmmssZ}-{shortCommit}";
@@ -148,6 +151,17 @@ static string CreateRunDirectory(string benchmarkRoot, string suiteId, DateTimeO
 
     Directory.CreateDirectory(candidate);
     return candidate;
+}
+
+static string GetDisplayPath(string repositoryRoot, string path)
+{
+    var relativePath = Path.GetRelativePath(repositoryRoot, path);
+    if (!relativePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) && relativePath != "..")
+    {
+        return relativePath.Replace('\\', '/');
+    }
+
+    return path;
 }
 
 static async Task WriteMetadataAsync(string path, BenchmarkRunMetadata metadata)
@@ -205,16 +219,18 @@ static string FormatBytes(long bytes)
     return $"{bytes / gib:F1} GiB";
 }
 
-internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool ListSuites)
+internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool ListSuites, string? OutputDirectory)
 {
     public static RunnerOptions Parse(string[] args)
     {
         string? suiteId = null;
+        string? outputDirectory = null;
         var allowDirty = false;
         var listSuites = false;
 
-        foreach (var argument in args)
+        for (var index = 0; index < args.Length; index++)
         {
+            var argument = args[index];
             switch (argument)
             {
                 case "--allow-dirty":
@@ -222,6 +238,22 @@ internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool List
                     break;
                 case "--list":
                     listSuites = true;
+                    break;
+                case "--output":
+                    if (++index >= args.Length || string.IsNullOrWhiteSpace(args[index]))
+                    {
+                        throw new ArgumentException("--output requires a directory.");
+                    }
+
+                    outputDirectory = args[index];
+                    break;
+                default when argument.StartsWith("--output=", StringComparison.Ordinal):
+                    outputDirectory = argument["--output=".Length..];
+                    if (string.IsNullOrWhiteSpace(outputDirectory))
+                    {
+                        throw new ArgumentException("--output requires a directory.");
+                    }
+
                     break;
                 default when argument.StartsWith('-'):
                     throw new ArgumentException($"Unknown option: {argument}");
@@ -233,7 +265,7 @@ internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool List
             }
         }
 
-        return new RunnerOptions(suiteId, allowDirty, listSuites);
+        return new RunnerOptions(suiteId, allowDirty, listSuites, outputDirectory);
     }
 }
 
