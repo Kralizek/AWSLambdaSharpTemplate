@@ -1,15 +1,14 @@
 # SQS → SNS envelope → S3 sample
 
-Use this sample when S3 notifications are published to SNS, delivered to SQS using the **standard SNS JSON envelope**, and finally consumed by Lambda. The SQS handler owns the topology-specific envelope decoding and delegates each inner S3 record to the framework's normal S3 record-processing pipeline.
+Use this sample when S3 notifications are published to SNS, delivered to SQS using the **standard SNS JSON envelope**, and finally consumed by Lambda. The SQS function decodes the outer SNS envelope as its typed message payload, while the handler owns the nested S3 event decoding and delegates each inner S3 record to the framework's normal S3 record-processing pipeline.
 
 ```text
 S3 bucket
   → SNS topic (standard delivery)
   → SQS queue
   → SQSEvent
-  → SqsFunction<SqsSnsS3Handler>
+  → SqsFunction<SnsEnvelope, SqsSnsS3Handler>
   → SqsSnsS3Handler
-      → decode SQSMessage.Body to SnsEnvelope
       → decode SnsEnvelope.Message to S3Event
       → IRecordProcessor<S3 record, S3RecordResult, RecordContext>
   → S3ObjectEventHandler
@@ -86,13 +85,13 @@ SQSEvent
 
 ## How the pieces fit
 
-`Function` derives from the raw `SqsFunction<SqsSnsS3Handler>` specialization because the SQS body contains more than one nested application payload. The framework still owns SQS record iteration, per-message handling, and partial-batch failure translation.
+`Function` derives from `SqsFunction<SnsEnvelope, SqsSnsS3Handler>`, so the framework decodes each SQS body into the sample's minimal `SnsEnvelope` model before invoking the handler. The framework still owns SQS record iteration, per-message handling, and partial-batch failure translation.
 
-`SqsSnsS3Handler` handles one outer SQS record. It decodes `SQSMessage.Body` to the sample's minimal `SnsEnvelope`, decodes `SnsEnvelope.Message` to `S3Event`, then iterates the inner S3 records. This keeps the complete SNS/S3 envelope chain in one topology-specific handler.
+`SqsSnsS3Handler` handles one typed SNS envelope. It decodes `SnsEnvelope.Message` to `S3Event`, then iterates the inner S3 records and delegates each one to the registered `IRecordProcessor`.
 
 `SnsEnvelope` contains only the `Message` property because that is the only SNS metadata this sample needs. Applications can extend the model when they need more of the envelope.
 
-`services.AddS3ObjectEventProcessing<S3ObjectEventHandler>()` registers the canonical S3 record processor. `SqsSnsS3Handler` calls that `IRecordProcessor` once for each inner S3 record, preserving the framework's S3 per-record DI scope, telemetry, adapter behavior, and `S3RecordContext` creation.
+`services.AddS3ObjectEventProcessing<S3ObjectEventHandler>()` registers the canonical S3 record processor. The processor preserves the framework's S3 per-record DI scope, telemetry, adapter behavior, and `S3RecordContext` creation.
 
 `S3ObjectEventHandler` remains an ordinary `IS3ObjectEventHandler`. Its `S3RecordContext` carries forward the outer context properties, so `context.GetSqsMessage()` can still recover the containing SQS message without sharing scoped services between the outer and inner handlers.
 
@@ -100,9 +99,9 @@ Inner S3 records are processed sequentially and fail fast. The AWS retry/acknowl
 
 ## Look at
 
-- `Function` for raw SQS hosting plus SNS/S3 decoder and S3 processor registration.
-- `SqsSnsS3Handler` for the complete nested-envelope decoding and inner-record orchestration.
+- `Function` for typed SNS-envelope decoding, S3 processor registration, and the inner S3 decoder registration.
+- `SqsSnsS3Handler` for nested S3 event decoding and inner-record orchestration.
 - `SnsEnvelope` for the minimal preserved SNS envelope.
 - `S3ObjectEventHandler` for the normal S3 application-handler contract and propagated SQS context.
 
-For the same topology with SNS Raw Message Delivery enabled, compare [SqsRawSnsS3Function](../SqsRawSnsS3Function/). In that shape the SQS body is already an `S3Event`, so the typed `SqsFunction<S3Event, ...>` programming model remains the natural fit.
+For the same topology with SNS Raw Message Delivery enabled, compare [SqsRawSnsS3Function](../SqsRawSnsS3Function/). In that shape the SQS body is already an `S3Event`, so the typed payload changes from `SnsEnvelope` to `S3Event` and no additional nested decoder is required.
