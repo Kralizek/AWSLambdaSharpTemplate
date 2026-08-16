@@ -1,9 +1,13 @@
-name: Release benchmark snapshot
+name: Benchmark snapshot
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  workflow_call:
+    inputs:
+      release-mode:
+        description: Resolve release metadata and attach the snapshot to an existing GitHub release when available
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
   pull_request:
     paths:
@@ -12,41 +16,19 @@ on:
 
 jobs:
   snapshot:
-    name: Collect release benchmarks
-    if: >-
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_repository.full_name == github.repository &&
-       (github.event.workflow_run.event == 'release' || github.event.workflow_run.event == 'workflow_dispatch')) ||
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'pull_request'
+    name: Collect benchmarks
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
     outputs:
       release-tag: ${{ steps.release-tag.outputs.tag }}
-      source-run-id: ${{ steps.source.outputs.run-id }}
 
     steps:
-      - name: Resolve source
-        id: source
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
-            echo "run-id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-            echo "run-id=${{ github.run_id }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Checkout benchmark source
         uses: actions/checkout@v6
         with:
-          ref: ${{ steps.source.outputs.ref }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Setup benchmark .NET
@@ -73,22 +55,19 @@ jobs:
       - name: Upload benchmark snapshot
         uses: actions/upload-artifact@v7
         with:
-          name: benchmark-results-${{ steps.source.outputs.run-id }}
+          name: benchmark-results-${{ github.run_id }}
           path: ${{ runner.temp }}/benchmark-results.zip
           if-no-files-found: error
 
       - name: Download release packages
-        if: github.event_name == 'workflow_run'
+        if: inputs.release-mode == true
         uses: actions/download-artifact@v8
         with:
           name: nuget-packages
           path: ${{ runner.temp }}/packages
-          github-token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Determine release tag
-        if: github.event_name == 'workflow_run'
+        if: inputs.release-mode == true
         id: release-tag
         shell: bash
         run: |
@@ -107,7 +86,7 @@ jobs:
 
   attach:
     name: Attach benchmark snapshot
-    if: github.event_name == 'workflow_run'
+    if: inputs.release-mode == true
     needs: snapshot
     runs-on: ubuntu-latest
     permissions:
@@ -118,7 +97,7 @@ jobs:
       - name: Download benchmark snapshot
         uses: actions/download-artifact@v8
         with:
-          name: benchmark-results-${{ needs.snapshot.outputs.source-run-id }}
+          name: benchmark-results-${{ github.run_id }}
           path: ${{ runner.temp }}/benchmark-release
 
       - name: Attach snapshot to GitHub release when available
