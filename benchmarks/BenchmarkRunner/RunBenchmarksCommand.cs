@@ -71,7 +71,7 @@ internal sealed class RunBenchmarksCommand : AsyncCommand<RunBenchmarksCommand.S
         {
             foreach (var suite in BenchmarkSuites.All.Values.OrderBy(suite => suite.Id))
             {
-                Console.WriteLine($"{suite.Id,-12} {suite.Filter}");
+                await Console.Out.WriteLineAsync($"{suite.Id,-12} {suite.Filter}");
             }
 
             return 0;
@@ -94,12 +94,12 @@ internal sealed class RunBenchmarksCommand : AsyncCommand<RunBenchmarksCommand.S
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            Console.Error.WriteLine("Benchmark collection cancelled.");
+            await Console.Error.WriteLineAsync("Benchmark collection cancelled.");
             return 130;
         }
         catch (Exception exception)
         {
-            Console.Error.WriteLine($"Benchmark collection failed: {exception.Message}");
+            await Console.Error.WriteLineAsync($"Benchmark collection failed: {exception.Message}");
             return 1;
         }
     }
