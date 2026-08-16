@@ -3,11 +3,16 @@ name: Benchmark snapshot
 on:
   workflow_call:
     inputs:
-      publish-results:
-        description: Publish the BenchmarkDotNet results to the benchmark history
+      release-mode:
+        description: Publish benchmark history for release runs
         required: false
         type: boolean
         default: false
+      release-tag:
+        description: GitHub release tag retained for caller compatibility
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
 
 jobs:
@@ -48,7 +53,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish benchmark history
-        if: inputs.publish-results == true
+        if: inputs.release-mode == true
         uses: martincostello/benchmarkdotnet-results-publisher@v2
         with:
           results-path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
