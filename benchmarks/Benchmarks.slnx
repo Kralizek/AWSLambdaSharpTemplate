@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/benchmarks/">
-    <Project Path="BenchmarkRunner/BenchmarkRunner.csproj" />
     <Project Path="BenchmarkWorkloads/BenchmarkWorkloads.csproj" />
     <Project Path="Benchmarks/Benchmarks.csproj" />
     <Project Path="RawSdkTarget/RawSdkTarget.csproj" />
