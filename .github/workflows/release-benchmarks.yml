@@ -4,10 +4,15 @@ on:
   workflow_call:
     inputs:
       release-mode:
-        description: Resolve release metadata and attach the snapshot to an existing GitHub release when available
+        description: Attach the snapshot to an existing GitHub release when available
         required: false
         type: boolean
         default: false
+      release-tag:
+        description: GitHub release tag used when release mode is enabled
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
 
 jobs:
@@ -17,8 +22,6 @@ jobs:
     permissions:
       actions: read
       contents: read
-    outputs:
-      release-tag: ${{ steps.release-tag.outputs.tag }}
 
     steps:
       - name: Checkout benchmark source
@@ -55,31 +58,6 @@ jobs:
           path: ${{ runner.temp }}/benchmark-results.zip
           if-no-files-found: error
 
-      - name: Download release packages
-        if: inputs.release-mode == true
-        uses: actions/download-artifact@v8
-        with:
-          name: nuget-packages
-          path: ${{ runner.temp }}/packages
-
-      - name: Determine release tag
-        if: inputs.release-mode == true
-        id: release-tag
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          package=$(ls "$RUNNER_TEMP"/packages/Kralizek.Lambda.Templates.*.nupkg)
-          nuspec=$(unzip -p "$package" '*.nuspec')
-          package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
-
-          if [[ ! "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "Package version is not a supported Semantic Versioning version: $package_version"
-            exit 1
-          fi
-
-          echo "tag=v$package_version" >> "$GITHUB_OUTPUT"
-
   attach:
     name: Attach benchmark snapshot
     if: inputs.release-mode == true
@@ -99,10 +77,15 @@ jobs:
       - name: Attach snapshot to GitHub release when available
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.snapshot.outputs.release-tag }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
         shell: bash
         run: |
           set -euo pipefail
+
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "Release mode requires a release tag."
+            exit 1
+          fi
 
           if ! gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             echo "No GitHub release exists for $RELEASE_TAG; keeping the benchmark snapshot as a workflow artifact."
