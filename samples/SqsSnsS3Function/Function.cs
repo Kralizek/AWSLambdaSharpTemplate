@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ public sealed class SqsSnsS3Handler : ISqsMessageHandler<SnsEnvelope>
     {
         var s3Event = await _s3Decoder.DecodeAsync(message.Message, cancellationToken).ConfigureAwait(false);
 
-        foreach (var record in s3Event.Records ?? new List<S3Event.S3EventNotificationRecord>())
+        foreach (var record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? Array.Empty<S3Event.S3EventNotificationRecord>())
         {
             await _s3Processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
         }
