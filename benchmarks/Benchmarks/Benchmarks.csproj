@@ -13,12 +13,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BenchmarkWorkloads\BenchmarkWorkloads.csproj" />
-    <ProjectReference Include="..\RawSdkTarget\RawSdkTarget.csproj" />
+    <ProjectReference Include="..\RawSdkTarget\RawSdkTarget.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\V5Target\V5Target.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\V6Target\V6Target.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
+    <AssemblyMetadata Include="RawSdkTargetAssemblyPath" Value="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../RawSdkTarget/bin/$(Configuration)/net10.0/RawSdkTarget.dll'))" />
     <AssemblyMetadata Include="V5TargetAssemblyPath" Value="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../V5Target/bin/$(Configuration)/net6.0/V5Target.dll'))" />
     <AssemblyMetadata Include="V6TargetAssemblyPath" Value="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../V6Target/bin/$(Configuration)/net10.0/V6Target.dll'))" />
   </ItemGroup>
