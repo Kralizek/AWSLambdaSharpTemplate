@@ -17,17 +17,16 @@ if (options.ListSuites)
     return 0;
 }
 
-if (options.SuiteId is null || !BenchmarkSuites.All.TryGetValue(options.SuiteId, out var suite))
+var suites = ResolveSuites(options);
+if (suites.Count == 0)
 {
-    Console.Error.WriteLine("Specify a benchmark suite.");
+    Console.Error.WriteLine("Specify one or more benchmark suites, or use --all.");
     Console.Error.WriteLine($"Available suites: {string.Join(", ", BenchmarkSuites.All.Keys.Order())}");
     Console.Error.WriteLine("Use --list to show suite filters.");
     return 1;
 }
 
-var repositoryRoot = await ProcessRunner.CaptureAsync("git", ["rev-parse", "--show-toplevel"], Environment.CurrentDirectory);
-repositoryRoot = repositoryRoot.Trim();
-
+var repositoryRoot = (await ProcessRunner.CaptureAsync("git", ["rev-parse", "--show-toplevel"], Environment.CurrentDirectory)).Trim();
 var benchmarkRoot = Path.Combine(repositoryRoot, "benchmarks");
 var benchmarkProject = Path.Combine(benchmarkRoot, "Benchmarks", "Benchmarks.csproj");
 var outputRoot = options.OutputDirectory is null
@@ -48,42 +47,34 @@ if (dirty && !options.AllowDirty)
 var sdkVersion = (await ProcessRunner.CaptureAsync("dotnet", ["--version"], benchmarkRoot)).Trim();
 var cpuModel = await MachineInfo.GetCpuModelAsync();
 var timestamp = DateTimeOffset.UtcNow;
-var runDirectory = CreateRunDirectory(outputRoot, suite.Id, timestamp, shortCommit);
-var artifactsDirectory = Path.Combine(runDirectory, "artifacts");
-Directory.CreateDirectory(artifactsDirectory);
+var machine = new MachineMetadata(
+    Environment.MachineName,
+    cpuModel,
+    RuntimeInformation.OSDescription,
+    RuntimeInformation.OSArchitecture.ToString(),
+    RuntimeInformation.ProcessArchitecture.ToString(),
+    Environment.ProcessorCount,
+    GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
+    Environment.GetEnvironmentVariable("BENCHMARK_POWER_MODE"));
+var dotNet = new DotNetMetadata(sdkVersion, RuntimeInformation.FrameworkDescription);
+var automation = AutomationMetadata.Create();
+var git = new GitMetadata(commit, shortCommit, dirty);
 
-var displayRunDirectory = GetDisplayPath(repositoryRoot, runDirectory);
-var relativeArtifactsDirectory = Path.GetRelativePath(runDirectory, artifactsDirectory).Replace('\\', '/');
+Directory.CreateDirectory(outputRoot);
 
-var metadata = new BenchmarkRunMetadata(
+var collectionMetadata = new BenchmarkCollectionMetadata(
     SchemaVersion: 1,
     Status: "running",
-    Suite: new SuiteMetadata(suite.Id, suite.Filter),
     TimestampUtc: timestamp,
-    Git: new GitMetadata(commit, shortCommit, dirty),
-    Machine: new MachineMetadata(
-        Environment.MachineName,
-        cpuModel,
-        RuntimeInformation.OSDescription,
-        RuntimeInformation.OSArchitecture.ToString(),
-        RuntimeInformation.ProcessArchitecture.ToString(),
-        Environment.ProcessorCount,
-        GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
-        Environment.GetEnvironmentVariable("BENCHMARK_POWER_MODE")),
-    DotNet: new DotNetMetadata(sdkVersion, RuntimeInformation.FrameworkDescription),
-    Automation: AutomationMetadata.Create(),
-    Benchmark: new BenchmarkMetadata(
-        Configuration: "Release",
-        Project: "benchmarks/Benchmarks/Benchmarks.csproj",
-        Filter: suite.Filter,
-        Exporters: ["GitHub", "CSV", "HTML"],
-        ArtifactsDirectory: relativeArtifactsDirectory),
-    ExitCode: null);
+    Git: git,
+    Machine: machine,
+    DotNet: dotNet,
+    Automation: automation,
+    Suites: suites.Select(suite => new CollectionSuiteMetadata(suite.Id, suite.Filter, "pending", null)).ToArray());
 
-var metadataPath = Path.Combine(runDirectory, "metadata.json");
-await WriteMetadataAsync(metadataPath, metadata);
-
-Console.WriteLine($"Collecting suite '{suite.Id}' into {displayRunDirectory}");
+var collectionMetadataPath = Path.Combine(outputRoot, "metadata.json");
+await WriteJsonAsync(collectionMetadataPath, collectionMetadata);
+await WriteCollectionReadmeAsync(Path.Combine(outputRoot, "README.md"), collectionMetadata);
 
 var buildExitCode = await ProcessRunner.RunAsync(
     "dotnet",
@@ -92,48 +83,133 @@ var buildExitCode = await ProcessRunner.RunAsync(
 
 if (buildExitCode != 0)
 {
-    await WriteMetadataAsync(metadataPath, metadata with { Status = "failed", ExitCode = buildExitCode });
+    var failedCollection = collectionMetadata with { Status = "failed" };
+    await WriteJsonAsync(collectionMetadataPath, failedCollection);
+    await WriteCollectionReadmeAsync(Path.Combine(outputRoot, "README.md"), failedCollection);
     return buildExitCode;
 }
 
-var benchmarkExitCode = await ProcessRunner.RunAsync(
-    "dotnet",
-    [
-        "run",
-        "--project", benchmarkProject,
-        "--configuration", "Release",
-        "--no-build",
-        "--",
-        "--filter", suite.Filter,
-        "--artifacts", artifactsDirectory,
-        "--exporters", "GitHub", "CSV", "HTML"
-    ],
-    benchmarkRoot);
-
-if (benchmarkExitCode != 0)
+for (var suiteIndex = 0; suiteIndex < suites.Count; suiteIndex++)
 {
-    await WriteMetadataAsync(metadataPath, metadata with { Status = "failed", ExitCode = benchmarkExitCode });
-    return benchmarkExitCode;
+    var suite = suites[suiteIndex];
+    var runDirectory = CreateRunDirectory(outputRoot, suite.Id, timestamp, shortCommit);
+    var artifactsDirectory = Path.Combine(runDirectory, "artifacts");
+    Directory.CreateDirectory(artifactsDirectory);
+
+    var displayRunDirectory = GetDisplayPath(repositoryRoot, runDirectory);
+    var metadata = new BenchmarkRunMetadata(
+        SchemaVersion: 1,
+        Status: "running",
+        Suite: new SuiteMetadata(suite.Id, suite.Filter),
+        TimestampUtc: timestamp,
+        Git: git,
+        Machine: machine,
+        DotNet: dotNet,
+        Automation: automation,
+        Benchmark: new BenchmarkMetadata(
+            Configuration: "Release",
+            Project: "benchmarks/Benchmarks/Benchmarks.csproj",
+            Filter: suite.Filter,
+            Exporters: ["GitHub", "CSV", "HTML"],
+            ArtifactsDirectory: "artifacts"),
+        ExitCode: null);
+
+    var metadataPath = Path.Combine(runDirectory, "metadata.json");
+    await WriteJsonAsync(metadataPath, metadata);
+    Console.WriteLine($"Collecting suite '{suite.Id}' into {displayRunDirectory}");
+
+    var benchmarkExitCode = await ProcessRunner.RunAsync(
+        "dotnet",
+        [
+            "run",
+            "--project", benchmarkProject,
+            "--configuration", "Release",
+            "--no-build",
+            "--",
+            "--filter", suite.Filter,
+            "--artifacts", artifactsDirectory,
+            "--exporters", "GitHub", "CSV", "HTML"
+        ],
+        benchmarkRoot);
+
+    if (benchmarkExitCode != 0)
+    {
+        await WriteJsonAsync(metadataPath, metadata with { Status = "failed", ExitCode = benchmarkExitCode });
+        collectionMetadata = UpdateCollectionSuite(collectionMetadata, suiteIndex, "failed", GetRunPath(outputRoot, runDirectory)) with { Status = "failed" };
+        await WriteJsonAsync(collectionMetadataPath, collectionMetadata);
+        await WriteCollectionReadmeAsync(Path.Combine(outputRoot, "README.md"), collectionMetadata);
+        return benchmarkExitCode;
+    }
+
+    var resultsDirectory = Path.Combine(artifactsDirectory, "results");
+    var reports = Directory.Exists(resultsDirectory)
+        ? Directory.EnumerateFiles(resultsDirectory, "*-report-github.md", SearchOption.TopDirectoryOnly).Order(StringComparer.Ordinal).ToArray()
+        : [];
+
+    if (reports.Length == 0)
+    {
+        Console.Error.WriteLine($"Suite '{suite.Id}' completed successfully but produced no GitHub Markdown report.");
+        await WriteJsonAsync(metadataPath, metadata with { Status = "failed", ExitCode = 3 });
+        collectionMetadata = UpdateCollectionSuite(collectionMetadata, suiteIndex, "failed", GetRunPath(outputRoot, runDirectory)) with { Status = "failed" };
+        await WriteJsonAsync(collectionMetadataPath, collectionMetadata);
+        await WriteCollectionReadmeAsync(Path.Combine(outputRoot, "README.md"), collectionMetadata);
+        return 3;
+    }
+
+    var completedMetadata = metadata with { Status = "completed", ExitCode = 0 };
+    await WriteJsonAsync(metadataPath, completedMetadata);
+    await WriteRunReadmeAsync(Path.Combine(runDirectory, "README.md"), completedMetadata, reports);
+
+    collectionMetadata = UpdateCollectionSuite(collectionMetadata, suiteIndex, "completed", GetRunPath(outputRoot, runDirectory));
+    await WriteJsonAsync(collectionMetadataPath, collectionMetadata);
+    await WriteCollectionReadmeAsync(Path.Combine(outputRoot, "README.md"), collectionMetadata);
+
+    Console.WriteLine($"Benchmark run completed: {displayRunDirectory}");
 }
 
-var reports = Directory
-    .EnumerateFiles(Path.Combine(artifactsDirectory, "results"), "*-report-github.md", SearchOption.TopDirectoryOnly)
-    .Order(StringComparer.Ordinal)
-    .ToArray();
-
-if (reports.Length == 0)
-{
-    Console.Error.WriteLine("BenchmarkDotNet completed successfully but produced no GitHub Markdown report.");
-    await WriteMetadataAsync(metadataPath, metadata with { Status = "failed", ExitCode = 3 });
-    return 3;
-}
-
-var completedMetadata = metadata with { Status = "completed", ExitCode = 0 };
-await WriteMetadataAsync(metadataPath, completedMetadata);
-await WriteReadmeAsync(Path.Combine(runDirectory, "README.md"), completedMetadata, reports);
-
-Console.WriteLine($"Benchmark run completed: {displayRunDirectory}");
+collectionMetadata = collectionMetadata with { Status = "completed" };
+await WriteJsonAsync(collectionMetadataPath, collectionMetadata);
+await WriteCollectionReadmeAsync(Path.Combine(outputRoot, "README.md"), collectionMetadata);
+Console.WriteLine($"Benchmark collection completed: {GetDisplayPath(repositoryRoot, outputRoot)}");
 return 0;
+
+static IReadOnlyList<BenchmarkSuite> ResolveSuites(RunnerOptions options)
+{
+    if (options.AllSuites && options.SuiteIds.Count != 0)
+    {
+        throw new ArgumentException("--all cannot be combined with explicit suite names.");
+    }
+
+    if (options.AllSuites)
+    {
+        return BenchmarkSuites.All.Values.OrderBy(suite => suite.Id).ToArray();
+    }
+
+    var resolved = new List<BenchmarkSuite>();
+    var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    foreach (var suiteId in options.SuiteIds)
+    {
+        if (!BenchmarkSuites.All.TryGetValue(suiteId, out var suite))
+        {
+            throw new ArgumentException($"Unknown benchmark suite: {suiteId}");
+        }
+
+        if (seen.Add(suite.Id))
+        {
+            resolved.Add(suite);
+        }
+    }
+
+    return resolved;
+}
+
+static BenchmarkCollectionMetadata UpdateCollectionSuite(BenchmarkCollectionMetadata metadata, int index, string status, string? runDirectory)
+{
+    var suites = metadata.Suites.ToArray();
+    suites[index] = suites[index] with { Status = status, RunDirectory = runDirectory };
+    return metadata with { Suites = suites };
+}
 
 static string CreateRunDirectory(string outputRoot, string suiteId, DateTimeOffset timestamp, string shortCommit)
 {
@@ -153,6 +229,9 @@ static string CreateRunDirectory(string outputRoot, string suiteId, DateTimeOffs
     return candidate;
 }
 
+static string GetRunPath(string outputRoot, string runDirectory) =>
+    Path.GetRelativePath(outputRoot, runDirectory).Replace('\\', '/');
+
 static string GetDisplayPath(string repositoryRoot, string path)
 {
     var relativePath = Path.GetRelativePath(repositoryRoot, path);
@@ -164,9 +243,9 @@ static string GetDisplayPath(string repositoryRoot, string path)
     return path;
 }
 
-static async Task WriteMetadataAsync(string path, BenchmarkRunMetadata metadata)
+static async Task WriteJsonAsync<T>(string path, T value)
 {
-    var json = JsonSerializer.Serialize(metadata, new JsonSerializerOptions
+    var json = JsonSerializer.Serialize(value, new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true
@@ -175,27 +254,14 @@ static async Task WriteMetadataAsync(string path, BenchmarkRunMetadata metadata)
     await File.WriteAllTextAsync(path, json + Environment.NewLine);
 }
 
-static async Task WriteReadmeAsync(string path, BenchmarkRunMetadata metadata, IReadOnlyCollection<string> reports)
+static async Task WriteRunReadmeAsync(string path, BenchmarkRunMetadata metadata, IReadOnlyCollection<string> reports)
 {
     var builder = new StringBuilder();
     builder.AppendLine($"# {metadata.Suite.Id} benchmark run");
     builder.AppendLine();
-    builder.AppendLine("| | |");
-    builder.AppendLine("|---|---|");
-    builder.AppendLine($"| Timestamp | `{metadata.TimestampUtc:O}` |");
-    builder.AppendLine($"| Commit | `{metadata.Git.Commit}` |");
-    builder.AppendLine($"| Git state | {(metadata.Git.Dirty ? "dirty" : "clean")} |");
+    AppendEnvironmentTable(builder, metadata.TimestampUtc, metadata.Git, metadata.Machine, metadata.DotNet, metadata.Automation);
     builder.AppendLine($"| Suite | `{metadata.Suite.Id}` |");
     builder.AppendLine($"| Filter | `{metadata.Suite.Filter}` |");
-    builder.AppendLine($"| Machine | `{metadata.Machine.Name}` |");
-    builder.AppendLine($"| CPU | {metadata.Machine.CpuModel ?? "unknown"} |");
-    builder.AppendLine($"| OS | {metadata.Machine.OperatingSystem} |");
-    builder.AppendLine($"| Architecture | {metadata.Machine.ProcessArchitecture} |");
-    builder.AppendLine($"| Logical processors | {metadata.Machine.LogicalProcessorCount} |");
-    builder.AppendLine($"| Available memory | {FormatBytes(metadata.Machine.TotalAvailableMemoryBytes)} |");
-    builder.AppendLine($"| Power mode | {metadata.Machine.PowerMode ?? "not recorded"} |");
-    builder.AppendLine($"| .NET SDK | `{metadata.DotNet.SdkVersion}` |");
-    builder.AppendLine($"| Execution | {metadata.Automation.Provider} |");
 
     foreach (var report in reports)
     {
@@ -206,6 +272,46 @@ static async Task WriteReadmeAsync(string path, BenchmarkRunMetadata metadata, I
     }
 
     await File.WriteAllTextAsync(path, builder.ToString());
+}
+
+static async Task WriteCollectionReadmeAsync(string path, BenchmarkCollectionMetadata metadata)
+{
+    var builder = new StringBuilder();
+    builder.AppendLine("# Benchmark collection");
+    builder.AppendLine();
+    AppendEnvironmentTable(builder, metadata.TimestampUtc, metadata.Git, metadata.Machine, metadata.DotNet, metadata.Automation);
+    builder.AppendLine($"| Status | {metadata.Status} |");
+    builder.AppendLine();
+    builder.AppendLine("## Suites");
+    builder.AppendLine();
+    builder.AppendLine("| Suite | Filter | Status | Report |");
+    builder.AppendLine("|---|---|---|---|");
+
+    foreach (var suite in metadata.Suites)
+    {
+        var report = suite.RunDirectory is null ? string.Empty : $"[open]({suite.RunDirectory}/README.md)";
+        builder.AppendLine($"| `{suite.Id}` | `{suite.Filter}` | {suite.Status} | {report} |");
+    }
+
+    await File.WriteAllTextAsync(path, builder.ToString());
+}
+
+static void AppendEnvironmentTable(StringBuilder builder, DateTimeOffset timestamp, GitMetadata git, MachineMetadata machine, DotNetMetadata dotNet, AutomationMetadata automation)
+{
+    builder.AppendLine("| | |");
+    builder.AppendLine("|---|---|");
+    builder.AppendLine($"| Timestamp | `{timestamp:O}` |");
+    builder.AppendLine($"| Commit | `{git.Commit}` |");
+    builder.AppendLine($"| Git state | {(git.Dirty ? "dirty" : "clean")} |");
+    builder.AppendLine($"| Machine | `{machine.Name}` |");
+    builder.AppendLine($"| CPU | {machine.CpuModel ?? "unknown"} |");
+    builder.AppendLine($"| OS | {machine.OperatingSystem} |");
+    builder.AppendLine($"| Architecture | {machine.ProcessArchitecture} |");
+    builder.AppendLine($"| Logical processors | {machine.LogicalProcessorCount} |");
+    builder.AppendLine($"| Available memory | {FormatBytes(machine.TotalAvailableMemoryBytes)} |");
+    builder.AppendLine($"| Power mode | {machine.PowerMode ?? "not recorded"} |");
+    builder.AppendLine($"| .NET SDK | `{dotNet.SdkVersion}` |");
+    builder.AppendLine($"| Execution | {automation.Provider} |");
 }
 
 static string FormatBytes(long bytes)
@@ -219,12 +325,18 @@ static string FormatBytes(long bytes)
     return $"{bytes / gib:F1} GiB";
 }
 
-internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool ListSuites, string? OutputDirectory)
+internal sealed record RunnerOptions(
+    IReadOnlyList<string> SuiteIds,
+    bool AllSuites,
+    bool AllowDirty,
+    bool ListSuites,
+    string? OutputDirectory)
 {
     public static RunnerOptions Parse(string[] args)
     {
-        string? suiteId = null;
+        var suiteIds = new List<string>();
         string? outputDirectory = null;
+        var allSuites = false;
         var allowDirty = false;
         var listSuites = false;
 
@@ -233,6 +345,9 @@ internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool List
             var argument = args[index];
             switch (argument)
             {
+                case "--all":
+                    allSuites = true;
+                    break;
                 case "--allow-dirty":
                     allowDirty = true;
                     break;
@@ -257,15 +372,13 @@ internal sealed record RunnerOptions(string? SuiteId, bool AllowDirty, bool List
                     break;
                 default when argument.StartsWith('-'):
                     throw new ArgumentException($"Unknown option: {argument}");
-                default when suiteId is null:
-                    suiteId = argument;
-                    break;
                 default:
-                    throw new ArgumentException($"Unexpected argument: {argument}");
+                    suiteIds.Add(argument);
+                    break;
             }
         }
 
-        return new RunnerOptions(suiteId, allowDirty, listSuites, outputDirectory);
+        return new RunnerOptions(suiteIds, allSuites, allowDirty, listSuites, outputDirectory);
     }
 }
 
@@ -356,6 +469,18 @@ internal static class MachineInfo
         return null;
     }
 }
+
+internal sealed record BenchmarkCollectionMetadata(
+    int SchemaVersion,
+    string Status,
+    DateTimeOffset TimestampUtc,
+    GitMetadata Git,
+    MachineMetadata Machine,
+    DotNetMetadata DotNet,
+    AutomationMetadata Automation,
+    IReadOnlyList<CollectionSuiteMetadata> Suites);
+
+internal sealed record CollectionSuiteMetadata(string Id, string Filter, string Status, string? RunDirectory);
 
 internal sealed record BenchmarkRunMetadata(
     int SchemaVersion,
