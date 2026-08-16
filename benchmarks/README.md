@@ -12,13 +12,21 @@ This directory contains performance benchmarks for the Lambda Template libraries
 
 V5 and V6 both contain an assembly named `Kralizek.Lambda.Template`. The benchmark host therefore does not reference V5 directly. It loads `V5Target` in an isolated `AssemblyLoadContext` and shares only the neutral `BenchmarkWorkloads` contract. Target loading is performed during benchmark setup and is not part of the measured operation.
 
+## Toolchain
+
+The benchmark subtree pins .NET SDK 10.0.400 through `benchmarks/global.json` and uses C# 14 for every benchmark project, regardless of target framework. Target frameworks describe the runtime/API surface being exercised; they do not select an older compiler for benchmark source code.
+
+Run benchmark commands from the `benchmarks` directory so the benchmark-specific SDK pin is applied.
+
 ## Running locally
 
-Build and run benchmarks in Release configuration from the repository root:
+Build and run benchmarks in Release configuration:
 
 ```bash
-dotnet build benchmarks/Benchmarks.slnx --configuration Release
-dotnet run --project benchmarks/Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --filter "*RequestBenchmarks*"
+cd benchmarks
+dotnet --version # must report 10.0.400
+dotnet build Benchmarks.slnx --configuration Release
+dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --filter "*RequestBenchmarks*"
 ```
 
 BenchmarkDotNet writes its normal artifacts under `BenchmarkDotNet.Artifacts`.
@@ -36,7 +44,7 @@ Publishable performance measurements must be collected on controlled local hardw
 
 Keep the machine on external power where applicable and avoid material background workloads while collecting results. Comparisons over time should use the same reference machine and execution conditions whenever possible.
 
-The benchmark-validation GitHub Actions workflow only restores and builds this solution. It proves that benchmark code remains valid when source or benchmark infrastructure changes; it does not produce performance results.
+The benchmark-validation GitHub Actions workflow only restores and builds this solution. It verifies the pinned SDK before building. It proves that benchmark code remains valid when source or benchmark infrastructure changes; it does not produce performance results.
 
 ## Current coverage
 

@@ -33,6 +33,10 @@ jobs:
     permissions:
       contents: read
 
+    defaults:
+      run:
+        working-directory: benchmarks
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -40,10 +44,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          global-json-file: global.json
+          global-json-file: benchmarks/global.json
+
+      - name: Verify SDK
+        run: test "$(dotnet --version)" = "10.0.400"
 
       - name: Restore
-        run: dotnet restore benchmarks/Benchmarks.slnx
+        run: dotnet restore Benchmarks.slnx
 
       - name: Build
-        run: dotnet build benchmarks/Benchmarks.slnx --configuration Release --no-restore
+        run: dotnet build Benchmarks.slnx --configuration Release --no-restore --warnaserror
