@@ -3,7 +3,11 @@ name: CI
 on:
   push:
     branches: [master]
-  pull_request: {}
+    paths-ignore:
+      - 'benchmarks/**'
+  pull_request:
+    paths-ignore:
+      - 'benchmarks/**'
   release:
     types: [published]
   workflow_dispatch:
