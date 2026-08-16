@@ -53,16 +53,16 @@ public sealed class SqsSnsS3Handler : ISqsRecordHandler
     }
 
     public async ValueTask<SqsRecordResult> HandleAsync(
-        SQSEvent.SQSMessage message,
+        SQSEvent.SQSMessage record,
         SqsMessageContext context,
         CancellationToken cancellationToken)
     {
-        var snsEnvelope = await _snsDecoder.DecodeAsync(message.Body, cancellationToken).ConfigureAwait(false);
+        var snsEnvelope = await _snsDecoder.DecodeAsync(record.Body, cancellationToken).ConfigureAwait(false);
         var s3Event = await _s3Decoder.DecodeAsync(snsEnvelope.Message, cancellationToken).ConfigureAwait(false);
 
-        foreach (var record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? Array.Empty<S3Event.S3EventNotificationRecord>())
+        foreach (var s3Record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? Array.Empty<S3Event.S3EventNotificationRecord>())
         {
-            await _s3Processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
+            await _s3Processor.ProcessAsync(s3Record, context, cancellationToken).ConfigureAwait(false);
         }
 
         return SqsRecordResult.Success;
