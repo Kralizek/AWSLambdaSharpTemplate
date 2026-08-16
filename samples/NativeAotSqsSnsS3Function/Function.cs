@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace NativeAotSqsSnsS3Function;
 
-public sealed class Function : SqsFunction<SnsEnvelope, SnsEnvelopedS3DeliveryHandler>
+public sealed class Function : SqsFunction<SnsEnvelope, SqsSnsS3Handler>
 {
     protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         services.AddSingleton(PayloadJsonSerializerContext.Default.SnsEnvelope);
@@ -23,7 +23,6 @@ public sealed class Function : SqsFunction<SnsEnvelope, SnsEnvelopedS3DeliveryHa
     protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddS3ObjectEventProcessing<S3ObjectEventHandler>();
-        services.TryAddScoped<S3EventDispatcher>();
         services.TryAddSingleton<IStringPayloadDecoder<S3Event>>(
             new JsonStringPayloadDecoder<S3Event>(PayloadJsonSerializerContext.Default.S3Event));
     }
@@ -34,17 +33,20 @@ public sealed record SnsEnvelope
     public string Message { get; init; } = string.Empty;
 }
 
-public sealed class SnsEnvelopedS3DeliveryHandler : ISqsMessageHandler<SnsEnvelope>
+public sealed class SqsSnsS3Handler : ISqsMessageHandler<SnsEnvelope>
 {
-    private readonly IStringPayloadDecoder<S3Event> _decoder;
-    private readonly S3EventDispatcher _dispatcher;
+    private readonly IStringPayloadDecoder<S3Event> _s3Decoder;
+    private readonly IRecordProcessor<
+        S3Event.S3EventNotificationRecord,
+        S3RecordResult,
+        RecordContext> _s3Processor;
 
-    public SnsEnvelopedS3DeliveryHandler(
-        IStringPayloadDecoder<S3Event> decoder,
-        S3EventDispatcher dispatcher)
+    public SqsSnsS3Handler(
+        IStringPayloadDecoder<S3Event> s3Decoder,
+        IRecordProcessor<S3Event.S3EventNotificationRecord, S3RecordResult, RecordContext> s3Processor)
     {
-        _decoder = decoder;
-        _dispatcher = dispatcher;
+        _s3Decoder = s3Decoder;
+        _s3Processor = s3Processor;
     }
 
     public async ValueTask<SqsRecordResult> HandleAsync(
@@ -52,32 +54,14 @@ public sealed class SnsEnvelopedS3DeliveryHandler : ISqsMessageHandler<SnsEnvelo
         SqsMessageContext context,
         CancellationToken cancellationToken)
     {
-        var s3Event = await _decoder.DecodeAsync(message.Message, cancellationToken).ConfigureAwait(false);
-        await _dispatcher.DispatchAsync(s3Event, context, cancellationToken).ConfigureAwait(false);
-        return SqsRecordResult.Success;
-    }
-}
+        var s3Event = await _s3Decoder.DecodeAsync(message.Message, cancellationToken).ConfigureAwait(false);
 
-public sealed class S3EventDispatcher
-{
-    private readonly IRecordProcessor<
-        S3Event.S3EventNotificationRecord,
-        S3RecordResult,
-        RecordContext> _processor;
-
-    public S3EventDispatcher(
-        IRecordProcessor<S3Event.S3EventNotificationRecord, S3RecordResult, RecordContext> processor) =>
-        _processor = processor;
-
-    public async ValueTask DispatchAsync(
-        S3Event s3Event,
-        RecordContext context,
-        CancellationToken cancellationToken)
-    {
         foreach (var record in (IEnumerable<S3Event.S3EventNotificationRecord>?)s3Event.Records ?? Array.Empty<S3Event.S3EventNotificationRecord>())
         {
-            await _processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
+            await _s3Processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
         }
+
+        return SqsRecordResult.Success;
     }
 }
 
