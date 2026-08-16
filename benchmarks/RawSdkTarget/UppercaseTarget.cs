@@ -21,6 +21,8 @@ public sealed class UppercaseTarget : IRequestTarget
 
 public sealed class UppercaseFunction
 {
+#pragma warning disable S2325 // Keep the raw handler instance-based so all benchmark targets use the same invocation shape.
     public Task<string> FunctionHandlerAsync(string input, ILambdaContext context) =>
         Task.FromResult(UppercaseWorkload.Execute(input));
+#pragma warning restore S2325
 }

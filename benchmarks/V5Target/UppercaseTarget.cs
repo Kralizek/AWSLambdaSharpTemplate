@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
