@@ -209,8 +209,7 @@ internal static class BenchmarkCollector
                 "--no-build",
                 "--",
                 "--filter", suite.Filter,
-                "--artifacts", artifactsDirectory,
-                "--exporters", "GitHub", "CSV", "HTML"
+                "--artifacts", artifactsDirectory
             ],
             context.BenchmarkRoot,
             cancellationToken);
