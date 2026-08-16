@@ -1,15 +1,14 @@
 # Native AOT SQS → SNS envelope → S3 sample
 
-Use this sample when S3 notifications are published to SNS, delivered to SQS using the standard SNS JSON envelope, and consumed by a Native AOT Lambda. The raw SQS handler owns the nested envelope decoding while S3 record handling continues through the framework's normal S3 processor.
+Use this sample when S3 notifications are published to SNS, delivered to SQS using the standard SNS JSON envelope, and consumed by a Native AOT Lambda. The SQS function decodes the outer SNS envelope as its typed payload, while the handler decodes the nested S3 event and delegates each S3 record to the framework's normal S3 processor.
 
 ```text
 S3 bucket
   → SNS topic (standard delivery)
   → SQS queue
   → SQSEvent
-  → SqsFunction<SqsSnsS3Handler>
+  → SqsFunction<SnsEnvelope, SqsSnsS3Handler>
   → SqsSnsS3Handler
-      → decode SQSMessage.Body to SnsEnvelope
       → decode SnsEnvelope.Message to S3Event
       → IRecordProcessor<S3 record, S3RecordResult, RecordContext>
   → S3ObjectEventHandler
@@ -27,7 +26,7 @@ There are three distinct serialization steps in this topology:
 
 `Program.cs` owns the Lambda Runtime API boundary through `LambdaJsonSerializerContext` and `SourceGeneratorLambdaJsonSerializer<TContext>`.
 
-`PayloadJsonSerializerContext` owns the two nested application payloads:
+`PayloadJsonSerializerContext` owns the two application payload types:
 
 ```csharp
 [JsonSerializable(typeof(SnsEnvelope))]
@@ -35,17 +34,21 @@ There are three distinct serialization steps in this topology:
 internal partial class PayloadJsonSerializerContext : JsonSerializerContext;
 ```
 
-The nested decoders are registered explicitly with their generated `JsonTypeInfo<T>` instances:
+`Function.ConfigureFrameworkServices` registers the generated metadata used by the typed SQS decoder for the outer SNS envelope:
 
 ```csharp
-services.TryAddSingleton<IStringPayloadDecoder<SnsEnvelope>>(
-    new JsonStringPayloadDecoder<SnsEnvelope>(PayloadJsonSerializerContext.Default.SnsEnvelope));
+protected override void ConfigureFrameworkServices(IServiceCollection services) =>
+    services.AddSingleton(PayloadJsonSerializerContext.Default.SnsEnvelope);
+```
 
+The nested SNS `Message` decoder is registered explicitly with generated `JsonTypeInfo<S3Event>`:
+
+```csharp
 services.TryAddSingleton<IStringPayloadDecoder<S3Event>>(
     new JsonStringPayloadDecoder<S3Event>(PayloadJsonSerializerContext.Default.S3Event));
 ```
 
-This keeps both nested JSON boundaries AOT-safe without changing `SqsSnsS3Handler`. The handler receives the same decoder abstractions as the non-AOT sample, decodes both envelope levels, and delegates each S3 SDK record to `IRecordProcessor`.
+`SqsSnsS3Handler` therefore has the same shape as the non-AOT sample: it receives a typed `SnsEnvelope`, decodes only the nested `S3Event`, and delegates each S3 SDK record to `IRecordProcessor`.
 
 `services.AddS3ObjectEventProcessing<S3ObjectEventHandler>()` registers the canonical S3 record-processing path. The processor preserves the S3 per-record DI scope, telemetry, adapter behavior, and `S3RecordContext` creation before invoking the ordinary `IS3ObjectEventHandler`.
 
@@ -59,4 +62,4 @@ dotnet publish samples/NativeAotSqsSnsS3Function -c Release -r linux-x64 --self-
 
 The included `aws-lambda-tools-defaults.json` contains matching Native AOT deployment defaults.
 
-For the complete SNS/SQS/S3 infrastructure sketch and example payload, see [SqsSnsS3Function](../SqsSnsS3Function/). For the same topology with SNS Raw Message Delivery enabled, see [SqsRawSnsS3Function](../SqsRawSnsS3Function/); because its SQS body is already an `S3Event`, the typed SQS programming model remains the natural fit there.
+For the complete SNS/SQS/S3 infrastructure sketch and example payload, see [SqsSnsS3Function](../SqsSnsS3Function/). For the same topology with SNS Raw Message Delivery enabled, see [SqsRawSnsS3Function](../SqsRawSnsS3Function/); in that shape the typed SQS payload is `S3Event` directly.
