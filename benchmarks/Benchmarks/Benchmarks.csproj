@@ -15,6 +15,7 @@
     <ProjectReference Include="..\BenchmarkWorkloads\BenchmarkWorkloads.csproj" />
     <ProjectReference Include="..\RawSdkTarget\RawSdkTarget.csproj" />
     <ProjectReference Include="..\V6Target\V6Target.csproj" />
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template\Kralizek.Lambda.Template.csproj" />
     <ProjectReference Include="..\V5Target\V5Target.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
