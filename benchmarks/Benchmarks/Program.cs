@@ -1,3 +1,5 @@
+using System.Linq;
+
 using BenchmarkDotNet.Running;
 
 var summaries = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
