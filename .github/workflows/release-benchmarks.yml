@@ -42,6 +42,7 @@ jobs:
           --project Benchmarks/Benchmarks.csproj
           --configuration Release
           --
+          --filter '*'
           --exporters json
           --artifacts "$RUNNER_TEMP/BenchmarkDotNet.Artifacts"
 
@@ -54,6 +55,6 @@ jobs:
 
       - name: Publish benchmark history
         if: inputs.release-mode == true
-        uses: martincostello/benchmarkdotnet-results-publisher@v2
+        uses: martincostello/benchmarkdotnet-results-publisher@b8fe7bb9691c4fdcda7dee630aa09493e81004b8 # v2
         with:
           results-path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
