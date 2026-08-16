@@ -13,6 +13,11 @@ namespace BenchmarkRunner;
 
 internal static class BenchmarkCollector
 {
+    private const string CompletedStatus = "completed";
+    private const string FailedStatus = "failed";
+    private const string PendingStatus = "pending";
+    private const string RunningStatus = "running";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -56,7 +61,7 @@ internal static class BenchmarkCollector
 
         if (dirty && !allowDirty)
         {
-            Console.Error.WriteLine(
+            await Console.Error.WriteLineAsync(
                 "The working tree is dirty. Commit or stash changes before collecting benchmark results, or pass --allow-dirty explicitly.");
             return 2;
         }
@@ -85,20 +90,30 @@ internal static class BenchmarkCollector
 
         var collectionMetadata = new BenchmarkCollectionMetadata(
             SchemaVersion: 1,
-            Status: "running",
+            Status: RunningStatus,
             TimestampUtc: timestamp,
             Git: git,
             Machine: machine,
             DotNet: dotNet,
             Automation: automation,
             Suites: suites
-                .Select(suite => new CollectionSuiteMetadata(suite.Id, suite.Filter, "pending", null))
+                .Select(suite => new CollectionSuiteMetadata(suite.Id, suite.Filter, PendingStatus, null))
                 .ToArray());
 
-        var collectionMetadataPath = Path.Combine(outputRoot, "metadata.json");
-        var collectionReadmePath = Path.Combine(outputRoot, "README.md");
-        await WriteJsonAsync(collectionMetadataPath, collectionMetadata, cancellationToken);
-        await WriteCollectionReadmeAsync(collectionReadmePath, collectionMetadata, cancellationToken);
+        var context = new CollectionContext(
+            repositoryRoot,
+            benchmarkRoot,
+            benchmarkProject,
+            outputRoot,
+            Path.Combine(outputRoot, "metadata.json"),
+            Path.Combine(outputRoot, "README.md"),
+            timestamp,
+            git,
+            machine,
+            dotNet,
+            automation);
+
+        await WriteCollectionAsync(context, collectionMetadata, cancellationToken);
 
         var buildExitCode = await ProcessRunner.RunAsync(
             "dotnet",
@@ -108,9 +123,8 @@ internal static class BenchmarkCollector
 
         if (buildExitCode != 0)
         {
-            var failedCollection = collectionMetadata with { Status = "failed" };
-            await WriteJsonAsync(collectionMetadataPath, failedCollection, cancellationToken);
-            await WriteCollectionReadmeAsync(collectionReadmePath, failedCollection, cancellationToken);
+            var failedCollection = collectionMetadata with { Status = FailedStatus };
+            await WriteCollectionAsync(context, failedCollection, cancellationToken);
             return buildExitCode;
         }
 
@@ -119,18 +133,8 @@ internal static class BenchmarkCollector
             var result = await CollectSuiteAsync(
                 suites[suiteIndex],
                 suiteIndex,
-                outputRoot,
-                repositoryRoot,
-                benchmarkProject,
-                benchmarkRoot,
-                timestamp,
-                git,
-                machine,
-                dotNet,
-                automation,
+                context,
                 collectionMetadata,
-                collectionMetadataPath,
-                collectionReadmePath,
                 cancellationToken);
 
             collectionMetadata = result.CollectionMetadata;
@@ -140,44 +144,38 @@ internal static class BenchmarkCollector
             }
         }
 
-        collectionMetadata = collectionMetadata with { Status = "completed" };
-        await WriteJsonAsync(collectionMetadataPath, collectionMetadata, cancellationToken);
-        await WriteCollectionReadmeAsync(collectionReadmePath, collectionMetadata, cancellationToken);
-        Console.WriteLine($"Benchmark collection completed: {GetDisplayPath(repositoryRoot, outputRoot)}");
+        collectionMetadata = collectionMetadata with { Status = CompletedStatus };
+        await WriteCollectionAsync(context, collectionMetadata, cancellationToken);
+        await Console.Out.WriteLineAsync(
+            $"Benchmark collection completed: {GetDisplayPath(repositoryRoot, outputRoot)}");
         return 0;
     }
 
     private static async Task<SuiteCollectionResult> CollectSuiteAsync(
         BenchmarkSuite suite,
         int suiteIndex,
-        string outputRoot,
-        string repositoryRoot,
-        string benchmarkProject,
-        string benchmarkRoot,
-        DateTimeOffset timestamp,
-        GitMetadata git,
-        MachineMetadata machine,
-        DotNetMetadata dotNet,
-        AutomationMetadata automation,
+        CollectionContext context,
         BenchmarkCollectionMetadata collectionMetadata,
-        string collectionMetadataPath,
-        string collectionReadmePath,
         CancellationToken cancellationToken)
     {
-        var runDirectory = CreateRunDirectory(outputRoot, suite.Id, timestamp, git.ShortCommit);
+        var runDirectory = CreateRunDirectory(
+            context.OutputRoot,
+            suite.Id,
+            context.Timestamp,
+            context.Git.ShortCommit);
         var artifactsDirectory = Path.Combine(runDirectory, "artifacts");
         Directory.CreateDirectory(artifactsDirectory);
 
-        var displayRunDirectory = GetDisplayPath(repositoryRoot, runDirectory);
+        var displayRunDirectory = GetDisplayPath(context.RepositoryRoot, runDirectory);
         var metadata = new BenchmarkRunMetadata(
             SchemaVersion: 1,
-            Status: "running",
+            Status: RunningStatus,
             Suite: new SuiteMetadata(suite.Id, suite.Filter),
-            TimestampUtc: timestamp,
-            Git: git,
-            Machine: machine,
-            DotNet: dotNet,
-            Automation: automation,
+            TimestampUtc: context.Timestamp,
+            Git: context.Git,
+            Machine: context.Machine,
+            DotNet: context.DotNet,
+            Automation: context.Automation,
             Benchmark: new BenchmarkMetadata(
                 Configuration: "Release",
                 Project: "benchmarks/Benchmarks/Benchmarks.csproj",
@@ -188,13 +186,13 @@ internal static class BenchmarkCollector
 
         var metadataPath = Path.Combine(runDirectory, "metadata.json");
         await WriteJsonAsync(metadataPath, metadata, cancellationToken);
-        Console.WriteLine($"Collecting suite '{suite.Id}' into {displayRunDirectory}");
+        await Console.Out.WriteLineAsync($"Collecting suite '{suite.Id}' into {displayRunDirectory}");
 
         var benchmarkExitCode = await ProcessRunner.RunAsync(
             "dotnet",
             [
                 "run",
-                "--project", benchmarkProject,
+                "--project", context.BenchmarkProject,
                 "--configuration", "Release",
                 "--no-build",
                 "--",
@@ -202,23 +200,22 @@ internal static class BenchmarkCollector
                 "--artifacts", artifactsDirectory,
                 "--exporters", "GitHub", "CSV", "HTML"
             ],
-            benchmarkRoot,
+            context.BenchmarkRoot,
             cancellationToken);
 
-        var runPath = GetRunPath(outputRoot, runDirectory);
+        var runPath = GetRunPath(context.OutputRoot, runDirectory);
         if (benchmarkExitCode != 0)
         {
             await WriteJsonAsync(
                 metadataPath,
-                metadata with { Status = "failed", ExitCode = benchmarkExitCode },
+                metadata with { Status = FailedStatus, ExitCode = benchmarkExitCode },
                 cancellationToken);
             var failedCollection = UpdateCollectionSuite(
                 collectionMetadata,
                 suiteIndex,
-                "failed",
-                runPath) with { Status = "failed" };
-            await WriteJsonAsync(collectionMetadataPath, failedCollection, cancellationToken);
-            await WriteCollectionReadmeAsync(collectionReadmePath, failedCollection, cancellationToken);
+                FailedStatus,
+                runPath) with { Status = FailedStatus };
+            await WriteCollectionAsync(context, failedCollection, cancellationToken);
             return new SuiteCollectionResult(benchmarkExitCode, failedCollection);
         }
 
@@ -226,23 +223,22 @@ internal static class BenchmarkCollector
         if (reports.Count == 0)
         {
             const int missingReportExitCode = 3;
-            Console.Error.WriteLine(
+            await Console.Error.WriteLineAsync(
                 $"Suite '{suite.Id}' completed successfully but produced no GitHub Markdown report.");
             await WriteJsonAsync(
                 metadataPath,
-                metadata with { Status = "failed", ExitCode = missingReportExitCode },
+                metadata with { Status = FailedStatus, ExitCode = missingReportExitCode },
                 cancellationToken);
             var failedCollection = UpdateCollectionSuite(
                 collectionMetadata,
                 suiteIndex,
-                "failed",
-                runPath) with { Status = "failed" };
-            await WriteJsonAsync(collectionMetadataPath, failedCollection, cancellationToken);
-            await WriteCollectionReadmeAsync(collectionReadmePath, failedCollection, cancellationToken);
+                FailedStatus,
+                runPath) with { Status = FailedStatus };
+            await WriteCollectionAsync(context, failedCollection, cancellationToken);
             return new SuiteCollectionResult(missingReportExitCode, failedCollection);
         }
 
-        var completedMetadata = metadata with { Status = "completed", ExitCode = 0 };
+        var completedMetadata = metadata with { Status = CompletedStatus, ExitCode = 0 };
         await WriteJsonAsync(metadataPath, completedMetadata, cancellationToken);
         await WriteRunReadmeAsync(
             Path.Combine(runDirectory, "README.md"),
@@ -253,13 +249,21 @@ internal static class BenchmarkCollector
         var completedCollection = UpdateCollectionSuite(
             collectionMetadata,
             suiteIndex,
-            "completed",
+            CompletedStatus,
             runPath);
-        await WriteJsonAsync(collectionMetadataPath, completedCollection, cancellationToken);
-        await WriteCollectionReadmeAsync(collectionReadmePath, completedCollection, cancellationToken);
+        await WriteCollectionAsync(context, completedCollection, cancellationToken);
 
-        Console.WriteLine($"Benchmark run completed: {displayRunDirectory}");
+        await Console.Out.WriteLineAsync($"Benchmark run completed: {displayRunDirectory}");
         return new SuiteCollectionResult(0, completedCollection);
+    }
+
+    private static async Task WriteCollectionAsync(
+        CollectionContext context,
+        BenchmarkCollectionMetadata metadata,
+        CancellationToken cancellationToken)
+    {
+        await WriteJsonAsync(context.CollectionMetadataPath, metadata, cancellationToken);
+        await WriteCollectionReadmeAsync(context.CollectionReadmePath, metadata, cancellationToken);
     }
 
     private static IReadOnlyList<string> FindReports(string artifactsDirectory)
@@ -427,6 +431,19 @@ internal static class BenchmarkCollector
         const double gib = 1024d * 1024d * 1024d;
         return $"{bytes / gib:F1} GiB";
     }
+
+    private sealed record CollectionContext(
+        string RepositoryRoot,
+        string BenchmarkRoot,
+        string BenchmarkProject,
+        string OutputRoot,
+        string CollectionMetadataPath,
+        string CollectionReadmePath,
+        DateTimeOffset Timestamp,
+        GitMetadata Git,
+        MachineMetadata Machine,
+        DotNetMetadata DotNet,
+        AutomationMetadata Automation);
 
     private sealed record SuiteCollectionResult(
         int ExitCode,
