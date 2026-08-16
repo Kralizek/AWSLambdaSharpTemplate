@@ -3,16 +3,11 @@ name: Benchmark snapshot
 on:
   workflow_call:
     inputs:
-      release-mode:
-        description: Attach the snapshot to an existing GitHub release when available
+      publish-results:
+        description: Publish the BenchmarkDotNet results to the benchmark history
         required: false
         type: boolean
         default: false
-      release-tag:
-        description: GitHub release tag used when release mode is enabled
-        required: false
-        type: string
-        default: ''
   workflow_dispatch:
 
 jobs:
@@ -21,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout benchmark source
@@ -35,64 +30,25 @@ jobs:
         with:
           global-json-file: benchmarks/global.json
 
-      - name: Collect benchmark snapshot
+      - name: Run benchmarks
         working-directory: benchmarks
         run: >-
           dotnet run
-          --project BenchmarkRunner/BenchmarkRunner.csproj
+          --project Benchmarks/Benchmarks.csproj
+          --configuration Release
           --
-          --all
-          --output "$RUNNER_TEMP/benchmark-results"
+          --exporters json
+          --artifacts "$RUNNER_TEMP/BenchmarkDotNet.Artifacts"
 
-      - name: Package benchmark snapshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP"
-          zip -r benchmark-results.zip benchmark-results
-
-      - name: Upload benchmark snapshot
+      - name: Upload BenchmarkDotNet artifacts
         uses: actions/upload-artifact@v7
         with:
           name: benchmark-results-${{ github.run_id }}
-          path: ${{ runner.temp }}/benchmark-results.zip
+          path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
           if-no-files-found: error
 
-  attach:
-    name: Attach benchmark snapshot
-    if: inputs.release-mode == true
-    needs: snapshot
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: write
-
-    steps:
-      - name: Download benchmark snapshot
-        uses: actions/download-artifact@v8
+      - name: Publish benchmark history
+        if: inputs.publish-results == true
+        uses: martincostello/benchmarkdotnet-results-publisher@v2
         with:
-          name: benchmark-results-${{ github.run_id }}
-          path: ${{ runner.temp }}/benchmark-release
-
-      - name: Attach snapshot to GitHub release when available
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release-tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ -z "$RELEASE_TAG" ]; then
-            echo "Release mode requires a release tag."
-            exit 1
-          fi
-
-          if ! gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "No GitHub release exists for $RELEASE_TAG; keeping the benchmark snapshot as a workflow artifact."
-            exit 0
-          fi
-
-          gh release upload "$RELEASE_TAG" \
-            "$RUNNER_TEMP/benchmark-release/benchmark-results.zip" \
-            --repo "${{ github.repository }}" \
-            --clobber
+          results-path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
