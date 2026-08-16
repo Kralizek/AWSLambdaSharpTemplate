@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyMetadata Include="V5TargetAssemblyPath" Value="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\V5Target\bin\$(Configuration)\net6.0\V5Target.dll'))" />
+    <AssemblyMetadata Include="V5TargetAssemblyPath" Value="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../V5Target/bin/$(Configuration)/net6.0/V5Target.dll'))" />
   </ItemGroup>
 
 </Project>
