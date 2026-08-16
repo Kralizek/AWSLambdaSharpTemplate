@@ -44,6 +44,8 @@ dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- request --output 
 
 Both `--output <directory>` and `--output=<directory>` are supported. The runner still creates the standard `<suite>/<timestamp>-<sha>/` hierarchy beneath the selected results root.
 
+A release job can therefore collect one or more suites into the same root and package that directory as a release asset without changing the on-disk result format.
+
 The runner:
 
 - requires a clean Git working tree by default so the recorded commit identifies the code being measured;
@@ -94,6 +96,8 @@ Direct execution writes BenchmarkDotNet's normal artifacts and does not create t
 Publishable performance measurements should be collected on controlled hardware. The standard runner automatically records the git commit and state, CPU where available, memory limit visible to .NET, operating system, architecture, .NET SDK/runtime, suite/filter, timestamp, and execution provider. BenchmarkDotNet's generated report provides its own detailed runtime and environment description.
 
 Keep the machine on external power where applicable and avoid material background workloads while collecting results. Comparisons over time should use the same reference machine and execution conditions whenever possible.
+
+GitHub-hosted release runs can still provide useful per-release snapshots, but their results should not be treated as a stable regression baseline because the underlying hardware is not controlled. A self-hosted reference runner can use the same output format when comparable release-to-release measurements are required.
 
 The benchmark-validation GitHub Actions workflow only restores and builds this solution. It verifies the pinned SDK before building. It proves that benchmark code remains valid when source or benchmark infrastructure changes; it does not produce performance results.
 
