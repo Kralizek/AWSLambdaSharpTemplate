@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+
 using BenchmarkRunner;
 
 using Spectre.Console.Cli;
