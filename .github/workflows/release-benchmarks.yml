@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: write
+      contents: read
+    outputs:
+      release-tag: ${{ steps.release-tag.outputs.tag }}
 
     steps:
       - name: Checkout release source
@@ -61,6 +63,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Determine release tag
+        id: release-tag
         shell: bash
         run: |
           set -euo pipefail
@@ -69,16 +72,32 @@ jobs:
           nuspec=$(unzip -p "$package" '*.nuspec')
           package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
 
-          if [ -z "$package_version" ]; then
-            echo "Could not determine the package version."
+          if [[ ! "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Package version is not a supported Semantic Versioning version: $package_version"
             exit 1
           fi
 
-          echo "RELEASE_TAG=v$package_version" >> "$GITHUB_ENV"
+          echo "tag=v$package_version" >> "$GITHUB_OUTPUT"
+
+  attach:
+    name: Attach benchmark snapshot
+    needs: snapshot
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+
+    steps:
+      - name: Download benchmark snapshot
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmark-results-${{ github.event.workflow_run.id }}
+          path: ${{ runner.temp }}/benchmark-release
 
       - name: Attach snapshot to GitHub release when available
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.snapshot.outputs.release-tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -89,6 +108,6 @@ jobs:
           fi
 
           gh release upload "$RELEASE_TAG" \
-            "$RUNNER_TEMP/benchmark-results.zip" \
+            "$RUNNER_TEMP/benchmark-release/benchmark-results.zip" \
             --repo "${{ github.repository }}" \
             --clobber
