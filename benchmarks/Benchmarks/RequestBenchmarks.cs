@@ -18,16 +18,17 @@ public class RequestBenchmarks
 {
     private const string Input = "lambda benchmark";
 
-    private readonly IRequestTarget _rawSdk = new RawSdkTarget.UppercaseTarget();
-
+    private TargetLoadContext? _rawSdkLoadContext;
     private TargetLoadContext? _v5LoadContext;
     private TargetLoadContext? _v6LoadContext;
+    private IRequestTarget? _rawSdk;
     private IRequestTarget? _v5;
     private IRequestTarget? _v6;
 
     [GlobalSetup]
     public void Setup()
     {
+        (_rawSdkLoadContext, _rawSdk) = LoadTarget("RawSdkTargetAssemblyPath", "RawSdkTarget.UppercaseTarget");
         (_v5LoadContext, _v5) = LoadTarget("V5TargetAssemblyPath", "V5Target.UppercaseTarget");
         (_v6LoadContext, _v6) = LoadTarget("V6TargetAssemblyPath", "V6Target.UppercaseTarget");
     }
@@ -35,18 +36,21 @@ public class RequestBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
+        _rawSdk = null;
         _v5 = null;
         _v6 = null;
 
+        _rawSdkLoadContext?.Unload();
         _v5LoadContext?.Unload();
         _v6LoadContext?.Unload();
 
+        _rawSdkLoadContext = null;
         _v5LoadContext = null;
         _v6LoadContext = null;
     }
 
     [Benchmark(Baseline = true)]
-    public Task<string> RawSdk() => _rawSdk.InvokeAsync(Input);
+    public Task<string> RawSdk() => _rawSdk!.InvokeAsync(Input);
 
     [Benchmark]
     public Task<string> V5() => _v5!.InvokeAsync(Input);
