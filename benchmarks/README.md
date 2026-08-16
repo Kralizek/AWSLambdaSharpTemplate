@@ -30,21 +30,35 @@ cd benchmarks
 dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- --list
 ```
 
-Run the request suite:
+Run one suite:
 
 ```bash
 dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- request
 ```
 
+Run multiple suites in one collection:
+
+```bash
+dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- request sqs
+```
+
+Run every registered suite:
+
+```bash
+dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- --all
+```
+
+Explicit suite names and `--all` cannot be combined. Duplicate explicit suite names are ignored, and unknown suites are rejected before any benchmark starts.
+
 By default, collected results are written under `benchmarks/results`. Use `--output` to select a different results root, for example when a CI or release job wants to package the output from a temporary or artifacts directory:
 
 ```bash
-dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- request --output "$RUNNER_TEMP/benchmark-results"
+dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- --all --output "$RUNNER_TEMP/benchmark-results"
 ```
 
 Both `--output <directory>` and `--output=<directory>` are supported. The runner still creates the standard `<suite>/<timestamp>-<sha>/` hierarchy beneath the selected results root.
 
-A release job can therefore collect one or more suites into the same root and package that directory as a release asset without changing the on-disk result format.
+A multi-suite invocation builds the benchmark host once, captures the environment once, and uses one timestamp for every suite in the collection. Suites run sequentially. The runner stops on the first failure and records the collection as failed rather than silently producing an incomplete snapshot.
 
 The runner:
 
@@ -53,7 +67,8 @@ The runner:
 - executes BenchmarkDotNet with the suite filter and GitHub Markdown, CSV, and HTML exporters;
 - captures Git, machine, .NET, and GitHub Actions metadata in `metadata.json`;
 - creates `README.md` as the run homepage by prepending run metadata to the BenchmarkDotNet GitHub Markdown report;
-- preserves the BenchmarkDotNet output under the run's `artifacts` directory.
+- creates root-level `README.md` and `metadata.json` files that summarize the collection and link to each suite run;
+- preserves the BenchmarkDotNet output under each run's `artifacts` directory.
 
 Use `--allow-dirty` only for exploratory measurements that intentionally do not correspond exactly to the recorded commit.
 
@@ -65,18 +80,27 @@ BENCHMARK_POWER_MODE=performance dotnet run --project BenchmarkRunner/BenchmarkR
 
 ## Result layout
 
-Collected runs are stored by suite and run identity, not by machine name:
+Collected runs are stored by suite and run identity, not by machine name. The selected output root is also the collection homepage:
 
 ```text
 results/
+  README.md
+  metadata.json
   request/
+    2026-08-16T150149Z-8a2a4ce0/
+      README.md
+      metadata.json
+      artifacts/
+  sqs/
     2026-08-16T150149Z-8a2a4ce0/
       README.md
       metadata.json
       artifacts/
 ```
 
-`README.md` is the human-readable homepage for a run. `metadata.json` is the machine-readable manifest intended for future indexing and aggregation. Paths recorded inside the manifest are relative to the run directory, so a run remains self-contained when copied, zipped, or attached to a release. Machine identity and execution-provider details remain metadata so local and hosted-runner results use the same directory structure.
+The root `README.md` and `metadata.json` describe the whole collection. Each suite run remains independently self-contained with its own homepage, manifest, and BenchmarkDotNet artifacts. Paths recorded in collection and run manifests are relative, so the output root can be copied, zipped, or attached to a release without rewriting metadata.
+
+Machine identity and execution-provider details remain metadata so local and hosted-runner results use the same directory structure.
 
 ## Direct BenchmarkDotNet execution
 
