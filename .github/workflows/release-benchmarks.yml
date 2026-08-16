@@ -1,0 +1,94 @@
+name: Release benchmark snapshot
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+jobs:
+  snapshot:
+    name: Collect release benchmarks
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.event == 'release' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Setup benchmark .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: benchmarks/global.json
+
+      - name: Collect benchmark snapshot
+        working-directory: benchmarks
+        run: >-
+          dotnet run
+          --project BenchmarkRunner/BenchmarkRunner.csproj
+          --
+          --all
+          --output "$RUNNER_TEMP/benchmark-results"
+
+      - name: Package benchmark snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          zip -r benchmark-results.zip benchmark-results
+
+      - name: Upload benchmark snapshot
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results-${{ github.event.workflow_run.id }}
+          path: ${{ runner.temp }}/benchmark-results.zip
+          if-no-files-found: error
+
+      - name: Download release packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-packages
+          path: ${{ runner.temp }}/packages
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Determine release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package=$(ls "$RUNNER_TEMP"/packages/Kralizek.Lambda.Templates.*.nupkg)
+          nuspec=$(unzip -p "$package" '*.nuspec')
+          package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
+
+          if [ -z "$package_version" ]; then
+            echo "Could not determine the package version."
+            exit 1
+          fi
+
+          echo "RELEASE_TAG=v$package_version" >> "$GITHUB_ENV"
+
+      - name: Attach snapshot to GitHub release when available
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "No GitHub release exists for $RELEASE_TAG; keeping the benchmark snapshot as a workflow artifact."
+            exit 0
+          fi
+
+          gh release upload "$RELEASE_TAG" \
+            "$RUNNER_TEMP/benchmark-results.zip" \
+            --repo "${{ github.repository }}" \
+            --clobber
