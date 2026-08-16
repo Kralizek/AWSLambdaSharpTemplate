@@ -36,6 +36,14 @@ Run the request suite:
 dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- request
 ```
 
+By default, collected results are written under `benchmarks/results`. Use `--output` to select a different results root, for example when a CI or release job wants to package the output from a temporary or artifacts directory:
+
+```bash
+dotnet run --project BenchmarkRunner/BenchmarkRunner.csproj -- request --output "$RUNNER_TEMP/benchmark-results"
+```
+
+Both `--output <directory>` and `--output=<directory>` are supported. The runner still creates the standard `<suite>/<timestamp>-<sha>/` hierarchy beneath the selected results root.
+
 The runner:
 
 - requires a clean Git working tree by default so the recorded commit identifies the code being measured;
@@ -66,7 +74,7 @@ results/
       artifacts/
 ```
 
-`README.md` is the human-readable homepage for a run. `metadata.json` is the machine-readable manifest intended for future indexing and aggregation. Machine identity and execution-provider details remain metadata so local and hosted-runner results use the same directory structure.
+`README.md` is the human-readable homepage for a run. `metadata.json` is the machine-readable manifest intended for future indexing and aggregation. Paths recorded inside the manifest are relative to the run directory, so a run remains self-contained when copied, zipped, or attached to a release. Machine identity and execution-provider details remain metadata so local and hosted-runner results use the same directory structure.
 
 ## Direct BenchmarkDotNet execution
 
