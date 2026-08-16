@@ -777,3 +777,14 @@ jobs:
           ./artifacts/packages/*.snupkg
           --repo "${{ github.repository }}"
           --clobber
+
+  benchmark-snapshot:
+    name: Benchmark snapshot
+    needs: publish
+    if: needs.publish.result == 'success'
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/release-benchmarks.yml
+    with:
+      release-mode: true
