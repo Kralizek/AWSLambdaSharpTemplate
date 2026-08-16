@@ -68,7 +68,7 @@ public class RequestBenchmarks
             throw new FileNotFoundException($"The benchmark target assembly for '{metadataKey}' was not built.", targetAssemblyPath);
         }
 
-        var loadContext = new TargetLoadContext(targetAssemblyPath);
+        var loadContext = new TargetLoadContext(targetAssemblyPath, targetTypeName);
         var assembly = loadContext.LoadFromAssemblyPath(targetAssemblyPath);
         var targetType = assembly.GetType(targetTypeName, throwOnError: true)!;
         var target = (IRequestTarget)Activator.CreateInstance(targetType)!;
@@ -80,8 +80,8 @@ public class RequestBenchmarks
     {
         private readonly AssemblyDependencyResolver _resolver;
 
-        public TargetLoadContext(string targetAssemblyPath)
-            : base(isCollectible: true)
+        public TargetLoadContext(string targetAssemblyPath, string name)
+            : base(name, isCollectible: true)
         {
             _resolver = new AssemblyDependencyResolver(targetAssemblyPath);
         }
