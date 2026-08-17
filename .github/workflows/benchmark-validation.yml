@@ -4,53 +4,22 @@ on:
   push:
     branches: [master]
     paths:
-      - 'src/**'
       - 'benchmarks/**'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - 'global.json'
   pull_request:
     paths:
-      - 'src/**'
       - 'benchmarks/**'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - 'global.json'
   workflow_dispatch:
 
 concurrency:
   group: benchmark-validation-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  DOTNET_NOLOGO: true
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-
 jobs:
-  build:
-    name: Build benchmark solution
-    runs-on: ubuntu-latest
+  validate:
+    name: Run benchmarks
     permissions:
+      actions: read
       contents: read
-
-    defaults:
-      run:
-        working-directory: benchmarks
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: benchmarks/global.json
-
-      - name: Verify SDK
-        run: test "$(dotnet --version)" = "10.0.400"
-
-      - name: Restore
-        run: dotnet restore Benchmarks.slnx
-
-      - name: Build
-        run: dotnet build Benchmarks.slnx --configuration Release --no-restore --warnaserror
+    uses: ./.github/workflows/release-benchmarks.yml
+    with:
+      release-mode: false
