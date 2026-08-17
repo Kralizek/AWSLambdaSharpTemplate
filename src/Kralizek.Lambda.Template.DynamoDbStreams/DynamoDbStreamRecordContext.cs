@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 using Amazon.Lambda.DynamoDBEvents;
 
@@ -11,10 +10,9 @@ namespace Kralizek.Lambda;
 public sealed class DynamoDbStreamRecordContext : RecordContext
 {
     private DynamoDbStreamRecordContext(
-        FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties,
+        RecordContext invocationContext,
         DynamoDBEvent.DynamodbStreamRecord record)
-        : base(metadata, properties)
+        : base(invocationContext, DynamoDbStreamRecordContextExtensions.DynamoDbStreamRecordPropertyName, record)
     {
         EventId = record.EventID;
         EventName = record.EventName;
@@ -40,22 +38,7 @@ public sealed class DynamoDbStreamRecordContext : RecordContext
         ArgumentNullException.ThrowIfNull(invocationContext);
         ArgumentNullException.ThrowIfNull(record);
 
-        var metadata = new FunctionContextMetadata(
-            invocationContext.AwsRequestId,
-            invocationContext.FunctionName,
-            invocationContext.FunctionVersion,
-            invocationContext.InvokedFunctionArn,
-            invocationContext.MemoryLimitInMB,
-            invocationContext.RemainingTime,
-            invocationContext.LogGroupName,
-            invocationContext.LogStreamName);
-
-        var properties = new Dictionary<string, object?>(invocationContext.Properties)
-        {
-            [DynamoDbStreamRecordContextExtensions.DynamoDbStreamRecordPropertyName] = record
-        };
-
-        return new DynamoDbStreamRecordContext(metadata, properties, record);
+        return new DynamoDbStreamRecordContext(invocationContext, record);
     }
 }
 
