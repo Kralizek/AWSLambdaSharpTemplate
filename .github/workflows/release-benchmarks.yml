@@ -3,8 +3,13 @@ name: Benchmark snapshot
 on:
   workflow_call:
     inputs:
+      publish-history:
+        description: Publish benchmark history to the configured results branch
+        required: false
+        type: boolean
+        default: false
       release-mode:
-        description: Publish benchmark history and attach the snapshot to an existing GitHub release
+        description: Attach the benchmark snapshot to an existing GitHub release
         required: false
         type: boolean
         default: false
@@ -55,7 +60,7 @@ jobs:
 
   publish-history:
     name: Publish benchmark history
-    if: inputs.release-mode == true
+    if: inputs.publish-history == true
     needs: snapshot
     runs-on: ubuntu-latest
     permissions:
