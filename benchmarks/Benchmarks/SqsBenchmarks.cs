@@ -30,7 +30,7 @@ public class SqsBenchmarks
         _v6Session = TargetSession.Create("V6TargetAssemblyPath");
 
         _rawSdk = _rawSdkSession.CreateTarget<ISqsTarget>("RawSdkTarget.UppercaseSqsTarget");
-        _v5Typed = _v5Session.CreateTarget<ISqsTarget>("V5Target.UppercaseTypedSqsTarget");
+        _v5Typed = _v5Session.CreateTarget<ISqsTarget>("V5Target.UppercaseSqsTarget");
         _v6Raw = _v6Session.CreateTarget<ISqsTarget>("V6Target.UppercaseRawSqsTarget");
         _v6Typed = _v6Session.CreateTarget<ISqsTarget>("V6Target.UppercaseTypedSqsTarget");
     }
