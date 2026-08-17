@@ -103,7 +103,7 @@ jobs:
           cd "$RUNNER_TEMP"
           zip -r benchmark-results.zip BenchmarkDotNet.Artifacts
 
-      - name: Attach benchmark snapshot
+      - name: Attach snapshot to GitHub release when available
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release-tag }}
