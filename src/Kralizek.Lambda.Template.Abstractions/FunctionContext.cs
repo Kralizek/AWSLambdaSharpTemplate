@@ -85,6 +85,7 @@ public abstract class FunctionContext
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
 
+#pragma warning disable S3267 // Explicit loops avoid LINQ iterator allocations on this per-record hot path.
     private sealed class PropertyOverlay(
         IReadOnlyDictionary<string, object?> source,
         string propertyName,
@@ -158,6 +159,7 @@ public abstract class FunctionContext
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+#pragma warning restore S3267
 }
 
 /// <summary>
