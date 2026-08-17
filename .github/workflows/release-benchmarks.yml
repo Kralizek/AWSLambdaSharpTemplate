@@ -77,6 +77,7 @@ jobs:
       - name: Publish benchmark history
         uses: martincostello/benchmarkdotnet-results-publisher@b8fe7bb9691c4fdcda7dee630aa09493e81004b8 # v2
         with:
+          branch: benchmark-history
           results-path: ${{ runner.temp }}/BenchmarkDotNet.Artifacts
 
   attach:
@@ -102,7 +103,7 @@ jobs:
           cd "$RUNNER_TEMP"
           zip -r benchmark-results.zip BenchmarkDotNet.Artifacts
 
-      - name: Attach snapshot to GitHub release when available
+      - name: Attach benchmark snapshot
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release-tag }}
