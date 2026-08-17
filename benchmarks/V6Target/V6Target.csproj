@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BenchmarkWorkloads\BenchmarkWorkloads.csproj" />
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template\Kralizek.Lambda.Template.csproj" />
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sqs\Kralizek.Lambda.Template.Sqs.csproj" />
   </ItemGroup>
 
   <ItemGroup>
