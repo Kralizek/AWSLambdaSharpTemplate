@@ -36,7 +36,7 @@ public sealed class UppercaseSqsFunction
 
         foreach (var record in input.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>())
         {
-            var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body);
+            var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
             _ = SqsWorkload.Execute(message);
         }
 
