@@ -49,9 +49,30 @@ public abstract class FunctionContext
         FunctionContext source,
         string propertyName,
         object? propertyValue)
+        : this(source, CreatePropertyOverlay(source, propertyName, propertyValue))
+    {
+    }
+
+    protected FunctionContext(
+        FunctionContext source,
+        string firstPropertyName,
+        object? firstPropertyValue,
+        string secondPropertyName,
+        object? secondPropertyValue)
+        : this(
+            source,
+            CreatePropertyOverlay(
+                source,
+                firstPropertyName,
+                firstPropertyValue,
+                secondPropertyName,
+                secondPropertyValue))
+    {
+    }
+
+    private FunctionContext(FunctionContext source, IReadOnlyDictionary<string, object?> properties)
     {
         ArgumentNullException.ThrowIfNull(source);
-        ArgumentException.ThrowIfNullOrEmpty(propertyName);
 
         AwsRequestId = source.AwsRequestId;
         FunctionName = source.FunctionName;
@@ -61,7 +82,7 @@ public abstract class FunctionContext
         RemainingTime = source.RemainingTime;
         LogGroupName = source.LogGroupName;
         LogStreamName = source.LogStreamName;
-        Properties = new PropertyOverlay(source.Properties, propertyName, propertyValue);
+        Properties = properties;
     }
 
     public string AwsRequestId { get; }
@@ -85,27 +106,110 @@ public abstract class FunctionContext
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
 
-#pragma warning disable S3267 // Explicit loops avoid LINQ iterator allocations on this per-record hot path.
-    private sealed class PropertyOverlay(
-        IReadOnlyDictionary<string, object?> source,
+    private static IReadOnlyDictionary<string, object?> CreatePropertyOverlay(
+        FunctionContext source,
         string propertyName,
-        object? propertyValue) : IReadOnlyDictionary<string, object?>
+        object? propertyValue)
     {
-        public int Count => source.ContainsKey(propertyName) ? source.Count : source.Count + 1;
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
+        return new PropertyOverlay(source.Properties, propertyName, propertyValue);
+    }
+
+    private static IReadOnlyDictionary<string, object?> CreatePropertyOverlay(
+        FunctionContext source,
+        string firstPropertyName,
+        object? firstPropertyValue,
+        string secondPropertyName,
+        object? secondPropertyValue)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrEmpty(firstPropertyName);
+        ArgumentException.ThrowIfNullOrEmpty(secondPropertyName);
+
+        return new PropertyOverlay(
+            source.Properties,
+            firstPropertyName,
+            firstPropertyValue,
+            secondPropertyName,
+            secondPropertyValue);
+    }
+
+#pragma warning disable S3267 // Explicit loops avoid LINQ iterator allocations on this per-record hot path.
+    private sealed class PropertyOverlay : IReadOnlyDictionary<string, object?>
+    {
+        private readonly IReadOnlyDictionary<string, object?> _source;
+        private readonly string _firstPropertyName;
+        private readonly object? _firstPropertyValue;
+        private readonly string? _secondPropertyName;
+        private readonly object? _secondPropertyValue;
+
+        public PropertyOverlay(
+            IReadOnlyDictionary<string, object?> source,
+            string propertyName,
+            object? propertyValue)
+        {
+            _source = source;
+            _firstPropertyName = propertyName;
+            _firstPropertyValue = propertyValue;
+        }
+
+        public PropertyOverlay(
+            IReadOnlyDictionary<string, object?> source,
+            string firstPropertyName,
+            object? firstPropertyValue,
+            string secondPropertyName,
+            object? secondPropertyValue)
+        {
+            _source = source;
+            _firstPropertyName = firstPropertyName;
+            _firstPropertyValue = firstPropertyValue;
+            _secondPropertyName = secondPropertyName;
+            _secondPropertyValue = secondPropertyValue;
+        }
+
+        public int Count
+        {
+            get
+            {
+                var count = _source.Count;
+
+                if (!_source.ContainsKey(_firstPropertyName))
+                {
+                    count++;
+                }
+
+                if (_secondPropertyName is not null
+                    && !string.Equals(_secondPropertyName, _firstPropertyName, StringComparison.Ordinal)
+                    && !_source.ContainsKey(_secondPropertyName))
+                {
+                    count++;
+                }
+
+                return count;
+            }
+        }
 
         public IEnumerable<string> Keys
         {
             get
             {
-                foreach (var key in source.Keys)
+                foreach (var key in _source.Keys)
                 {
-                    if (!string.Equals(key, propertyName, StringComparison.Ordinal))
+                    if (!IsOverlayKey(key))
                     {
                         yield return key;
                     }
                 }
 
-                yield return propertyName;
+                yield return _firstPropertyName;
+
+                if (_secondPropertyName is not null
+                    && !string.Equals(_secondPropertyName, _firstPropertyName, StringComparison.Ordinal))
+                {
+                    yield return _secondPropertyName;
+                }
             }
         }
 
@@ -113,51 +217,99 @@ public abstract class FunctionContext
         {
             get
             {
-                foreach (var pair in source)
+                foreach (var pair in _source)
                 {
-                    if (!string.Equals(pair.Key, propertyName, StringComparison.Ordinal))
+                    if (!IsOverlayKey(pair.Key))
                     {
                         yield return pair.Value;
                     }
                 }
 
-                yield return propertyValue;
+                yield return GetOverlayValue(_firstPropertyName);
+
+                if (_secondPropertyName is not null
+                    && !string.Equals(_secondPropertyName, _firstPropertyName, StringComparison.Ordinal))
+                {
+                    yield return _secondPropertyValue;
+                }
             }
         }
 
         public object? this[string key]
-            => string.Equals(key, propertyName, StringComparison.Ordinal)
-                ? propertyValue
-                : source[key];
+        {
+            get
+            {
+                if (TryGetOverlayValue(key, out var value))
+                {
+                    return value;
+                }
 
-        public bool ContainsKey(string key)
-            => string.Equals(key, propertyName, StringComparison.Ordinal) || source.ContainsKey(key);
+                return _source[key];
+            }
+        }
+
+        public bool ContainsKey(string key) => IsOverlayKey(key) || _source.ContainsKey(key);
 
         public bool TryGetValue(string key, out object? value)
         {
-            if (string.Equals(key, propertyName, StringComparison.Ordinal))
+            if (TryGetOverlayValue(key, out value))
             {
-                value = propertyValue;
                 return true;
             }
 
-            return source.TryGetValue(key, out value);
+            return _source.TryGetValue(key, out value);
         }
 
         public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
         {
-            foreach (var pair in source)
+            foreach (var pair in _source)
             {
-                if (!string.Equals(pair.Key, propertyName, StringComparison.Ordinal))
+                if (!IsOverlayKey(pair.Key))
                 {
                     yield return pair;
                 }
             }
 
-            yield return new KeyValuePair<string, object?>(propertyName, propertyValue);
+            yield return new KeyValuePair<string, object?>(_firstPropertyName, GetOverlayValue(_firstPropertyName));
+
+            if (_secondPropertyName is not null
+                && !string.Equals(_secondPropertyName, _firstPropertyName, StringComparison.Ordinal))
+            {
+                yield return new KeyValuePair<string, object?>(_secondPropertyName, _secondPropertyValue);
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private bool IsOverlayKey(string key)
+            => string.Equals(key, _firstPropertyName, StringComparison.Ordinal)
+                || (_secondPropertyName is not null
+                    && string.Equals(key, _secondPropertyName, StringComparison.Ordinal));
+
+        private object? GetOverlayValue(string key)
+            => _secondPropertyName is not null
+                && string.Equals(key, _secondPropertyName, StringComparison.Ordinal)
+                    ? _secondPropertyValue
+                    : _firstPropertyValue;
+
+        private bool TryGetOverlayValue(string key, out object? value)
+        {
+            if (_secondPropertyName is not null
+                && string.Equals(key, _secondPropertyName, StringComparison.Ordinal))
+            {
+                value = _secondPropertyValue;
+                return true;
+            }
+
+            if (string.Equals(key, _firstPropertyName, StringComparison.Ordinal))
+            {
+                value = _firstPropertyValue;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
     }
 #pragma warning restore S3267
 }
@@ -199,4 +351,18 @@ public class RecordContext : FunctionContext
         string propertyName,
         object? propertyValue)
         : base(source, propertyName, propertyValue) { }
+
+    protected RecordContext(
+        RecordContext source,
+        string firstPropertyName,
+        object? firstPropertyValue,
+        string secondPropertyName,
+        object? secondPropertyValue)
+        : base(
+            source,
+            firstPropertyName,
+            firstPropertyValue,
+            secondPropertyName,
+            secondPropertyValue)
+    { }
 }

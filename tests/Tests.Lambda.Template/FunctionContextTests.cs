@@ -109,6 +109,62 @@ public class FunctionContextTests
         });
     }
 
+    [Test]
+    public void Derived_context_two_property_overlay_exposes_both_properties_without_nesting()
+    {
+        var lambdaContext = TestLambdaContexts.Create();
+        var metadata = FunctionContextFactory.CreateMetadata(lambdaContext);
+        var properties = FunctionContextFactory.CreateProperties(lambdaContext);
+        properties["Source"] = "S3";
+
+        var source = new SpecializedRecordContext(metadata, properties);
+        var context = new TwoPropertyOverlaidRecordContext(
+            source,
+            "Request",
+            "request",
+            "Task",
+            "task");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(context.Properties.Count, Is.EqualTo(source.Properties.Count + 2));
+            Assert.That(context.Properties["Request"], Is.EqualTo("request"));
+            Assert.That(context.Properties["Task"], Is.EqualTo("task"));
+            Assert.That(context.Properties["Source"], Is.EqualTo("S3"));
+            Assert.That(context.Properties.Keys.Count(key => key == "Request"), Is.EqualTo(1));
+            Assert.That(context.Properties.Keys.Count(key => key == "Task"), Is.EqualTo(1));
+            Assert.That(context.GetLambdaContext(), Is.SameAs(lambdaContext));
+        });
+    }
+
+    [Test]
+    public void Derived_context_two_property_overlay_handles_source_and_overlay_key_collisions()
+    {
+        var lambdaContext = TestLambdaContexts.Create();
+        var metadata = FunctionContextFactory.CreateMetadata(lambdaContext);
+        var properties = FunctionContextFactory.CreateProperties(lambdaContext);
+        properties["Request"] = "old";
+        properties["Other"] = 42;
+
+        var source = new SpecializedRecordContext(metadata, properties);
+        var context = new TwoPropertyOverlaidRecordContext(
+            source,
+            "Request",
+            "first",
+            "Request",
+            "second");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(context.Properties.Count, Is.EqualTo(source.Properties.Count));
+            Assert.That(context.Properties["Request"], Is.EqualTo("second"));
+            Assert.That(context.Properties.TryGetValue("Request", out var value), Is.True);
+            Assert.That(value, Is.EqualTo("second"));
+            Assert.That(context.Properties.Keys.Count(key => key == "Request"), Is.EqualTo(1));
+            Assert.That(context.Properties.Count(pair => pair.Key == "Request"), Is.EqualTo(1));
+        });
+    }
+
     private sealed class SpecializedEventContext : EventContext
     {
         public SpecializedEventContext(
@@ -140,5 +196,22 @@ public class FunctionContextTests
             string propertyName,
             object? propertyValue)
             : base(source, propertyName, propertyValue) { }
+    }
+
+    private sealed class TwoPropertyOverlaidRecordContext : RecordContext
+    {
+        public TwoPropertyOverlaidRecordContext(
+            RecordContext source,
+            string firstPropertyName,
+            object? firstPropertyValue,
+            string secondPropertyName,
+            object? secondPropertyValue)
+            : base(
+                source,
+                firstPropertyName,
+                firstPropertyValue,
+                secondPropertyName,
+                secondPropertyValue)
+        { }
     }
 }

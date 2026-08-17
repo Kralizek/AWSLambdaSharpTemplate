@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using Amazon.Lambda.S3Events;
 
@@ -7,8 +8,10 @@ namespace Kralizek.Lambda;
 
 public sealed class S3RecordContext : RecordContext
 {
-    private S3RecordContext(FunctionContextMetadata metadata, IReadOnlyDictionary<string, object?> properties)
-        : base(metadata, properties)
+    private S3RecordContext(
+        RecordContext invocationContext,
+        S3Event.S3EventNotificationRecord record)
+        : base(invocationContext, S3RecordContextExtensions.S3RecordPropertyName, record)
     {
     }
 
@@ -17,25 +20,8 @@ public sealed class S3RecordContext : RecordContext
         ArgumentNullException.ThrowIfNull(invocationContext);
         ArgumentNullException.ThrowIfNull(record);
 
-        var metadata = CopyMetadata(invocationContext);
-        var properties = new Dictionary<string, object?>(invocationContext.Properties)
-        {
-            [S3RecordContextExtensions.S3RecordPropertyName] = record
-        };
-
-        return new S3RecordContext(metadata, properties);
+        return new S3RecordContext(invocationContext, record);
     }
-
-    internal static FunctionContextMetadata CopyMetadata(RecordContext context) =>
-        new(
-            context.AwsRequestId,
-            context.FunctionName,
-            context.FunctionVersion,
-            context.InvokedFunctionArn,
-            context.MemoryLimitInMB,
-            context.RemainingTime,
-            context.LogGroupName,
-            context.LogStreamName);
 }
 
 public static class S3RecordContextExtensions
@@ -57,18 +43,25 @@ public static class S3RecordContextExtensions
 
 public sealed class S3BatchContext : RecordContext
 {
+    private static readonly IReadOnlyDictionary<string, string> EmptyUserArguments =
+        new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
     private S3BatchContext(
-        FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties,
+        RecordContext invocationContext,
         S3BatchEvent request,
         S3BatchTask task)
-        : base(metadata, properties)
+        : base(
+            invocationContext,
+            S3BatchContextExtensions.S3BatchRequestPropertyName,
+            request,
+            S3BatchContextExtensions.S3BatchTaskPropertyName,
+            task)
     {
         InvocationId = request.InvocationId ?? string.Empty;
         JobId = request.Job?.Id ?? string.Empty;
         TaskId = task.TaskId ?? string.Empty;
         UserArguments = request.Job?.UserArguments is null
-            ? new Dictionary<string, string>()
+            ? EmptyUserArguments
             : new Dictionary<string, string>(request.Job.UserArguments);
     }
 
@@ -83,13 +76,8 @@ public sealed class S3BatchContext : RecordContext
         ArgumentNullException.ThrowIfNull(task);
 
         var request = task.Request ?? throw new InvalidOperationException("The S3 Batch task is not associated with its invocation request.");
-        var properties = new Dictionary<string, object?>(invocationContext.Properties)
-        {
-            [S3BatchContextExtensions.S3BatchRequestPropertyName] = request,
-            [S3BatchContextExtensions.S3BatchTaskPropertyName] = task
-        };
 
-        return new S3BatchContext(S3RecordContext.CopyMetadata(invocationContext), properties, request, task);
+        return new S3BatchContext(invocationContext, request, task);
     }
 }
 
