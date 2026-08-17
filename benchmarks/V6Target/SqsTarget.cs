@@ -58,7 +58,7 @@ public sealed class UppercaseRawSqsHandler : ISqsRecordHandler
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
+        var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body);
         _ = SqsWorkload.Execute(message);
 
         return ValueTask.FromResult(SqsRecordResult.Success);
