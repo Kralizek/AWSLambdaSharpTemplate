@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 using Amazon.Lambda.KinesisEvents;
 
@@ -11,10 +10,9 @@ namespace Kralizek.Lambda;
 public sealed class KinesisStreamRecordContext : RecordContext
 {
     private KinesisStreamRecordContext(
-        FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties,
+        RecordContext invocationContext,
         KinesisEvent.KinesisEventRecord record)
-        : base(metadata, properties)
+        : base(invocationContext, KinesisStreamRecordContextExtensions.KinesisRecordPropertyName, record)
     {
         SequenceNumber = record.Kinesis?.SequenceNumber;
         PartitionKey = record.Kinesis?.PartitionKey;
@@ -32,22 +30,7 @@ public sealed class KinesisStreamRecordContext : RecordContext
         ArgumentNullException.ThrowIfNull(invocationContext);
         ArgumentNullException.ThrowIfNull(record);
 
-        var metadata = new FunctionContextMetadata(
-            invocationContext.AwsRequestId,
-            invocationContext.FunctionName,
-            invocationContext.FunctionVersion,
-            invocationContext.InvokedFunctionArn,
-            invocationContext.MemoryLimitInMB,
-            invocationContext.RemainingTime,
-            invocationContext.LogGroupName,
-            invocationContext.LogStreamName);
-
-        var properties = new Dictionary<string, object?>(invocationContext.Properties)
-        {
-            [KinesisStreamRecordContextExtensions.KinesisRecordPropertyName] = record
-        };
-
-        return new KinesisStreamRecordContext(metadata, properties, record);
+        return new KinesisStreamRecordContext(invocationContext, record);
     }
 }
 
