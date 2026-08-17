@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1786971696558,
+  "lastUpdated": 1786972042338,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -204,6 +204,107 @@
             "bytesAllocated": 150368
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "e99a7de6d70c614e1acfb613200d08a05ee58409",
+          "message": "Optimize V6 SQS context allocations (#86)",
+          "timestamp": "2026-08-17T12:55:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/e99a7de6d70c614e1acfb613200d08a05ee58409"
+        },
+        "date": 1786972042338,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 1)",
+            "value": 287.4747671740396,
+            "unit": "ns",
+            "range": "± 0.6474534680378752",
+            "bytesAllocated": 336
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 1)",
+            "value": 612.0734525680542,
+            "unit": "ns",
+            "range": "± 1.678101897632525",
+            "bytesAllocated": 448
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 1)",
+            "value": 1683.0086953481039,
+            "unit": "ns",
+            "range": "± 5.024436581275426",
+            "bytesAllocated": 2192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 1)",
+            "value": 1805.6798748288836,
+            "unit": "ns",
+            "range": "± 3.8118859200380877",
+            "bytesAllocated": 2200
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1858.4047246660505,
+            "unit": "ns",
+            "range": "± 5.572063769153498",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4028.623021443685,
+            "unit": "ns",
+            "range": "± 15.187621477677624",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 9128.618061319987,
+            "unit": "ns",
+            "range": "± 30.297517012654815",
+            "bytesAllocated": 9032
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 9568.169689941406,
+            "unit": "ns",
+            "range": "± 26.17558431159601",
+            "bytesAllocated": 9112
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 100)",
+            "value": 18519.417209331805,
+            "unit": "ns",
+            "range": "± 37.984555919847956",
+            "bytesAllocated": 13800
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 100)",
+            "value": 36590.006103515625,
+            "unit": "ns",
+            "range": "± 152.8332684062434",
+            "bytesAllocated": 28960
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 100)",
+            "value": 78021.72516741071,
+            "unit": "ns",
+            "range": "± 167.82795703640267",
+            "bytesAllocated": 76768
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 100)",
+            "value": 85991.4954671224,
+            "unit": "ns",
+            "range": "± 206.97483895383152",
+            "bytesAllocated": 77568
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -279,6 +380,44 @@
             "value": 715.7734008153279,
             "unit": "ns",
             "range": "± 7.315404962194513",
+            "bytesAllocated": 1376
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "e99a7de6d70c614e1acfb613200d08a05ee58409",
+          "message": "Optimize V6 SQS context allocations (#86)",
+          "timestamp": "2026-08-17T12:55:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/e99a7de6d70c614e1acfb613200d08a05ee58409"
+        },
+        "date": 1786972042338,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 27.757360389599434,
+            "unit": "ns",
+            "range": "± 0.06470045580049767",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 170.12376062075296,
+            "unit": "ns",
+            "range": "± 0.697995187695389",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 705.0742140452068,
+            "unit": "ns",
+            "range": "± 2.2372518320711046",
             "bytesAllocated": 1376
           }
         ]
