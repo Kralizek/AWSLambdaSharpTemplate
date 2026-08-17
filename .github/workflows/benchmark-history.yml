@@ -1,0 +1,21 @@
+name: Benchmark history
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: benchmark-history-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Run and publish benchmarks
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/release-benchmarks.yml
+    with:
+      publish-history: true
+      release-mode: false
