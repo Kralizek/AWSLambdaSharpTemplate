@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using Amazon.Lambda.SNSEvents;
 
@@ -10,11 +11,13 @@ namespace Kralizek.Lambda;
 /// </summary>
 public sealed class SnsNotificationContext : RecordContext
 {
+    private static readonly IReadOnlyDictionary<string, SNSEvent.MessageAttribute> EmptyMessageAttributes =
+        new ReadOnlyDictionary<string, SNSEvent.MessageAttribute>(new Dictionary<string, SNSEvent.MessageAttribute>());
+
     private SnsNotificationContext(
-        FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties,
+        RecordContext invocationContext,
         SNSEvent.SNSRecord record)
-        : base(metadata, properties)
+        : base(invocationContext, SnsNotificationContextExtensions.SnsRecordPropertyName, record)
     {
         var message = record.Sns ?? throw new InvalidOperationException("The SNS record does not contain an SNS message.");
 
@@ -31,7 +34,7 @@ public sealed class SnsNotificationContext : RecordContext
         SigningCertUrl = message.SigningCertUrl;
         UnsubscribeUrl = message.UnsubscribeUrl;
         MessageAttributes = message.MessageAttributes is null
-            ? new Dictionary<string, SNSEvent.MessageAttribute>()
+            ? EmptyMessageAttributes
             : new Dictionary<string, SNSEvent.MessageAttribute>(message.MessageAttributes);
     }
 
@@ -105,22 +108,7 @@ public sealed class SnsNotificationContext : RecordContext
         ArgumentNullException.ThrowIfNull(invocationContext);
         ArgumentNullException.ThrowIfNull(record);
 
-        var metadata = new FunctionContextMetadata(
-            invocationContext.AwsRequestId,
-            invocationContext.FunctionName,
-            invocationContext.FunctionVersion,
-            invocationContext.InvokedFunctionArn,
-            invocationContext.MemoryLimitInMB,
-            invocationContext.RemainingTime,
-            invocationContext.LogGroupName,
-            invocationContext.LogStreamName);
-
-        var properties = new Dictionary<string, object?>(invocationContext.Properties)
-        {
-            [SnsNotificationContextExtensions.SnsRecordPropertyName] = record
-        };
-
-        return new SnsNotificationContext(metadata, properties, record);
+        return new SnsNotificationContext(invocationContext, record);
     }
 }
 
