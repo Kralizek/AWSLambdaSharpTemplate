@@ -5,8 +5,8 @@ This directory contains performance benchmarks for the Lambda Template libraries
 ## Layout
 
 - `BenchmarkWorkloads` contains dependency-free application workloads shared by every target.
-- `RawSdkTarget` implements the workload as a plain AWS Lambda handler.
-- `V5Target` is pinned to `Kralizek.Lambda.Template` 5.0.0 and keeps its original .NET 6 dependency graph isolated from the current source tree.
+- `RawSdkTarget` implements the workloads as plain AWS Lambda handlers.
+- `V5Target` is pinned to the published v5 packages and keeps its original .NET 6 dependency graph isolated from the current source tree.
 - `V6Target` references the current projects under `src/` directly.
 - `Benchmarks` contains the BenchmarkDotNet benchmark host and comparisons.
 
@@ -38,6 +38,7 @@ Use BenchmarkDotNet filters when developing or investigating a specific benchmar
 
 ```bash
 dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --filter "*RequestBenchmarks*"
+dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --filter "*SqsBenchmarks*"
 ```
 
 All normal BenchmarkDotNet command-line options remain available. BenchmarkDotNet owns benchmark discovery, filtering, exporters, jobs, diagnosers, and artifact generation.
@@ -60,10 +61,23 @@ The benchmark-validation GitHub Actions workflow only restores and builds this s
 
 ## Current coverage
 
-The initial request benchmark uses a trivial uppercase workload to compare:
+### Request functions
+
+The request benchmark uses a trivial uppercase workload to compare:
 
 - a plain AWS Lambda handler (`RawSdk`), used as the BenchmarkDotNet baseline;
 - the published v5 runtime (`V5`);
 - the current v6 source tree (`V6`).
 
 The workload itself is shared so the comparison focuses on invocation-framework overhead rather than different application implementations.
+
+### SQS functions
+
+The SQS benchmark measures batches of 1, 10, and 100 records and compares:
+
+- a plain AWS Lambda SQS handler (`RawSdk`), used as the BenchmarkDotNet baseline;
+- the published v5 typed SQS function (`V5Typed`);
+- the current v6 raw SQS function (`V6Raw`);
+- the current v6 typed SQS function (`V6Typed`).
+
+Every target receives an equivalent pre-built SQS envelope. Envelope construction and target loading happen during benchmark setup so the measured operation focuses on dispatch, decoding, record handling, and response construction.

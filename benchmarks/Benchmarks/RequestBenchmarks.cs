@@ -1,10 +1,5 @@
 #nullable enable
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
@@ -18,9 +13,9 @@ public class RequestBenchmarks
 {
     private const string Input = "lambda benchmark";
 
-    private TargetLoadContext? _rawSdkLoadContext;
-    private TargetLoadContext? _v5LoadContext;
-    private TargetLoadContext? _v6LoadContext;
+    private TargetSession? _rawSdkSession;
+    private TargetSession? _v5Session;
+    private TargetSession? _v6Session;
     private IRequestTarget? _rawSdk;
     private IRequestTarget? _v5;
     private IRequestTarget? _v6;
@@ -28,9 +23,13 @@ public class RequestBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        (_rawSdkLoadContext, _rawSdk) = LoadTarget("RawSdkTargetAssemblyPath", "RawSdkTarget.UppercaseTarget");
-        (_v5LoadContext, _v5) = LoadTarget("V5TargetAssemblyPath", "V5Target.UppercaseTarget");
-        (_v6LoadContext, _v6) = LoadTarget("V6TargetAssemblyPath", "V6Target.UppercaseTarget");
+        _rawSdkSession = TargetSession.Create("RawSdkTargetAssemblyPath");
+        _v5Session = TargetSession.Create("V5TargetAssemblyPath");
+        _v6Session = TargetSession.Create("V6TargetAssemblyPath");
+
+        _rawSdk = _rawSdkSession.CreateTarget<IRequestTarget>("RawSdkTarget.UppercaseTarget");
+        _v5 = _v5Session.CreateTarget<IRequestTarget>("V5Target.UppercaseTarget");
+        _v6 = _v6Session.CreateTarget<IRequestTarget>("V6Target.UppercaseTarget");
     }
 
     [GlobalCleanup]
@@ -40,13 +39,13 @@ public class RequestBenchmarks
         _v5 = null;
         _v6 = null;
 
-        _rawSdkLoadContext?.Unload();
-        _v5LoadContext?.Unload();
-        _v6LoadContext?.Unload();
+        _rawSdkSession?.Dispose();
+        _v5Session?.Dispose();
+        _v6Session?.Dispose();
 
-        _rawSdkLoadContext = null;
-        _v5LoadContext = null;
-        _v6LoadContext = null;
+        _rawSdkSession = null;
+        _v5Session = null;
+        _v6Session = null;
     }
 
     [Benchmark(Baseline = true)]
@@ -57,48 +56,4 @@ public class RequestBenchmarks
 
     [Benchmark]
     public Task<string> V6() => _v6!.InvokeAsync(Input);
-
-    private static (TargetLoadContext LoadContext, IRequestTarget Target) LoadTarget(
-        string metadataKey,
-        string targetTypeName)
-    {
-        var targetAssemblyPath = typeof(RequestBenchmarks).Assembly
-            .GetCustomAttributes<AssemblyMetadataAttribute>()
-            .Single(attribute => attribute.Key == metadataKey)
-            .Value;
-
-        if (string.IsNullOrWhiteSpace(targetAssemblyPath) || !File.Exists(targetAssemblyPath))
-        {
-            throw new FileNotFoundException($"The benchmark target assembly for '{metadataKey}' was not built.", targetAssemblyPath);
-        }
-
-        var loadContext = new TargetLoadContext(targetAssemblyPath, targetTypeName);
-        var assembly = loadContext.LoadFromAssemblyPath(targetAssemblyPath);
-        var targetType = assembly.GetType(targetTypeName, throwOnError: true)!;
-        var target = (IRequestTarget)Activator.CreateInstance(targetType)!;
-
-        return (loadContext, target);
-    }
-
-    private sealed class TargetLoadContext : AssemblyLoadContext
-    {
-        private readonly AssemblyDependencyResolver _resolver;
-
-        public TargetLoadContext(string targetAssemblyPath, string name)
-            : base(name, isCollectible: true)
-        {
-            _resolver = new AssemblyDependencyResolver(targetAssemblyPath);
-        }
-
-        protected override Assembly? Load(AssemblyName assemblyName)
-        {
-            if (assemblyName.Name == typeof(IRequestTarget).Assembly.GetName().Name)
-            {
-                return typeof(IRequestTarget).Assembly;
-            }
-
-            var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-            return assemblyPath is null ? null : LoadFromAssemblyPath(assemblyPath);
-        }
-    }
 }
