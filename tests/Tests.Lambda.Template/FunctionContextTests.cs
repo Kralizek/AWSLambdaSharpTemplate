@@ -211,6 +211,7 @@ public class FunctionContextTests
                 firstPropertyName,
                 firstPropertyValue,
                 secondPropertyName,
-                secondPropertyValue) { }
+                secondPropertyValue)
+        { }
     }
 }

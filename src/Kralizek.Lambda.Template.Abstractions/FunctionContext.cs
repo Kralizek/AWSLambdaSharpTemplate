@@ -363,5 +363,6 @@ public class RecordContext : FunctionContext
             firstPropertyName,
             firstPropertyValue,
             secondPropertyName,
-            secondPropertyValue) { }
+            secondPropertyValue)
+    { }
 }
