@@ -236,7 +236,7 @@ jobs:
           echo "$package_version" > "$ARTIFACTS_PATH/packages/package-version.txt"
 
       - name: Cache smoke-test packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.ARTIFACTS_PATH }}/packages
           key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
@@ -390,7 +390,7 @@ jobs:
           global-json-file: global.json
 
       - name: Restore smoke-test packages
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ env.ARTIFACTS_PATH }}/packages
           key: smoke-packages-${{ runner.os }}-${{ github.sha }}-${{ github.event_name }}-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
