@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -44,6 +45,25 @@ public abstract class FunctionContext
         Properties = new ReadOnlyDictionary<string, object?>(propertySnapshot);
     }
 
+    protected FunctionContext(
+        FunctionContext source,
+        string propertyName,
+        object? propertyValue)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
+        AwsRequestId = source.AwsRequestId;
+        FunctionName = source.FunctionName;
+        FunctionVersion = source.FunctionVersion;
+        InvokedFunctionArn = source.InvokedFunctionArn;
+        MemoryLimitInMB = source.MemoryLimitInMB;
+        RemainingTime = source.RemainingTime;
+        LogGroupName = source.LogGroupName;
+        LogStreamName = source.LogStreamName;
+        Properties = new PropertyOverlay(source.Properties, propertyName, propertyValue);
+    }
+
     public string AwsRequestId { get; }
 
     public string FunctionName { get; }
@@ -64,6 +84,82 @@ public abstract class FunctionContext
     /// Gets additional runtime-specific data that is not represented by the strongly typed properties.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
+
+#pragma warning disable S3267 // Explicit loops avoid LINQ iterator allocations on this per-record hot path.
+    private sealed class PropertyOverlay(
+        IReadOnlyDictionary<string, object?> source,
+        string propertyName,
+        object? propertyValue) : IReadOnlyDictionary<string, object?>
+    {
+        public int Count => source.ContainsKey(propertyName) ? source.Count : source.Count + 1;
+
+        public IEnumerable<string> Keys
+        {
+            get
+            {
+                foreach (var key in source.Keys)
+                {
+                    if (!string.Equals(key, propertyName, StringComparison.Ordinal))
+                    {
+                        yield return key;
+                    }
+                }
+
+                yield return propertyName;
+            }
+        }
+
+        public IEnumerable<object?> Values
+        {
+            get
+            {
+                foreach (var pair in source)
+                {
+                    if (!string.Equals(pair.Key, propertyName, StringComparison.Ordinal))
+                    {
+                        yield return pair.Value;
+                    }
+                }
+
+                yield return propertyValue;
+            }
+        }
+
+        public object? this[string key]
+            => string.Equals(key, propertyName, StringComparison.Ordinal)
+                ? propertyValue
+                : source[key];
+
+        public bool ContainsKey(string key)
+            => string.Equals(key, propertyName, StringComparison.Ordinal) || source.ContainsKey(key);
+
+        public bool TryGetValue(string key, out object? value)
+        {
+            if (string.Equals(key, propertyName, StringComparison.Ordinal))
+            {
+                value = propertyValue;
+                return true;
+            }
+
+            return source.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        {
+            foreach (var pair in source)
+            {
+                if (!string.Equals(pair.Key, propertyName, StringComparison.Ordinal))
+                {
+                    yield return pair;
+                }
+            }
+
+            yield return new KeyValuePair<string, object?>(propertyName, propertyValue);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+#pragma warning restore S3267
 }
 
 /// <summary>
@@ -97,4 +193,10 @@ public class RecordContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
+
+    protected RecordContext(
+        RecordContext source,
+        string propertyName,
+        object? propertyValue)
+        : base(source, propertyName, propertyValue) { }
 }

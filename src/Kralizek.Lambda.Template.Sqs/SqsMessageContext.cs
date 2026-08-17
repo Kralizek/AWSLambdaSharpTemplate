@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using Amazon.Lambda.SQSEvents;
 
@@ -10,19 +11,24 @@ namespace Kralizek.Lambda;
 /// </summary>
 public sealed class SqsMessageContext : RecordContext
 {
+    private static readonly IReadOnlyDictionary<string, string> EmptyAttributes =
+        new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
+    private static readonly IReadOnlyDictionary<string, SQSEvent.MessageAttribute> EmptyMessageAttributes =
+        new ReadOnlyDictionary<string, SQSEvent.MessageAttribute>(new Dictionary<string, SQSEvent.MessageAttribute>());
+
     private SqsMessageContext(
-        FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties,
+        RecordContext invocationContext,
         SQSEvent.SQSMessage record)
-        : base(metadata, properties)
+        : base(invocationContext, SqsMessageContextExtensions.SqsMessagePropertyName, record)
     {
         MessageId = record.MessageId;
         ReceiptHandle = record.ReceiptHandle;
         Attributes = record.Attributes is null
-            ? new Dictionary<string, string>()
+            ? EmptyAttributes
             : new Dictionary<string, string>(record.Attributes);
         MessageAttributes = record.MessageAttributes is null
-            ? new Dictionary<string, SQSEvent.MessageAttribute>()
+            ? EmptyMessageAttributes
             : new Dictionary<string, SQSEvent.MessageAttribute>(record.MessageAttributes);
         EventSource = record.EventSource;
         EventSourceArn = record.EventSourceArn;
@@ -69,22 +75,7 @@ public sealed class SqsMessageContext : RecordContext
         ArgumentNullException.ThrowIfNull(invocationContext);
         ArgumentNullException.ThrowIfNull(record);
 
-        var metadata = new FunctionContextMetadata(
-            invocationContext.AwsRequestId,
-            invocationContext.FunctionName,
-            invocationContext.FunctionVersion,
-            invocationContext.InvokedFunctionArn,
-            invocationContext.MemoryLimitInMB,
-            invocationContext.RemainingTime,
-            invocationContext.LogGroupName,
-            invocationContext.LogStreamName);
-
-        var properties = new Dictionary<string, object?>(invocationContext.Properties)
-        {
-            [SqsMessageContextExtensions.SqsMessagePropertyName] = record
-        };
-
-        return new SqsMessageContext(metadata, properties, record);
+        return new SqsMessageContext(invocationContext, record);
     }
 }
 
