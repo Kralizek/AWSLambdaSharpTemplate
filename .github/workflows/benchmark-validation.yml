@@ -1,10 +1,6 @@
 name: Benchmark validation
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'benchmarks/**'
   pull_request:
     paths:
       - 'benchmarks/**'
@@ -22,4 +18,5 @@ jobs:
       contents: read
     uses: ./.github/workflows/release-benchmarks.yml
     with:
+      publish-history: false
       release-mode: false
