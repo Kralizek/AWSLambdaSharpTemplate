@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1786972042338,
+  "lastUpdated": 1787004864023,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -305,6 +305,107 @@
             "bytesAllocated": 77568
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "c03f4dc24925d641195b13ad8871d58137f8c69e",
+          "message": "Optimize record context allocations across event sources (#88)",
+          "timestamp": "2026-08-17T22:08:24Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/c03f4dc24925d641195b13ad8871d58137f8c69e"
+        },
+        "date": 1787004864023,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 1)",
+            "value": 262.317291361945,
+            "unit": "ns",
+            "range": "± 2.1000642284278137",
+            "bytesAllocated": 336
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 1)",
+            "value": 582.6464688437326,
+            "unit": "ns",
+            "range": "± 2.4609038925065696",
+            "bytesAllocated": 448
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 1)",
+            "value": 1818.2617614746093,
+            "unit": "ns",
+            "range": "± 15.366893975139162",
+            "bytesAllocated": 2208
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 1)",
+            "value": 1878.341975148519,
+            "unit": "ns",
+            "range": "± 31.397687419911172",
+            "bytesAllocated": 2216
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1880.1473777477559,
+            "unit": "ns",
+            "range": "± 8.055655832083831",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 3705.081123034159,
+            "unit": "ns",
+            "range": "± 8.290551464653662",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 8461.408497401646,
+            "unit": "ns",
+            "range": "± 51.26608425276763",
+            "bytesAllocated": 9192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 9322.677618173453,
+            "unit": "ns",
+            "range": "± 47.015553321303564",
+            "bytesAllocated": 9272
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 100)",
+            "value": 17987.12220294659,
+            "unit": "ns",
+            "range": "± 86.51839622955808",
+            "bytesAllocated": 13800
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 100)",
+            "value": 34464.98159354074,
+            "unit": "ns",
+            "range": "± 121.83593605959054",
+            "bytesAllocated": 28960
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 100)",
+            "value": 77614.84977213542,
+            "unit": "ns",
+            "range": "± 559.4133085500266",
+            "bytesAllocated": 78368
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 100)",
+            "value": 85805.12941894532,
+            "unit": "ns",
+            "range": "± 385.54227647531644",
+            "bytesAllocated": 79168
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -418,6 +519,44 @@
             "value": 705.0742140452068,
             "unit": "ns",
             "range": "± 2.2372518320711046",
+            "bytesAllocated": 1376
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "c03f4dc24925d641195b13ad8871d58137f8c69e",
+          "message": "Optimize record context allocations across event sources (#88)",
+          "timestamp": "2026-08-17T22:08:24Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/c03f4dc24925d641195b13ad8871d58137f8c69e"
+        },
+        "date": 1787004864023,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 28.816020058734075,
+            "unit": "ns",
+            "range": "± 0.3029955734731599",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 178.64170239652907,
+            "unit": "ns",
+            "range": "± 1.5258567179334712",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 667.8921834945679,
+            "unit": "ns",
+            "range": "± 5.404430843453195",
             "bytesAllocated": 1376
           }
         ]
