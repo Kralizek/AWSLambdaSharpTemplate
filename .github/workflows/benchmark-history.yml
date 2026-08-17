@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: benchmark-history-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   benchmark:
