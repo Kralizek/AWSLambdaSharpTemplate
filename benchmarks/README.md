@@ -59,6 +59,14 @@ Publishable performance measurements that require stable absolute comparisons sh
 
 The benchmark-validation GitHub Actions workflow only restores and builds this solution. It verifies the pinned SDK before building. It proves that benchmark code remains valid when source or benchmark infrastructure changes; it does not produce performance results.
 
+## Interpreting synchronous handler benchmarks
+
+The current SQS benchmark handlers complete synchronously with `ValueTask.FromResult` so that framework overhead remains visible. That makes the benchmark useful for decomposing costs, but it does not mean synchronous completion is the expected production workload for record handlers.
+
+Record handlers commonly perform genuinely asynchronous I/O. Optimizations that only avoid async machinery when the entire record-processing path completes synchronously should therefore be treated as microbenchmark-specific unless they also improve representative asynchronous workloads or remove work that is paid regardless of handler completion mode.
+
+PR #89 experimented with a synchronous fast path around `RecordFunction.ExecuteRecordAsync`. It was reverted after the post-merge benchmark showed no meaningful end-to-end allocation improvement and because making the underlying `RecordProcessor` synchronous-aware would add control-flow complexity primarily for handlers that do not suspend. Future performance work should prioritize costs that remain relevant for asynchronous handlers, such as unavoidable per-record framework work, DI scope/resolution overhead, and source-specific allocations.
+
 ## Current coverage
 
 ### Request functions

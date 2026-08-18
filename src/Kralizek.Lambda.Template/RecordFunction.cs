@@ -210,7 +210,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         return results;
     }
 
-    private ValueTask<TRecordResult> ExecuteRecordAsync(
+    private async ValueTask<TRecordResult> ExecuteRecordAsync(
         IRecordProcessor<TRecord, TRecordResult, TContext> processor,
         TRecord record,
         TContext context,
@@ -218,13 +218,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     {
         try
         {
-            var pendingResult = processor.ProcessAsync(record, context, cancellationToken);
-            if (pendingResult.IsCompletedSuccessfully)
-            {
-                return pendingResult;
-            }
-
-            return AwaitRecordAsync(pendingResult, record, context, cancellationToken);
+            return await processor.ProcessAsync(record, context, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -232,66 +226,15 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         }
         catch (Exception exception)
         {
-            return HandleRecordExceptionResultAsync(record, exception, context, cancellationToken);
-        }
-    }
-
-    private async ValueTask<TRecordResult> AwaitRecordAsync(
-        ValueTask<TRecordResult> pendingResult,
-        TRecord record,
-        TContext context,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await pendingResult.ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            return await HandleRecordExceptionResultAsync(
+            var result = await HandleRecordExceptionAsync(
                 record,
                 exception,
                 context,
                 cancellationToken).ConfigureAwait(false);
+
+            return result ?? throw new InvalidOperationException(
+                $"Record exception handler for {typeof(THandler).Name} returned a null result.");
         }
-    }
-
-    private ValueTask<TRecordResult> HandleRecordExceptionResultAsync(
-        TRecord record,
-        Exception exception,
-        TContext context,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var pendingResult = HandleRecordExceptionAsync(record, exception, context, cancellationToken);
-            if (pendingResult.IsCompletedSuccessfully)
-            {
-                var result = pendingResult.Result
-                    ?? throw new InvalidOperationException(
-                        $"Record exception handler for {typeof(THandler).Name} returned a null result.");
-
-                return ValueTask.FromResult(result);
-            }
-
-            return AwaitRecordExceptionResultAsync(pendingResult);
-        }
-        catch (Exception handlerException)
-        {
-            return ValueTask.FromException<TRecordResult>(handlerException);
-        }
-    }
-
-    private static async ValueTask<TRecordResult> AwaitRecordExceptionResultAsync(
-        ValueTask<TRecordResult> pendingResult)
-    {
-        var result = await pendingResult.ConfigureAwait(false);
-        return result ?? throw new InvalidOperationException(
-            $"Record exception handler for {typeof(THandler).Name} returned a null result.");
     }
 
     /// <summary>
