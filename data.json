@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787016296220,
+  "lastUpdated": 1787018569570,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -608,6 +608,107 @@
             "bytesAllocated": 79168
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "5e6ac230b92592c88913ab8a95974bbc176bf6b2",
+          "message": "Revert synchronous record execution fast path (#91)",
+          "timestamp": "2026-08-18T01:57:15Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/5e6ac230b92592c88913ab8a95974bbc176bf6b2"
+        },
+        "date": 1787018569570,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 1)",
+            "value": 272.1917241169856,
+            "unit": "ns",
+            "range": "± 1.3928823036997804",
+            "bytesAllocated": 336
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 1)",
+            "value": 628.5964207649231,
+            "unit": "ns",
+            "range": "± 2.146599622180689",
+            "bytesAllocated": 448
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 1)",
+            "value": 1723.4862574168615,
+            "unit": "ns",
+            "range": "± 7.331187260746885",
+            "bytesAllocated": 2208
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 1)",
+            "value": 1949.6844447453816,
+            "unit": "ns",
+            "range": "± 10.279480870579478",
+            "bytesAllocated": 2216
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1919.1048205239433,
+            "unit": "ns",
+            "range": "± 5.53400705156192",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4094.405710660494,
+            "unit": "ns",
+            "range": "± 7.536819022842521",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 9794.071389334542,
+            "unit": "ns",
+            "range": "± 32.477891777535945",
+            "bytesAllocated": 9192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 9992.93629019601,
+            "unit": "ns",
+            "range": "± 29.72722352334533",
+            "bytesAllocated": 9272
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 100)",
+            "value": 17501.35753455529,
+            "unit": "ns",
+            "range": "± 28.155444298989014",
+            "bytesAllocated": 13800
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 100)",
+            "value": 38077.16687011719,
+            "unit": "ns",
+            "range": "± 53.878069431095376",
+            "bytesAllocated": 28960
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 100)",
+            "value": 81751.97059733073,
+            "unit": "ns",
+            "range": "± 1354.2951046249575",
+            "bytesAllocated": 78368
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 100)",
+            "value": 89062.63064340445,
+            "unit": "ns",
+            "range": "± 193.87107270708026",
+            "bytesAllocated": 79168
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -835,6 +936,44 @@
             "value": 765.6161405699594,
             "unit": "ns",
             "range": "± 2.6815638537085604",
+            "bytesAllocated": 1376
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "5e6ac230b92592c88913ab8a95974bbc176bf6b2",
+          "message": "Revert synchronous record execution fast path (#91)",
+          "timestamp": "2026-08-18T01:57:15Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/5e6ac230b92592c88913ab8a95974bbc176bf6b2"
+        },
+        "date": 1787018569570,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 28.68236512740453,
+            "unit": "ns",
+            "range": "± 0.2069607224082615",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 186.75058341026306,
+            "unit": "ns",
+            "range": "± 0.8095217384689899",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 797.087391535441,
+            "unit": "ns",
+            "range": "± 6.159395021068209",
             "bytesAllocated": 1376
           }
         ]
