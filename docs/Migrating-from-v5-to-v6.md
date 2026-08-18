@@ -14,3 +14,11 @@ The main conceptual changes are:
 For a migration, first identify the invocation semantics, select the matching v6 template/package, move application behavior into the new handler contract, and then restore any custom service registration, decoding, or source-specific failure behavior.
 
 Because the redesign changes public base classes and handler contracts, migrate and test one Lambda integration at a time rather than attempting a mechanical namespace/package replacement.
+
+## Performance
+
+V6 also changes the execution model, so consumers should expect additional framework overhead compared with V5. Controlled benchmarks currently show the clearest difference in small or synchronously completed workloads, where framework work dominates the application work. The gap remains measurable when handlers genuinely suspend, but it becomes smaller in more representative nested processing where V6 also takes ownership of decoding, record processing, context propagation, failure translation, and other event plumbing that application code owns in V5.
+
+That additional cost should be evaluated together with the semantics V6 provides: one independent DI scope per record, source-specific immutable contexts, raw/origin record access, partial-batch result handling, automatic exception translation, cancellation and disposal guarantees, telemetry seams, and reusable nested record processing.
+
+The current controlled numbers are still provisional while repeated reference-machine runs are collected. See [the benchmark documentation](../benchmarks/README.md#controlled-v5-to-v6-reference) for the methodology, provisional measurements, allocation data, and the distinction between synchronous framework-overhead and genuinely asynchronous workloads.
