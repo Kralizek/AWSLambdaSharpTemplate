@@ -12,11 +12,24 @@ concurrency:
 
 jobs:
   validate:
-    name: Run benchmarks
+    name: Build benchmarks
+    runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
-    uses: ./.github/workflows/release-benchmarks.yml
-    with:
-      publish-history: false
-      release-mode: false
+
+    steps:
+      - name: Checkout benchmark source
+        uses: actions/checkout@v6
+
+      - name: Setup benchmark .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: benchmarks/global.json
+
+      - name: Verify benchmark SDK
+        working-directory: benchmarks
+        run: test "$(dotnet --version)" = "10.0.400"
+
+      - name: Build benchmark solution
+        working-directory: benchmarks
+        run: dotnet build Benchmarks.slnx --configuration Release --no-incremental -warnaserror
