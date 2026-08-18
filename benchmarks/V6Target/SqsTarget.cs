@@ -126,6 +126,7 @@ public sealed class UppercaseAsyncRawSqsHandler : ISqsRecordHandler
         cancellationToken.ThrowIfCancellationRequested();
 
         await AsyncWorkload.Suspend();
+        cancellationToken.ThrowIfCancellationRequested();
 
         var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
         _ = SqsWorkload.Execute(message);
@@ -146,6 +147,7 @@ public sealed class UppercaseAsyncTypedSqsHandler : ISqsMessageHandler<SqsBenchm
         cancellationToken.ThrowIfCancellationRequested();
 
         await AsyncWorkload.Suspend();
+        cancellationToken.ThrowIfCancellationRequested();
         _ = SqsWorkload.Execute(message);
 
         return SqsRecordResult.Success;
