@@ -286,11 +286,12 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         }
     }
 
-    private static async ValueTask<TRecordResult> AwaitRecordExceptionResultAsync(
+    private async ValueTask<TRecordResult> AwaitRecordExceptionResultAsync(
         ValueTask<TRecordResult> pendingResult)
     {
         var result = await pendingResult.ConfigureAwait(false);
-        return result ?? throw new InvalidOperationException("Record exception handler returned a null result.");
+        return result ?? throw new InvalidOperationException(
+            $"Record exception handler for {typeof(THandler).Name} returned a null result.");
     }
 
     /// <summary>
