@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
 
-using BenchmarkWorkloads;
-
 namespace Benchmarks;
 
 [MemoryDiagnoser]
