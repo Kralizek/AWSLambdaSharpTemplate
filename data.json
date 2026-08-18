@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787004864023,
+  "lastUpdated": 1787013735011,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -406,6 +406,107 @@
             "bytesAllocated": 79168
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "4bcf9908b3d46179e046132f687fd9b54431a6ce",
+          "message": "Update Lambda SystemTextJson serializer to 3.0.1 (#90)",
+          "timestamp": "2026-08-18T00:36:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/4bcf9908b3d46179e046132f687fd9b54431a6ce"
+        },
+        "date": 1787013735011,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 1)",
+            "value": 256.1738293354328,
+            "unit": "ns",
+            "range": "± 1.139411900237184",
+            "bytesAllocated": 336
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 1)",
+            "value": 627.644241128649,
+            "unit": "ns",
+            "range": "± 1.3801097753895428",
+            "bytesAllocated": 448
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 1)",
+            "value": 1686.4297796885173,
+            "unit": "ns",
+            "range": "± 5.2158477992969905",
+            "bytesAllocated": 2208
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 1)",
+            "value": 1777.7074595860072,
+            "unit": "ns",
+            "range": "± 5.901832965391965",
+            "bytesAllocated": 2216
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1858.7911882400513,
+            "unit": "ns",
+            "range": "± 8.145761552480975",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4000.5343181903545,
+            "unit": "ns",
+            "range": "± 24.18204244375535",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 8826.969436645508,
+            "unit": "ns",
+            "range": "± 18.62673268932805",
+            "bytesAllocated": 9192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 9648.182910625752,
+            "unit": "ns",
+            "range": "± 11.780114984202257",
+            "bytesAllocated": 9272
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 100)",
+            "value": 18883.37966664632,
+            "unit": "ns",
+            "range": "± 31.857136938209546",
+            "bytesAllocated": 13800
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 100)",
+            "value": 36429.985098702564,
+            "unit": "ns",
+            "range": "± 198.32367519475528",
+            "bytesAllocated": 28960
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 100)",
+            "value": 75512.92141488883,
+            "unit": "ns",
+            "range": "± 121.72641443767408",
+            "bytesAllocated": 78368
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 100)",
+            "value": 87046.05787004743,
+            "unit": "ns",
+            "range": "± 261.60639609474697",
+            "bytesAllocated": 79168
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -557,6 +658,44 @@
             "value": 667.8921834945679,
             "unit": "ns",
             "range": "± 5.404430843453195",
+            "bytesAllocated": 1376
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "4bcf9908b3d46179e046132f687fd9b54431a6ce",
+          "message": "Update Lambda SystemTextJson serializer to 3.0.1 (#90)",
+          "timestamp": "2026-08-18T00:36:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/4bcf9908b3d46179e046132f687fd9b54431a6ce"
+        },
+        "date": 1787013735011,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 27.64854186314803,
+            "unit": "ns",
+            "range": "± 0.05430149203070037",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 173.2762204316946,
+            "unit": "ns",
+            "range": "± 0.30457318849490855",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 698.6903010095868,
+            "unit": "ns",
+            "range": "± 1.9726426492702454",
             "bytesAllocated": 1376
           }
         ]
