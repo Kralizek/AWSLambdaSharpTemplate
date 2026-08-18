@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787013735011,
+  "lastUpdated": 1787016296220,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -507,6 +507,107 @@
             "bytesAllocated": 79168
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "907cb19ca5b492b9d4044bac380a6d52d2d09edf",
+          "message": "Avoid record execution async state machine on synchronous completion (#89)",
+          "timestamp": "2026-08-18T01:18:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/907cb19ca5b492b9d4044bac380a6d52d2d09edf"
+        },
+        "date": 1787016296220,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 1)",
+            "value": 272.03068386713664,
+            "unit": "ns",
+            "range": "± 4.583904433051553",
+            "bytesAllocated": 336
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 1)",
+            "value": 658.0742535273234,
+            "unit": "ns",
+            "range": "± 2.2951876576620216",
+            "bytesAllocated": 448
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 1)",
+            "value": 1809.5035261426654,
+            "unit": "ns",
+            "range": "± 4.178478341514678",
+            "bytesAllocated": 2208
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 1)",
+            "value": 1848.854138946533,
+            "unit": "ns",
+            "range": "± 16.127501418099097",
+            "bytesAllocated": 2216
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1999.3291385357197,
+            "unit": "ns",
+            "range": "± 5.377477480005827",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4211.6395395914715,
+            "unit": "ns",
+            "range": "± 36.915301129824776",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 9019.392415364584,
+            "unit": "ns",
+            "range": "± 40.45746193127934",
+            "bytesAllocated": 9192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 10156.396392822266,
+            "unit": "ns",
+            "range": "± 72.27492919682065",
+            "bytesAllocated": 9272
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 100)",
+            "value": 18866.32506452288,
+            "unit": "ns",
+            "range": "± 71.77948592687575",
+            "bytesAllocated": 13800
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 100)",
+            "value": 37886.49239095052,
+            "unit": "ns",
+            "range": "± 127.75900268944565",
+            "bytesAllocated": 28960
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 100)",
+            "value": 80227.69785970052,
+            "unit": "ns",
+            "range": "± 394.2487464291916",
+            "bytesAllocated": 78368
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 100)",
+            "value": 87619.29758126395,
+            "unit": "ns",
+            "range": "± 155.28706848736678",
+            "bytesAllocated": 79168
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -696,6 +797,44 @@
             "value": 698.6903010095868,
             "unit": "ns",
             "range": "± 1.9726426492702454",
+            "bytesAllocated": 1376
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "907cb19ca5b492b9d4044bac380a6d52d2d09edf",
+          "message": "Avoid record execution async state machine on synchronous completion (#89)",
+          "timestamp": "2026-08-18T01:18:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/907cb19ca5b492b9d4044bac380a6d52d2d09edf"
+        },
+        "date": 1787016296220,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 31.79587234880613,
+            "unit": "ns",
+            "range": "± 0.8689312589448341",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 189.01449327468873,
+            "unit": "ns",
+            "range": "± 1.3484648012498588",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 765.6161405699594,
+            "unit": "ns",
+            "range": "± 2.6815638537085604",
             "bytesAllocated": 1376
           }
         ]
