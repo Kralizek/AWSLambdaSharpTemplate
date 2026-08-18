@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.S3Events" Version="3.0.1" />
     <PackageReference Include="Amazon.Lambda.TestUtilities" Version="2.0.0" />
     <PackageReference Include="Kralizek.Lambda.Template" Version="5.0.0" />
     <PackageReference Include="Kralizek.Lambda.Template.Sqs" Version="5.0.0" />

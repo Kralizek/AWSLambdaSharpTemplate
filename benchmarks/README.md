@@ -105,3 +105,21 @@ V6 measures both raw and typed record handlers and uses its built-in record-resu
 The V6 exception benchmark functions clear logging providers so repeated BenchmarkDotNet invocations do not flood stdout with one error message per failed record. Exception handling and translation still run through the normal framework path, but provider output cost is intentionally excluded from this suite.
 
 The failure matrix remains synchronously completed to isolate the incremental cost of partial-batch handling and exception translation. The separate asynchronous SQS suite covers genuine suspension without multiplying every failure percentage by another completion-mode dimension.
+
+### Nested SQS to SNS to S3
+
+The nested-envelope benchmarks model an SQS batch where every message contains an SNS-style envelope whose `Message` contains one S3 event. Each S3 event contains one S3 object-created record.
+
+The suites use batches of 1 and 10 SQS messages and compare:
+
+- a Raw SDK implementation that owns SQS iteration, SNS-envelope decoding, S3-event decoding, and S3-record iteration directly;
+- a V5 implementation that uses the V5 typed SQS message handler for the outer SNS envelope, while application code still owns S3-event decoding and S3-record iteration;
+- a V6 implementation that follows the recommended nested flow: typed SQS handling for the SNS envelope, an S3 decoder, and the reusable S3 record processor/handler pipeline.
+
+The Raw SDK and V5 implementations use case-insensitive `System.Text.Json` options when manually decoding the canonical AWS S3 event JSON, matching the lowercase AWS property names without changing the shared fixture.
+
+`NestedSqsSnsS3Benchmarks` uses a synchronously completed S3 leaf handler. `NestedAsyncSqsSnsS3Benchmarks` uses the same deterministic `Task.Yield()` suspension at the S3 leaf so the nested pipeline is also measured when application work genuinely suspends.
+
+The V6 leaf handler also reads the originating raw SQS message from the propagated S3 record context. This exercises one of the context-propagation capabilities provided by the V6 record model rather than treating the extra pipeline solely as dispatch overhead.
+
+The runtime numbers should be read together with the structural difference between implementations. Raw SDK owns all envelope plumbing. V5 removes the outer SQS decoding but still leaves nested S3 parsing/iteration in application code. V6 supplies the source-specific S3 decoder/processor and context propagation, at the cost of the additional framework machinery those capabilities require.
