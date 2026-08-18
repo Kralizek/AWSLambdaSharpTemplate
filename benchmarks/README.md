@@ -59,14 +59,6 @@ Publishable performance measurements that require stable absolute comparisons sh
 
 The benchmark-validation GitHub Actions workflow only restores and builds this solution. It verifies the pinned SDK before building. It proves that benchmark code remains valid when source or benchmark infrastructure changes; it does not produce performance results.
 
-## Interpreting synchronous handler benchmarks
-
-The current SQS benchmark handlers complete synchronously with `ValueTask.FromResult` so that framework overhead remains visible. That makes the benchmark useful for decomposing costs, but it does not mean synchronous completion is the expected production workload for record handlers.
-
-Record handlers commonly perform genuinely asynchronous I/O. Optimizations that only avoid async machinery when the entire record-processing path completes synchronously should therefore be treated as microbenchmark-specific unless they also improve representative asynchronous workloads or remove work that is paid regardless of handler completion mode.
-
-PR #89 experimented with a synchronous fast path around `RecordFunction.ExecuteRecordAsync`. It was reverted after the post-merge benchmark showed no meaningful end-to-end allocation improvement and because making the underlying `RecordProcessor` synchronous-aware would add control-flow complexity primarily for handlers that do not suspend. Future performance work should prioritize costs that remain relevant for asynchronous handlers, such as unavoidable per-record framework work, DI scope/resolution overhead, and source-specific allocations.
-
 ## Current coverage
 
 ### Request functions
@@ -81,7 +73,7 @@ The workload itself is shared so the comparison focuses on invocation-framework 
 
 ### SQS functions
 
-The SQS benchmark measures batches of 1, 10, and 100 records and compares:
+The synchronous SQS benchmark measures batches of 1, 10, and 100 records and compares:
 
 - a plain AWS Lambda SQS handler (`RawSdk`), used as the BenchmarkDotNet baseline;
 - the published v5 typed SQS function (`V5Typed`);
@@ -89,3 +81,13 @@ The SQS benchmark measures batches of 1, 10, and 100 records and compares:
 - the current v6 typed SQS function (`V6Typed`).
 
 Every target receives an equivalent pre-built SQS envelope. Envelope construction and target loading happen during benchmark setup so the measured operation focuses on dispatch, decoding, record handling, and response construction.
+
+The synchronous handlers return already-completed tasks/value tasks. That makes this suite useful as a framework-overhead floor, but it should not be treated as representative of the completion mode of most production record handlers.
+
+### Asynchronous SQS functions
+
+`AsyncSqsBenchmarks` repeats the same Raw SDK, v5, v6 raw, and v6 typed comparison while forcing one real asynchronous suspension per record using the shared `AsyncWorkload.Suspend()` helper.
+
+The helper returns the awaitable produced by `Task.Yield()` directly so the benchmark remains deterministic, local, and independent of network or service latency without adding an extra helper `Task` state machine. It models the control-flow and allocation effects of a handler that actually suspends; it does not attempt to model DynamoDB, S3, HTTP, or other I/O latency.
+
+The synchronous and asynchronous suites should be interpreted together. A change that improves only the already-completed path may be interesting as framework-floor data, but production optimization decisions should not be driven by synchronous-only wins without checking the genuinely asynchronous path as well.
