@@ -286,7 +286,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
         }
     }
 
-    private async ValueTask<TRecordResult> AwaitRecordExceptionResultAsync(
+    private static async ValueTask<TRecordResult> AwaitRecordExceptionResultAsync(
         ValueTask<TRecordResult> pendingResult)
     {
         var result = await pendingResult.ConfigureAwait(false);
