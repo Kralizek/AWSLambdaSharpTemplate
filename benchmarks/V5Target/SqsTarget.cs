@@ -33,6 +33,22 @@ public sealed class UppercaseSqsTarget : ISqsTarget
     }
 }
 
+public sealed class UppercaseAsyncSqsTarget : ISqsTarget
+{
+    private readonly UppercaseAsyncSqsFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return 0;
+    }
+}
+
 public sealed class UppercaseSqsFunction : EventFunction<SQSEvent>
 {
     protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) =>
@@ -45,6 +61,21 @@ public sealed class UppercaseSqsHandler : IMessageHandler<SqsBenchmarkMessage>
     {
         _ = SqsWorkload.Execute(message!);
         return Task.CompletedTask;
+    }
+}
+
+public sealed class UppercaseAsyncSqsFunction : EventFunction<SQSEvent>
+{
+    protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment) =>
+        services.UseQueueMessageHandler<SqsBenchmarkMessage, UppercaseAsyncSqsHandler>();
+}
+
+public sealed class UppercaseAsyncSqsHandler : IMessageHandler<SqsBenchmarkMessage>
+{
+    public async Task HandleAsync(SqsBenchmarkMessage? message, ILambdaContext context)
+    {
+        await AsyncWorkload.Suspend();
+        _ = SqsWorkload.Execute(message!);
     }
 }
 

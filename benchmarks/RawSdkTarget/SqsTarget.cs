@@ -28,6 +28,22 @@ public sealed class UppercaseSqsTarget : ISqsTarget
     }
 }
 
+public sealed class UppercaseAsyncSqsTarget : ISqsTarget
+{
+    private readonly UppercaseAsyncSqsFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
 public sealed class UppercaseSqsFunction
 {
     public Task<SQSBatchResponse> FunctionHandlerAsync(SQSEvent input, ILambdaContext context)
@@ -44,6 +60,27 @@ public sealed class UppercaseSqsFunction
         {
             BatchItemFailures = []
         });
+    }
+}
+
+public sealed class UppercaseAsyncSqsFunction
+{
+    public async Task<SQSBatchResponse> FunctionHandlerAsync(SQSEvent input, ILambdaContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        foreach (var record in input.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>())
+        {
+            await AsyncWorkload.Suspend();
+
+            var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
+            _ = SqsWorkload.Execute(message);
+        }
+
+        return new SQSBatchResponse
+        {
+            BatchItemFailures = []
+        };
     }
 }
 

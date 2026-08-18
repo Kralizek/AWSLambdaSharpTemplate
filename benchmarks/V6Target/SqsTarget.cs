@@ -47,6 +47,38 @@ public sealed class UppercaseTypedSqsTarget : ISqsTarget
     }
 }
 
+public sealed class UppercaseAsyncRawSqsTarget : ISqsTarget
+{
+    private readonly UppercaseAsyncRawSqsFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
+public sealed class UppercaseAsyncTypedSqsTarget : ISqsTarget
+{
+    private readonly UppercaseAsyncTypedSqsFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
 public sealed class UppercaseRawSqsFunction : SqsFunction<UppercaseRawSqsHandler>;
 
 public sealed class UppercaseRawSqsHandler : ISqsRecordHandler
@@ -79,6 +111,46 @@ public sealed class UppercaseTypedSqsHandler : ISqsMessageHandler<SqsBenchmarkMe
         _ = SqsWorkload.Execute(message);
 
         return ValueTask.FromResult(SqsRecordResult.Success);
+    }
+}
+
+public sealed class UppercaseAsyncRawSqsFunction : SqsFunction<UppercaseAsyncRawSqsHandler>;
+
+public sealed class UppercaseAsyncRawSqsHandler : ISqsRecordHandler
+{
+    public async ValueTask<SqsRecordResult> HandleAsync(
+        SQSEvent.SQSMessage record,
+        SqsMessageContext context,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await AsyncWorkload.Suspend();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
+        _ = SqsWorkload.Execute(message);
+
+        return SqsRecordResult.Success;
+    }
+}
+
+public sealed class UppercaseAsyncTypedSqsFunction : SqsFunction<SqsBenchmarkMessage, UppercaseAsyncTypedSqsHandler>;
+
+public sealed class UppercaseAsyncTypedSqsHandler : ISqsMessageHandler<SqsBenchmarkMessage>
+{
+    public async ValueTask<SqsRecordResult> HandleAsync(
+        SqsBenchmarkMessage message,
+        SqsMessageContext context,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await AsyncWorkload.Suspend();
+        cancellationToken.ThrowIfCancellationRequested();
+        _ = SqsWorkload.Execute(message);
+
+        return SqsRecordResult.Success;
     }
 }
 
