@@ -34,7 +34,20 @@ Run all benchmarks:
 dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build
 ```
 
-Use BenchmarkDotNet filters when developing or investigating a specific benchmark suite:
+The benchmark host supports three execution profiles through `--profile`:
+
+- `full` is the default and runs the complete benchmark matrix. This is the normal choice for local and controlled-hardware measurements.
+- `ci` runs a small representative set intended for GitHub-hosted runners: request, synchronous SQS batch 10, asynchronous SQS batch 10, returned and exception failures at 10%, and synchronous/asynchronous nested SQS to SNS to S3 with batch 1.
+- `stress` runs the heavier scaling and edge cases: synchronous/asynchronous SQS batch 100, returned and exception failures at 50% and 100%, and synchronous/asynchronous nested SQS to SNS to S3 with batch 10.
+
+Examples:
+
+```bash
+dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --profile ci
+dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --profile stress
+```
+
+Profiles compose with normal BenchmarkDotNet command-line filters. Use BenchmarkDotNet filters when developing or investigating a specific benchmark suite:
 
 ```bash
 dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --filter "*RequestBenchmarks*"
@@ -45,9 +58,9 @@ All normal BenchmarkDotNet command-line options remain available. BenchmarkDotNe
 
 ## Release benchmark history
 
-`.github/workflows/release-benchmarks.yml` runs the BenchmarkDotNet host directly and requests its standard JSON exporter. The raw `BenchmarkDotNet.Artifacts` directory is retained as a GitHub Actions artifact for troubleshooting.
+`.github/workflows/release-benchmarks.yml` runs the `ci` benchmark profile and requests BenchmarkDotNet's standard JSON exporter. The raw `BenchmarkDotNet.Artifacts` directory is retained as a GitHub Actions artifact for troubleshooting.
 
-For real release runs, the workflow passes those JSON results to `martincostello/benchmarkdotnet-results-publisher`, which appends the summarized measurements to the repository's `gh-pages` branch. This gives the project a durable release-to-release history without maintaining a custom result schema, metadata manifest, directory convention, or release ZIP format.
+For real release runs, the workflow passes those JSON results to `martincostello/benchmarkdotnet-results-publisher`, which appends the summarized measurements to the repository's `benchmark-history` branch. This gives the project a durable release-to-release history without maintaining a custom result schema, metadata manifest, directory convention, or release ZIP format.
 
 Manual executions of the benchmark workflow still produce the raw Actions artifact but do not publish into the historical data set.
 
@@ -57,7 +70,7 @@ The published data is intended for relative trend analysis. GitHub-hosted runner
 
 Publishable performance measurements that require stable absolute comparisons should still be collected on controlled hardware. Keep the machine on external power where applicable and avoid material background workloads while collecting results.
 
-The benchmark-validation GitHub Actions workflow only restores and builds this solution. It verifies the pinned SDK before building. It proves that benchmark code remains valid when source or benchmark infrastructure changes; it does not produce performance results.
+The benchmark-validation GitHub Actions workflow verifies the pinned SDK, builds the benchmark solution, and exercises the `full`, `ci`, and `stress` profile selectors through BenchmarkDotNet list mode. It proves that benchmark code and profile selection remain valid without producing timed performance results.
 
 ## Current coverage
 

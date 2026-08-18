@@ -47,6 +47,7 @@ jobs:
           --project Benchmarks/Benchmarks.csproj
           --configuration Release
           --
+          --profile ci
           --filter '*'
           --exporters json
           --artifacts "$RUNNER_TEMP/BenchmarkDotNet.Artifacts"
@@ -103,7 +104,7 @@ jobs:
           cd "$RUNNER_TEMP"
           zip -r benchmark-results.zip BenchmarkDotNet.Artifacts
 
-      - name: Attach snapshot to GitHub release when available
+      - name: Attach benchmark snapshot to GitHub release when available
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release-tag }}

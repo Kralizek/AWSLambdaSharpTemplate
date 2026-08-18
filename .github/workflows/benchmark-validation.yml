@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'benchmarks/**'
+      - '.github/workflows/benchmark-validation.yml'
+      - '.github/workflows/release-benchmarks.yml'
   workflow_dispatch:
 
 concurrency:
@@ -33,3 +35,10 @@ jobs:
       - name: Build benchmark solution
         working-directory: benchmarks
         run: dotnet build Benchmarks.slnx --configuration Release --no-incremental -warnaserror
+
+      - name: Validate benchmark profiles
+        working-directory: benchmarks
+        run: |
+          dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --profile full --list flat
+          dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --profile ci --list flat
+          dotnet run --project Benchmarks/Benchmarks.csproj --configuration Release --no-build -- --profile stress --list flat
