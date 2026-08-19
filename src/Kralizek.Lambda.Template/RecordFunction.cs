@@ -144,10 +144,13 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var results = new List<RecordProcessingResult>();
+        var records = GetRecords(envelope);
+        var results = records.TryGetNonEnumeratedCount(out var recordCount)
+            ? new List<RecordProcessingResult>(recordCount)
+            : new List<RecordProcessingResult>();
         var processor = invocationServices.GetRequiredService<IRecordProcessor<TRecord, TRecordResult, TContext>>();
 
-        foreach (var record in GetRecords(envelope))
+        foreach (var record in records)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
