@@ -10,9 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventFunction\EventFunction.csproj" />
-    <ProjectReference Include="..\RequestFunction\RequestFunction.csproj" />
-    <ProjectReference Include="..\SqsFunction\SqsFunction.csproj" />
+    <ProjectReference Include="..\OpenTelemetryEventFunction\OpenTelemetryEventFunction.csproj" />
+    <ProjectReference Include="..\OpenTelemetryRequestFunction\OpenTelemetryRequestFunction.csproj" />
+    <ProjectReference Include="..\OpenTelemetrySqsFunction\OpenTelemetrySqsFunction.csproj" />
   </ItemGroup>
 
 </Project>
