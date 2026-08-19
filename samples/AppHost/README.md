@@ -1,12 +1,12 @@
 # Aspire AppHost sample
 
-This sample shows how existing Lambda function projects in this repository can be composed in a .NET Aspire AppHost without restructuring them into a nested solution.
+This sample shows how existing OpenTelemetry-enabled Lambda function projects in this repository can be composed in a .NET Aspire AppHost without restructuring them into a nested solution.
 
 The AppHost references three existing standalone samples:
 
-- `EventFunction`, representing a one-way event function;
-- `RequestFunction`, representing a request/response function;
-- `SqsFunction`, representing record-oriented batch processing.
+- `OpenTelemetryEventFunction`, representing a one-way event function;
+- `OpenTelemetryRequestFunction`, representing a request/response function;
+- `OpenTelemetrySqsFunction`, representing record-oriented batch processing.
 
 All three functions are registered with the AWS Aspire integration and run locally through the AWS Lambda test tool managed by `Aspire.Hosting.AWS`.
 
