@@ -1,0 +1,18 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);ASPIRE004</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AWS" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenTelemetryEventFunction\OpenTelemetryEventFunction.csproj" />
+    <ProjectReference Include="..\OpenTelemetryRequestFunction\OpenTelemetryRequestFunction.csproj" />
+    <ProjectReference Include="..\OpenTelemetrySqsFunction\OpenTelemetrySqsFunction.csproj" />
+  </ItemGroup>
+
+</Project>

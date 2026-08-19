@@ -18,6 +18,7 @@
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
     <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.2.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="Aspire.Hosting.AWS" Version="13.6.0" />
     <PackageVersion Include="DotNet.ReproducibleBuilds" Version="2.0.5" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
@@ -29,6 +30,7 @@
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.17.0" />
   </ItemGroup>
 </Project>
