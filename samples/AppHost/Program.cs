@@ -6,19 +6,19 @@ var aws = builder.AddAWSSDKConfig()
     .WithProfile("default")
     .WithRegion(RegionEndpoint.EUWest1);
 
-builder.AddAWSLambdaFunction<Projects.EventFunction>(
+builder.AddAWSLambdaFunction<Projects.OpenTelemetryEventFunction>(
         "event-function",
-        "EventFunction::EventFunction.Function::FunctionHandlerAsync")
+        "OpenTelemetryEventFunction::OpenTelemetryEventFunction.Function::FunctionHandlerAsync")
     .WithReference(aws);
 
-builder.AddAWSLambdaFunction<Projects.RequestFunction>(
+builder.AddAWSLambdaFunction<Projects.OpenTelemetryRequestFunction>(
         "request-function",
-        "RequestFunction::RequestFunction.Function::FunctionHandlerAsync")
+        "OpenTelemetryRequestFunction::OpenTelemetryRequestFunction.Function::FunctionHandlerAsync")
     .WithReference(aws);
 
-builder.AddAWSLambdaFunction<Projects.SqsFunction>(
+builder.AddAWSLambdaFunction<Projects.OpenTelemetrySqsFunction>(
         "sqs-function",
-        "SqsFunction::SqsFunction.Function::FunctionHandlerAsync")
+        "OpenTelemetrySqsFunction::OpenTelemetrySqsFunction.Function::FunctionHandlerAsync")
     .WithReference(aws);
 
 builder.Build().Run();
