@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AWSLambda;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -20,7 +21,11 @@ public class Function : RequestFunction<string, string, UpperCaseHandler>
     private static readonly TracerProvider TracerProvider = Sdk.CreateTracerProviderBuilder()
         .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
         .AddConsoleExporter()
+        .AddOtlpExporter()
         .Build();
+
+    protected override void ConfigureLogging(ILoggingBuilder logging) =>
+        logging.AddOpenTelemetry(options => options.AddOtlpExporter());
 
     public new Task<string> FunctionHandlerAsync(string input, ILambdaContext context) =>
         AWSLambdaWrapper.TraceAsync(TracerProvider, base.FunctionHandlerAsync, input, context);

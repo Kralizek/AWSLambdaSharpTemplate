@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AWSLambda;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -21,7 +22,11 @@ public class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
     private static readonly TracerProvider TracerProvider = Sdk.CreateTracerProviderBuilder()
         .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
         .AddConsoleExporter()
+        .AddOtlpExporter()
         .Build();
+
+    protected override void ConfigureLogging(ILoggingBuilder logging) =>
+        logging.AddOpenTelemetry(options => options.AddOtlpExporter());
 
     public new Task<SQSBatchResponse> FunctionHandlerAsync(SQSEvent input, ILambdaContext context) =>
         AWSLambdaWrapper.TraceAsync(TracerProvider, base.FunctionHandlerAsync, input, context);
