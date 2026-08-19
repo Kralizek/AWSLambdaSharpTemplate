@@ -10,6 +10,8 @@ The AppHost references three existing standalone samples:
 
 All three functions are registered with the AWS Aspire integration and run locally through the AWS Lambda test tool managed by `Aspire.Hosting.AWS`.
 
+Each function exports OpenTelemetry traces and logs through OTLP. The AppHost enables Aspire OTLP configuration for the Lambda resources, so the Aspire dashboard receives those signals and can display both invocation traces and application logs while the functions run locally.
+
 ## Run
 
 Configure the `default` AWS profile, then run:
@@ -20,4 +22,4 @@ dotnet run --project samples/AppHost/AppHost.csproj
 
 The AppHost uses `eu-west-1` by default. Change the profile or region in `Program.cs` if needed.
 
-The Lambda projects remain independently runnable samples. The AppHost only demonstrates composing them for local development and orchestration.
+The Lambda projects remain independently runnable samples. The AppHost only demonstrates composing them for local development, orchestration, and local observability through Aspire.
