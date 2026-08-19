@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787074422420,
+  "lastUpdated": 1787114940405,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -855,6 +855,51 @@
             "bytesAllocated": 9272
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1872.5977660587855,
+            "unit": "ns",
+            "range": "± 4.7599872709244355",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4043.6308757237025,
+            "unit": "ns",
+            "range": "± 17.30110987465691",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 9383.74222623385,
+            "unit": "ns",
+            "range": "± 44.321765054886306",
+            "bytesAllocated": 9192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 10348.041240147182,
+            "unit": "ns",
+            "range": "± 76.99353282514413",
+            "bytesAllocated": 9272
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -1199,6 +1244,44 @@
             "bytesAllocated": 1376
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 30.334419274330138,
+            "unit": "ns",
+            "range": "± 0.5156601875456102",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 191.55570053259532,
+            "unit": "ns",
+            "range": "± 2.5265075215192176",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 762.2286961873373,
+            "unit": "ns",
+            "range": "± 8.307819104170003",
+            "bytesAllocated": 1376
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -1246,6 +1329,51 @@
             "bytesAllocated": 9456
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2411.2316225687664,
+            "unit": "ns",
+            "range": "± 20.934809561082663",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2656.252370198568,
+            "unit": "ns",
+            "range": "± 12.470538504568458",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 9861.318549601237,
+            "unit": "ns",
+            "range": "± 47.25927662684695",
+            "bytesAllocated": 9376
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 10474.643023681641,
+            "unit": "ns",
+            "range": "± 103.2432568724092",
+            "bytesAllocated": 9456
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -1283,6 +1411,44 @@
             "value": 7987.263881138393,
             "unit": "ns",
             "range": "± 62.286351386722345",
+            "bytesAllocated": 6800
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 5040.308333333333,
+            "unit": "ns",
+            "range": "± 35.453152315582535",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5544.827293395996,
+            "unit": "ns",
+            "range": "± 39.857522506245544",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 8182.339456176758,
+            "unit": "ns",
+            "range": "± 65.10462417855207",
             "bytesAllocated": 6800
           }
         ]
@@ -1324,6 +1490,44 @@
             "unit": "ns",
             "range": "± 493.07480509316184",
             "bytesAllocated": 8326
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8349.24330291748,
+            "unit": "ns",
+            "range": "± 1313.2166195506488",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 9222.90423248291,
+            "unit": "ns",
+            "range": "± 637.0115973310915",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 15635.788789749146,
+            "unit": "ns",
+            "range": "± 484.9326781085921",
+            "bytesAllocated": 8316
           }
         ]
       }
@@ -1373,6 +1577,51 @@
             "bytesAllocated": 12696
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4771.788022554838,
+            "unit": "ns",
+            "range": "± 7.540045471808418",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5765.833760942732,
+            "unit": "ns",
+            "range": "± 15.223056540925965",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 23062.061192103796,
+            "unit": "ns",
+            "range": "± 178.2309509204501",
+            "bytesAllocated": 11208
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 27291.069303240096,
+            "unit": "ns",
+            "range": "± 83.68597620000558",
+            "bytesAllocated": 12696
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -1418,6 +1667,51 @@
             "unit": "ns",
             "range": "± 502.57230513649716",
             "bytesAllocated": 16244
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "77c2aadf32bb09343b67153463724e8243a1681e",
+          "message": "Make benchmark profiles non-interactive (#102)",
+          "timestamp": "2026-08-19T04:39:29Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/77c2aadf32bb09343b67153463724e8243a1681e"
+        },
+        "date": 1787114940405,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 8093.396679125334,
+            "unit": "ns",
+            "range": "± 411.2319849905796",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 16952.269654134114,
+            "unit": "ns",
+            "range": "± 848.5410796888041",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 35832.39390281395,
+            "unit": "ns",
+            "range": "± 991.89103845113",
+            "bytesAllocated": 14400
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 39524.66504778181,
+            "unit": "ns",
+            "range": "± 529.9849463369276",
+            "bytesAllocated": 16240
           }
         ]
       }
