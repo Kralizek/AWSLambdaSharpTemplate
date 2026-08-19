@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787114940405,
+  "lastUpdated": 1787131759736,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -900,6 +900,51 @@
             "bytesAllocated": 9272
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1857.678504210252,
+            "unit": "ns",
+            "range": "± 4.9546877219901795",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4061.122512817383,
+            "unit": "ns",
+            "range": "± 17.465931837568405",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 8613.298413957868,
+            "unit": "ns",
+            "range": "± 27.523352115829898",
+            "bytesAllocated": 8856
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 9948.96077779134,
+            "unit": "ns",
+            "range": "± 44.78331154439588",
+            "bytesAllocated": 8936
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -1282,6 +1327,44 @@
             "bytesAllocated": 1376
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 28.214468529591194,
+            "unit": "ns",
+            "range": "± 0.14565599403839333",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 183.61256912121405,
+            "unit": "ns",
+            "range": "± 0.8122031452957922",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 746.748099054609,
+            "unit": "ns",
+            "range": "± 5.451185269584401",
+            "bytesAllocated": 1376
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -1374,6 +1457,51 @@
             "bytesAllocated": 9456
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2465.592822519938,
+            "unit": "ns",
+            "range": "± 9.671541347355912",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2749.3557795206707,
+            "unit": "ns",
+            "range": "± 9.62462386725437",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 9860.88132425944,
+            "unit": "ns",
+            "range": "± 70.44335282444545",
+            "bytesAllocated": 9040
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 10660.44204305013,
+            "unit": "ns",
+            "range": "± 94.77776881876235",
+            "bytesAllocated": 9120
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -1452,6 +1580,44 @@
             "bytesAllocated": 6800
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 5028.725917561849,
+            "unit": "ns",
+            "range": "± 57.36656573599054",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5482.469049072266,
+            "unit": "ns",
+            "range": "± 22.502237331401947",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 7773.8304972330725,
+            "unit": "ns",
+            "range": "± 37.09194282419367",
+            "bytesAllocated": 6752
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -1528,6 +1694,44 @@
             "unit": "ns",
             "range": "± 484.9326781085921",
             "bytesAllocated": 8316
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8822.705236206055,
+            "unit": "ns",
+            "range": "± 1134.238151373411",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 8050.316135951451,
+            "unit": "ns",
+            "range": "± 611.95658757012",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 16053.998361298532,
+            "unit": "ns",
+            "range": "± 506.3388223665075",
+            "bytesAllocated": 8272
           }
         ]
       }
@@ -1622,6 +1826,51 @@
             "bytesAllocated": 12696
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4648.983985900879,
+            "unit": "ns",
+            "range": "± 8.36222542190147",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5836.368432108561,
+            "unit": "ns",
+            "range": "± 17.37003400672716",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 22178.5013558524,
+            "unit": "ns",
+            "range": "± 86.31265215223367",
+            "bytesAllocated": 10872
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 26431.71358235677,
+            "unit": "ns",
+            "range": "± 56.01717590148598",
+            "bytesAllocated": 12360
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -1712,6 +1961,51 @@
             "unit": "ns",
             "range": "± 529.9849463369276",
             "bytesAllocated": 16240
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "082b739d39dd5fee677c7d387876e3d748c709c3",
+          "message": "Pre-size record result collections (#105)",
+          "timestamp": "2026-08-19T09:19:57Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/082b739d39dd5fee677c7d387876e3d748c709c3"
+        },
+        "date": 1787131759736,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 8052.2753282026815,
+            "unit": "ns",
+            "range": "± 378.3633936075934",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 17729.31749869084,
+            "unit": "ns",
+            "range": "± 850.198773056605",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 35513.45226236979,
+            "unit": "ns",
+            "range": "± 609.4763767269064",
+            "bytesAllocated": 14064
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 38623.53032226562,
+            "unit": "ns",
+            "range": "± 459.84753833280706",
+            "bytesAllocated": 15904
           }
         ]
       }
