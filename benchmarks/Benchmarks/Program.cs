@@ -12,6 +12,8 @@ var isListCommand = benchmarkArgs.Any(argument =>
     string.Equals(argument, "--list", StringComparison.OrdinalIgnoreCase) ||
     argument.StartsWith("--list=", StringComparison.OrdinalIgnoreCase));
 
+benchmarkArgs = EnsureBenchmarkSelection(benchmarkArgs);
+
 var config = ManualConfig.Create(DefaultConfig.Instance)
     .AddFilter(BenchmarkProfiles.CreateFilter(profile));
 
@@ -25,6 +27,17 @@ return (!isListCommand && summaries.Length == 0) ||
            summary.Reports.Any(report => !report.Success))
     ? 1
     : 0;
+
+static string[] EnsureBenchmarkSelection(string[] args)
+{
+    var hasExplicitFilter = args.Any(argument =>
+        string.Equals(argument, "--filter", StringComparison.OrdinalIgnoreCase) ||
+        argument.StartsWith("--filter=", StringComparison.OrdinalIgnoreCase));
+
+    return hasExplicitFilter
+        ? args
+        : [.. args, "--filter", "*"];
+}
 
 static (BenchmarkProfile Profile, string[] Args) ParseProfile(string[] args)
 {
