@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787228710621,
+  "lastUpdated": 1787230798812,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -1080,6 +1080,51 @@
             "bytesAllocated": 8936
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1446.0400783538819,
+            "unit": "ns",
+            "range": "± 6.453836502677102",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 3121.017381032308,
+            "unit": "ns",
+            "range": "± 36.992155509187334",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 6731.211814293494,
+            "unit": "ns",
+            "range": "± 56.9943367568779",
+            "bytesAllocated": 8856
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 7256.616489664713,
+            "unit": "ns",
+            "range": "± 88.17699114460578",
+            "bytesAllocated": 8936
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -1614,6 +1659,44 @@
             "bytesAllocated": 1376
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 27.177943070729572,
+            "unit": "ns",
+            "range": "± 0.568163909041901",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 158.43993078172207,
+            "unit": "ns",
+            "range": "± 3.155659310472765",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 590.8512689590455,
+            "unit": "ns",
+            "range": "± 9.444779351315061",
+            "bytesAllocated": 1376
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -1886,6 +1969,51 @@
             "bytesAllocated": 9120
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 1781.3215340834397,
+            "unit": "ns",
+            "range": "± 8.855250641817369",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 1988.6532402038574,
+            "unit": "ns",
+            "range": "± 9.709623428015748",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 7189.381135793833,
+            "unit": "ns",
+            "range": "± 40.77545606329792",
+            "bytesAllocated": 9040
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 7654.458731079101,
+            "unit": "ns",
+            "range": "± 59.535149575535",
+            "bytesAllocated": 9120
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -2113,6 +2241,44 @@
             "value": 7843.241694859096,
             "unit": "ns",
             "range": "± 24.47230404258578",
+            "bytesAllocated": 6752
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 3899.9277314406177,
+            "unit": "ns",
+            "range": "± 36.973300639821645",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 4429.6575234731035,
+            "unit": "ns",
+            "range": "± 11.442593636484657",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 6280.956701006208,
+            "unit": "ns",
+            "range": "± 39.151152148182234",
             "bytesAllocated": 6752
           }
         ]
@@ -2344,6 +2510,44 @@
             "unit": "ns",
             "range": "± 800.1181237068633",
             "bytesAllocated": 8272
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 5970.282507324218,
+            "unit": "ns",
+            "range": "± 107.95659085124947",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 6912.9929762620195,
+            "unit": "ns",
+            "range": "± 87.81428606560826",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 10354.273583984375,
+            "unit": "ns",
+            "range": "± 181.87964320772292",
+            "bytesAllocated": 8279
           }
         ]
       }
@@ -2618,6 +2822,51 @@
             "bytesAllocated": 12360
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 3747.836989847819,
+            "unit": "ns",
+            "range": "± 19.795917124312545",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 4686.37211710612,
+            "unit": "ns",
+            "range": "± 51.123495818074055",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 17332.886866978235,
+            "unit": "ns",
+            "range": "± 259.2324494490495",
+            "bytesAllocated": 10872
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 20360.59426007952,
+            "unit": "ns",
+            "range": "± 70.41143161557893",
+            "bytesAllocated": 12360
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -2888,6 +3137,51 @@
             "unit": "ns",
             "range": "± 493.55167458973904",
             "bytesAllocated": 15904
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "05bb16b9ac4fde8c600dc5122362c6f011fc0b14",
+          "message": "Simplify benchmark workflow entry points (#107)",
+          "timestamp": "2026-08-20T12:51:18Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/05bb16b9ac4fde8c600dc5122362c6f011fc0b14"
+        },
+        "date": 1787230798812,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 9836.480532477884,
+            "unit": "ns",
+            "range": "± 194.16129410001858",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 16523.112576904296,
+            "unit": "ns",
+            "range": "± 1936.8074079438973",
+            "bytesAllocated": 4499
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 28730.68829345703,
+            "unit": "ns",
+            "range": "± 267.6817863709136",
+            "bytesAllocated": 14067
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 32811.13243001302,
+            "unit": "ns",
+            "range": "± 490.2647495843959",
+            "bytesAllocated": 15903
           }
         ]
       }
