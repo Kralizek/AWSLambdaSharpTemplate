@@ -412,6 +412,7 @@ jobs:
           TEMPLATE_AOT: ${{ matrix.aot || false }}
           TEMPLATE_OTEL: ${{ matrix.otel || false }}
           TEMPLATE_RAW: ${{ matrix.raw || false }}
+          TEMPLATE_MINIMAL: ${{ matrix.minimal || false }}
           TEMPLATE_VERSION: ${{ matrix.version || '' }}
         shell: bash
         run: |
@@ -428,6 +429,9 @@ jobs:
           fi
           if [ "$TEMPLATE_RAW" = "true" ]; then
             args+=(--raw)
+          fi
+          if [ "$TEMPLATE_MINIMAL" = "true" ]; then
+            args+=(--minimal)
           fi
           if [ -n "$TEMPLATE_VERSION" ]; then
             args+=(--version "$TEMPLATE_VERSION")

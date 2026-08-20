@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace EventFunction;
+namespace MinimalEventFunction;
 
-public class Function : EventFunction<string, StringEventHandler>;
+public class Function : MinimalEventFunction<string, StringEventHandler>;
 
 public class StringEventHandler : IEventHandler<string>
 {

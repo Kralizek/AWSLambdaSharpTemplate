@@ -23,6 +23,8 @@ Version 6 is a major redesign of the library and template set. It replaces the V
 
 - Added the lightweight `Kralizek.Lambda.Template.Abstractions` package containing handler contracts, function contexts, record-result abstractions, and payload decoder interfaces without dependencies on the Lambda runtime or Microsoft.Extensions infrastructure.
 - Added strongly typed `EventContext`, `RequestContext`, and `RecordContext` models, while retaining access to the original `ILambdaContext` through the runtime package when needed.
+- Added `MinimalEventFunction` and `MinimalRequestFunction` as lean alternative hosts for the existing v6 Event/Request handler contracts. Minimal hosting retains configuration, logging, function-local dependency injection, invocation scopes, v6 contexts, cancellation, and async scope disposal while omitting the full host's internal telemetry and richer processing path.
+- Added `--minimal` to the generic Request and Event templates, including Native AOT and OpenTelemetry composition. Minimal OpenTelemetry keeps the AWS Lambda invocation wrapper without subscribing to KLT's internal activity source or meter.
 - Added built-in plain-text and System.Text.Json string/binary payload decoders, including support for source-generated JSON metadata.
 - Added SQS support for both decoded messages and raw records, including bounded parallel variants and partial-batch failure responses.
 - Added SNS support for both decoded notifications and raw records, including bounded parallel variants and SNS whole-invocation failure semantics.
@@ -33,7 +35,7 @@ Version 6 is a major redesign of the library and template set. It replaces the V
 - Added S3 Batch Operations schema 2.0 support with typed task models and explicit success, temporary-failure, and permanent-failure results.
 - Added Kinesis Streams support for raw records and decoded binary payloads, stream-specific result types, and partial-batch failure responses.
 - Added source-specific samples and `dotnet new` templates for the supported integrations.
-- Added template smoke tests that install the packed template package, instantiate every template, restore its runtime dependencies from the locally packed packages, and build the generated project as an external consumer.
+- Added template smoke tests that install the packed template package, instantiate every template, restore its runtime dependencies from the locally packed packages, and build the generated project as an external consumer, including representative Minimal Request/Event, OpenTelemetry, and Native AOT cases.
 
 ### Changed
 

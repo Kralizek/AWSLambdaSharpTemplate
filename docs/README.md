@@ -6,6 +6,7 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 
 - New to the library? Read [Getting Started](Getting-Started.md).
 - Unsure which base type to use? Read [Choosing a Function Model](Choosing-a-Function-Model.md).
+- Want the same request/event handlers with less hosting overhead? Read [Minimal Hosting](Minimal-Hosting.md).
 - Migrating an existing application? Read [Migrating from v5 to v6](Migrating-from-v5-to-v6.md).
 - Composing nested record envelopes? Read [Record Processing](Record-Processing.md).
 - Adding traces and metrics? Read [OpenTelemetry](OpenTelemetry.md).
@@ -31,6 +32,8 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 
 Source-specific packages specialize these roots while preserving a common model for dependency injection, configuration, logging, cancellation, contexts, and handler dispatch. `IRecordProcessor<TRecord, TRecordResult, TContext>` exposes the single-record execution primitive for advanced nested-record composition while source-specific functions retain ownership of envelope scheduling and AWS failure semantics.
 
+`MinimalEventFunction` and `MinimalRequestFunction` are alternative hosts for the existing Event/Request handler contracts. They are not additional programming models: they preserve the same handler/context/DI surface while deliberately omitting the normal host's internal telemetry and richer processing path.
+
 ## Install the templates
 
 ```bash
@@ -43,4 +46,4 @@ Then list the available templates:
 dotnet new list lambda-template
 ```
 
-Generated projects target .NET 10 and use the standard AWS Lambda .NET tooling. The template choices are independent where supported: `--raw` selects the record/payload shape, `--aot` selects executable hosting and source-generated Lambda serialization, and `--otel` adds Lambda invocation instrumentation.
+Generated projects target .NET 10 and use the standard AWS Lambda .NET tooling. Template choices are independent where supported: `--minimal` selects lean hosting for generic Request/Event templates, `--raw` selects the record/payload shape on supported record templates, `--aot` selects executable hosting and source-generated Lambda serialization, and `--otel` adds Lambda invocation instrumentation.

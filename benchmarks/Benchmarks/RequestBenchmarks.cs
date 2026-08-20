@@ -18,6 +18,7 @@ public class RequestBenchmarks
     private TargetSession? _v6Session;
     private IRequestTarget? _rawSdk;
     private IRequestTarget? _v5;
+    private IRequestTarget? _v6Minimal;
     private IRequestTarget? _v6;
 
     [GlobalSetup]
@@ -29,6 +30,7 @@ public class RequestBenchmarks
 
         _rawSdk = _rawSdkSession.CreateTarget<IRequestTarget>("RawSdkTarget.UppercaseTarget");
         _v5 = _v5Session.CreateTarget<IRequestTarget>("V5Target.UppercaseTarget");
+        _v6Minimal = _v6Session.CreateTarget<IRequestTarget>("V6Target.MinimalUppercaseTarget");
         _v6 = _v6Session.CreateTarget<IRequestTarget>("V6Target.UppercaseTarget");
     }
 
@@ -37,6 +39,7 @@ public class RequestBenchmarks
     {
         _rawSdk = null;
         _v5 = null;
+        _v6Minimal = null;
         _v6 = null;
 
         _rawSdkSession?.Dispose();
@@ -53,6 +56,9 @@ public class RequestBenchmarks
 
     [Benchmark]
     public Task<string> V5() => _v5!.InvokeAsync(Input);
+
+    [Benchmark]
+    public Task<string> V6Minimal() => _v6Minimal!.InvokeAsync(Input);
 
     [Benchmark]
     public Task<string> V6() => _v6!.InvokeAsync(Input);

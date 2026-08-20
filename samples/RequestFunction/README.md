@@ -35,4 +35,4 @@ There is deliberately no Terraform example here: `RequestFunction<TInput, TOutpu
 - `Function` for the input, output, and handler types declared in one place.
 - `UpperCaseHandler` for constructor injection, `RequestContext`, and returning a response asynchronously.
 
-If the invocation only needs to consume an event, compare this sample with [EventFunction](../EventFunction/). For a concrete AWS request/response trigger, see [CognitoPreSignUpFunction](../CognitoPreSignUpFunction/).
+For the same handler model on the lean host, compare [MinimalRequestFunction](../MinimalRequestFunction/). If the invocation only needs to consume an event, compare this sample with [EventFunction](../EventFunction/). For a concrete AWS request/response trigger, see [CognitoPreSignUpFunction](../CognitoPreSignUpFunction/).

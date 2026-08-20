@@ -22,7 +22,20 @@ public sealed class UppercaseTarget : IRequestTarget
     public Task<string> InvokeAsync(string input) => _function.FunctionHandlerAsync(input, _context);
 }
 
+public sealed class MinimalUppercaseTarget : IRequestTarget
+{
+    private readonly MinimalUppercaseFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+
+    public Task<string> InvokeAsync(string input) => _function.FunctionHandlerAsync(input, _context);
+}
+
 public sealed class UppercaseFunction : RequestFunction<string, string, UppercaseHandler>;
+
+public sealed class MinimalUppercaseFunction : MinimalRequestFunction<string, string, UppercaseHandler>;
 
 public sealed class UppercaseHandler : IRequestHandler<string, string>
 {

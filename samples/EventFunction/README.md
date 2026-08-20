@@ -27,7 +27,7 @@ There is deliberately no Terraform example here: `EventFunction<TInput, THandler
 
 ## Look at
 
-- `Function` for the minimal event-function declaration.
+- `Function` for the event-function declaration.
 - `StringEventHandler` for constructor injection and access to invocation metadata through `EventContext`.
 
-For request/response invocations, compare this sample with [RequestFunction](../RequestFunction/). For an AWS-specific envelope with a typed payload, see [EventBridgeFunction](../EventBridgeFunction/).
+For the same handler model on the lean host, compare [MinimalEventFunction](../MinimalEventFunction/). For request/response invocations, compare [RequestFunction](../RequestFunction/). For an AWS-specific envelope with a typed payload, see [EventBridgeFunction](../EventBridgeFunction/).

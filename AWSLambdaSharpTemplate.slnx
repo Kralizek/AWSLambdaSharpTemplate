@@ -6,6 +6,8 @@
     <Project Path="samples/EventBridgeFunction/EventBridgeFunction.csproj" />
     <Project Path="samples/EventFunction/EventFunction.csproj" />
     <Project Path="samples/KinesisStreamFunction/KinesisStreamFunction.csproj" />
+    <Project Path="samples/MinimalEventFunction/MinimalEventFunction.csproj" />
+    <Project Path="samples/MinimalRequestFunction/MinimalRequestFunction.csproj" />
     <Project Path="samples/NativeAotSqsFunction/NativeAotSqsFunction.csproj" />
     <Project Path="samples/NativeAotSqsSnsS3Function/NativeAotSqsSnsS3Function.csproj" />
     <Project Path="samples/OpenTelemetryEventFunction/OpenTelemetryEventFunction.csproj" />
