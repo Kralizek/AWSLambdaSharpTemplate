@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -49,15 +50,21 @@ public abstract class EventFunction<TInput, TContext, [DynamicallyAccessedMember
             EnrichInvocationActivity(activity, input, context);
         }
 
-        using var cts = CreateCancellationTokenSource(context);
         var eventContext = CreateContext(input, context);
 
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        try
+        {
+            await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
-        await ExecuteHandlerAsync<THandler>(
-            invocationScope.ServiceProvider,
-            cts.Token,
-            (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
+            await ExecuteHandlerAsync<THandler>(
+                invocationScope.ServiceProvider,
+                CancellationToken.None,
+                (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
+        }
+        finally
+        {
+            FunctionContextFactory.DisposeDeadlineCancellationToken(eventContext);
+        }
     }
 }
 
