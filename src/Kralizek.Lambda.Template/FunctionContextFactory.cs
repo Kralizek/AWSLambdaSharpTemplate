@@ -104,7 +104,7 @@ public static class FunctionContextFactory
 
     private sealed class DeadlineCancellationState : IDisposable
     {
-        private readonly object _syncRoot = new();
+        private readonly Lock _syncRoot = new();
         private CancellationTokenSource? _source;
         private CancellationToken _token;
         private bool _initialized;
