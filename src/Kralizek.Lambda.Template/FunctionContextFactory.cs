@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Amazon.Lambda.Core;
 
@@ -11,6 +13,7 @@ namespace Kralizek.Lambda;
 public static class FunctionContextFactory
 {
     private const string LambdaContextPropertyName = "Kralizek.Lambda.Template.LambdaContext";
+    private static readonly ConditionalWeakTable<FunctionContext, DeadlineCancellationState> DeadlineCancellationStates = new();
 
     public static EventContext CreateEventContext(ILambdaContext lambdaContext)
     {
@@ -74,6 +77,85 @@ public static class FunctionContextFactory
         }
 
         throw new InvalidOperationException("The function context does not contain an AWS Lambda runtime context.");
+    }
+
+    /// <summary>
+    /// Gets a cancellation token that is cancelled when the current Lambda invocation reaches its remaining-time deadline.
+    /// </summary>
+    /// <remarks>
+    /// The deadline source is created lazily on first access and cached for the lifetime of this invocation context.
+    /// Applications do not own or dispose the returned token.
+    /// </remarks>
+    public static CancellationToken GetDeadlineCancellationToken(this FunctionContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var state = DeadlineCancellationStates.GetValue(context, static _ => new DeadlineCancellationState());
+        return state.GetToken(context.GetLambdaContext());
+    }
+
+    internal static void DisposeDeadlineCancellationToken(FunctionContext context)
+    {
+        if (!DeadlineCancellationStates.TryGetValue(context, out var state))
+        {
+            return;
+        }
+
+        DeadlineCancellationStates.Remove(context);
+        state.Dispose();
+    }
+
+    private sealed class DeadlineCancellationState : IDisposable
+    {
+        private CancellationTokenSource? _source;
+        private CancellationToken _token;
+        private bool _initialized;
+        private bool _disposed;
+
+        public CancellationToken GetToken(ILambdaContext lambdaContext)
+        {
+            lock (this)
+            {
+                ObjectDisposedException.ThrowIf(_disposed, this);
+
+                if (_initialized)
+                {
+                    return _token;
+                }
+
+                var source = new CancellationTokenSource();
+                var remaining = lambdaContext.RemainingTime;
+
+                if (remaining <= TimeSpan.Zero)
+                {
+                    source.Cancel();
+                }
+                else if (remaining < TimeSpan.FromMilliseconds(int.MaxValue))
+                {
+                    source.CancelAfter(remaining);
+                }
+
+                _source = source;
+                _token = source.Token;
+                _initialized = true;
+                return _token;
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (this)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                _source?.Dispose();
+                _source = null;
+            }
+        }
     }
 
     private sealed class DefaultEventContext(
