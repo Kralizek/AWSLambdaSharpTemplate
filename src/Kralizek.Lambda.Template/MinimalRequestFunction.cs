@@ -42,17 +42,10 @@ public abstract class MinimalRequestFunction<TInput, TOutput, TContext, [Dynamic
     {
         var requestContext = CreateContext(input, context);
 
-        try
-        {
-            await using var invocationScope = ServiceProvider.CreateAsyncScope();
-            var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
 
-            return await handler.HandleAsync(input, requestContext, CancellationToken.None).ConfigureAwait(false);
-        }
-        finally
-        {
-            FunctionContextFactory.DisposeDeadlineCancellationToken(requestContext);
-        }
+        return await handler.HandleAsync(input, requestContext, CancellationToken.None).ConfigureAwait(false);
     }
 }
 
