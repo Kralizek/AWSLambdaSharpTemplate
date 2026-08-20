@@ -54,7 +54,6 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     {
         LambdaTelemetry.EnrichInvocation("record");
 
-        using var cts = CreateCancellationTokenSource(lambdaContext);
         var context = CreateRecordContext(envelope, lambdaContext);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
@@ -63,7 +62,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
             envelope,
             context,
             invocationScope.ServiceProvider,
-            cts.Token).ConfigureAwait(false);
+            CancellationToken.None).ConfigureAwait(false);
 
         return CreateResponse(results);
     }

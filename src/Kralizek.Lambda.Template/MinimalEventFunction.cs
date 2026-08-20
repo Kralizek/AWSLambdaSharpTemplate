@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -38,15 +39,12 @@ public abstract class MinimalEventFunction<TInput, TContext, [DynamicallyAccesse
 
     public virtual async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        using var cts = CreateCancellationTokenSource(context);
-        cts.Token.ThrowIfCancellationRequested();
-
         var eventContext = CreateContext(input, context);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
         var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
 
-        await handler.HandleAsync(input, eventContext, cts.Token).ConfigureAwait(false);
+        await handler.HandleAsync(input, eventContext, CancellationToken.None).ConfigureAwait(false);
     }
 }
 

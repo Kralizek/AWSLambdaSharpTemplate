@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -50,14 +51,13 @@ public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAcc
             EnrichInvocationActivity(activity, input, context);
         }
 
-        using var cts = CreateCancellationTokenSource(context);
         var requestContext = CreateContext(input, context);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
         return await ExecuteHandlerAsync<THandler, TOutput>(
             invocationScope.ServiceProvider,
-            cts.Token,
+            CancellationToken.None,
             (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
     }
 }

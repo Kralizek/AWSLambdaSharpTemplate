@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using Amazon.Lambda.Core;
 
@@ -74,6 +75,19 @@ public static class FunctionContextFactory
         }
 
         throw new InvalidOperationException("The function context does not contain an AWS Lambda runtime context.");
+    }
+
+    /// <summary>
+    /// Creates a cancellation token source that is cancelled when the current Lambda invocation reaches its remaining-time deadline.
+    /// </summary>
+    /// <remarks>
+    /// The caller owns the returned cancellation token source and must dispose it.
+    /// </remarks>
+    public static CancellationTokenSource CreateDeadlineCancellationTokenSource(this FunctionContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        return LambdaInvocationLifetime.CreateCancellationTokenSource(context.GetLambdaContext());
     }
 
     private sealed class DefaultEventContext(
