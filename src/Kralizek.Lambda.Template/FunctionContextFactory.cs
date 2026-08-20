@@ -98,7 +98,8 @@ public static class FunctionContextFactory
 
     internal static void DisposeDeadlineCancellationToken(FunctionContext context)
     {
-        if (context.TryGetRuntimeState<DeadlineCancellationState>(DeadlineCancellationStatePropertyName, out var state))
+        if (context.TryGetRuntimeState<DeadlineCancellationState>(DeadlineCancellationStatePropertyName, out var state)
+            && state is not null)
         {
             state.Dispose();
         }
