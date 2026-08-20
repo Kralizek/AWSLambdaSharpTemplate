@@ -76,7 +76,7 @@ The benchmark-validation GitHub Actions workflow verifies the pinned SDK, builds
 
 This is the controlled-hardware V5 to V6 reference collected on 2026-08-20. The exact measured repository commit is `a94a87c669969c3f2784f8d460b7c090a441573e`.
 
-This reference was collected for beta 4 before Minimal hosting was added to the comparison. Every `V6` value in the tables below therefore refers to the **default/full V6 host measured at that commit**. These figures remain the historical V5-to-full-V6 baseline. `V6Minimal` is a later contender in the same Request benchmark and should be measured separately rather than retroactively inserted into this reference.
+This reference was collected for beta 4 before Minimal hosting was added to the comparison. Every `V6` value in the tables below therefore refers to the **default/full V6 host measured at that commit**. These figures remain the historical V5-to-full-V6 baseline. `V6Minimal` was added later as a contender in the Request suite and, for comparison purposes, as a benchmark-only application composition in the SQS, failure, and nested suites. Those new contenders must be measured separately rather than retroactively inserted into this reference.
 
 ### Reference environment and method
 
@@ -185,7 +185,7 @@ Those features do not make every additional allocation unavoidable, and the benc
 
 The result-list sizing change was the low-risk avoidable allocation identified in the separate performance-hardening work. DI activation, async composition, no-listener telemetry short-circuit, and typed-handler fast-path candidates were also investigated, but did not justify production changes before beta 4.
 
-Minimal hosting should not be interpreted as correcting those semantics. It adds a smaller Request/Event hosting choice for functions that do not need the full host-level behavior. A new controlled run including `V6Minimal` can therefore extend this analysis by isolating the cost of the full Request host from the v6 handler/context/DI model retained by Minimal, while leaving the beta-4 baseline intact.
+Minimal hosting should not be interpreted as correcting those semantics. It adds a smaller Request/Event hosting choice. In the Request suite, `V6Minimal` isolates the full Request host from the v6 handler/context/DI model retained by Minimal. In the SQS, failure, and nested suites, the benchmark-only `V6Minimal` contender deliberately moves AWS-specific iteration, decoding, failure translation, and nested envelope processing back into application code while retaining the Minimal host. This allows a new controlled run to measure the cost boundary between lean KLT hosting and framework-owned AWS orchestration without changing the beta-4 reference.
 
 For performance-sensitive migrations, read synchronous and genuinely asynchronous results together, pay close attention to allocations, and validate the actual workload.
 
@@ -214,8 +214,11 @@ The synchronous SQS benchmark measures batches of 1, 10, and 100 records and com
 
 - a plain AWS Lambda SQS handler (`RawSdk`), used as the BenchmarkDotNet baseline;
 - the published v5 typed SQS function (`V5Typed`);
+- a benchmark-only `MinimalRequestFunction<SQSEvent, SQSBatchResponse, ...>` composition where application code owns SQS iteration, JSON decoding, and response construction (`V6Minimal`);
 - the current v6 raw SQS function (`V6Raw`);
 - the current v6 typed SQS function (`V6Typed`).
+
+`V6Minimal` is not a `MinimalSqsFunction` product API. It deliberately uses the source-neutral Minimal request host and places the SQS-specific mechanics in the benchmark handler. The comparison therefore shows what happens when the application retains the Minimal host's configuration, dependency injection, invocation scope, context, cancellation, and async disposal while taking back the event-source orchestration supplied by the full/source-specific V6 path.
 
 Every target receives an equivalent pre-built SQS envelope. Envelope construction and target loading happen during benchmark setup so the measured operation focuses on dispatch, decoding, record handling, and response construction.
 
@@ -223,7 +226,7 @@ The synchronous handlers return already-completed tasks/value tasks. That makes 
 
 ### Asynchronous SQS functions
 
-`AsyncSqsBenchmarks` repeats the same Raw SDK, v5, v6 raw, and v6 typed comparison while forcing one real asynchronous suspension per record using the shared `AsyncWorkload.Suspend()` helper.
+`AsyncSqsBenchmarks` repeats the Raw SDK, V5 typed, V6 Minimal, V6 raw, and V6 typed comparison while forcing one real asynchronous suspension per record using the shared `AsyncWorkload.Suspend()` helper. In `V6Minimal`, that suspension occurs inside the application-owned SQS loop; in the source-specific V6 contenders it occurs in the record handler invoked by the framework pipeline.
 
 The helper returns `Task.Yield()` directly so the benchmark remains deterministic, local, and independent of network or service latency without adding a separate helper task state machine. It models the control-flow and allocation effects of a handler that actually suspends; it does not attempt to model DynamoDB, S3, HTTP, or other I/O latency.
 
@@ -237,9 +240,11 @@ The failure benchmarks use a fixed batch of 10 records and cover deterministic 0
 
 The Raw SDK target contains the hand-written record loop and failure collection needed to implement those semantics directly. V5 is also included, but its published SQS module has no per-record partial-batch result contract. The V5 benchmark therefore uses `RequestResponseFunction<SQSEvent, SQSBatchResponse>` and implements JSON decoding, record iteration, per-record exception handling, and response construction in the consumer handler. This is intentionally the realistic V5 route to obtain the same AWS behavior rather than inventing a V6-style abstraction inside the old SQS module.
 
-V6 measures both raw and typed record handlers and uses its built-in record-result and exception-translation pipeline. The comparison therefore captures not only runtime cost but also where the partial-batch plumbing lives in each programming model.
+`V6Minimal` follows the same fairness principle. It uses `MinimalRequestFunction<SQSEvent, SQSBatchResponse, ...>` and keeps partial-batch policy in application code. The returned-result variant collects failed message IDs directly. The exception variant deliberately throws for failed records, catches those exceptions inside the application-owned record loop, and translates them into the same `SQSBatchResponse`.
 
-The V6 exception benchmark functions clear logging providers so repeated BenchmarkDotNet invocations do not flood stdout with one error message per failed record. Exception handling and translation still run through the normal framework path, but provider output cost is intentionally excluded from this suite.
+`V6Raw` and `V6Typed` instead use the built-in V6 record-result and exception-translation pipeline. The comparison therefore captures not only runtime cost but also where the partial-batch plumbing lives in each programming model and hosting choice.
+
+The V6 source-specific exception benchmark functions clear logging providers so repeated BenchmarkDotNet invocations do not flood stdout with one error message per failed record. Exception handling and translation still run through the normal framework path, but provider output cost is intentionally excluded from this suite.
 
 The failure matrix remains synchronously completed to isolate the incremental cost of partial-batch handling and exception translation. The separate asynchronous SQS suite covers genuine suspension without multiplying every failure percentage by another completion-mode dimension.
 
@@ -251,12 +256,15 @@ The suites use batches of 1 and 10 SQS messages and compare:
 
 - a Raw SDK implementation that owns SQS iteration, SNS-envelope decoding, S3-event decoding, and S3-record iteration directly;
 - a V5 implementation that uses the V5 typed SQS message handler for the outer SNS envelope, while application code still owns S3-event decoding and S3-record iteration;
-- a V6 implementation that follows the recommended nested flow: typed SQS handling for the SNS envelope, an S3 decoder, and the reusable S3 record processor/handler pipeline.
+- a benchmark-only V6 Minimal composition where `MinimalRequestFunction<SQSEvent, SQSBatchResponse, ...>` supplies the lean host and application code owns SQS iteration, SNS decoding, S3 decoding, and S3-record iteration;
+- a full/source-specific V6 implementation that follows the recommended nested flow: typed SQS handling for the SNS envelope, an S3 decoder, and the reusable S3 record processor/handler pipeline.
 
-The Raw SDK and V5 implementations use case-insensitive `System.Text.Json` options when manually decoding the canonical AWS S3 event JSON, matching the lowercase AWS property names without changing the shared fixture.
+The Raw SDK, V5, and V6 Minimal implementations use case-insensitive `System.Text.Json` options when manually decoding the canonical AWS S3 event JSON, matching the lowercase AWS property names without changing the shared fixture.
 
-`NestedSqsSnsS3Benchmarks` uses a synchronously completed S3 leaf handler. `NestedAsyncSqsSnsS3Benchmarks` uses the same deterministic `Task.Yield()` suspension at the S3 leaf so the nested pipeline is also measured when application work genuinely suspends.
+`NestedSqsSnsS3Benchmarks` uses a synchronously completed S3 leaf workload. `NestedAsyncSqsSnsS3Benchmarks` uses the same deterministic `Task.Yield()` suspension at the S3 leaf so the nested pipeline is also measured when application work genuinely suspends. For `V6Minimal`, that leaf remains inside the application-owned nested loop; for full V6 it runs through the reusable S3 record processor.
 
-The V6 leaf handler also reads the originating raw SQS message from the propagated S3 record context. This exercises one of the context-propagation capabilities provided by the V6 record model rather than treating the extra pipeline solely as dispatch overhead.
+The full V6 leaf handler also reads the originating raw SQS message from the propagated S3 record context. This exercises one of the context-propagation capabilities provided by the V6 record model rather than treating the extra pipeline solely as dispatch overhead.
 
-The runtime numbers should be read together with the structural difference between implementations. Raw SDK owns all envelope plumbing. V5 removes the outer SQS decoding but still leaves nested S3 parsing/iteration in application code. V6 supplies the source-specific S3 decoder/processor and context propagation, at the cost of the additional framework machinery those capabilities require.
+The runtime numbers should be read together with the structural difference between implementations. Raw SDK owns all hosting and envelope plumbing. V6 Minimal keeps KLT's lean host but owns all AWS-specific nested orchestration in application code. V5 removes the outer SQS decoding while leaving nested S3 parsing/iteration in application code. Full/source-specific V6 supplies the source-specific S3 decoder/processor and context propagation. The resulting spectrum is intended to show both runtime cost and the amount of infrastructure responsibility moved from application code into the framework.
+
+The benchmark-only Minimal SQS compositions do not change the V6.0 product boundary: there is still no `MinimalSqsFunction`, `MinimalSnsFunction`, `MinimalS3Function`, or other source-specific Minimal host.
