@@ -56,22 +56,15 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
 
         var context = CreateRecordContext(envelope, lambdaContext);
 
-        try
-        {
-            await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
-            var results = await ProcessRecordsAsync(
-                envelope,
-                context,
-                invocationScope.ServiceProvider,
-                CancellationToken.None).ConfigureAwait(false);
+        var results = await ProcessRecordsAsync(
+            envelope,
+            context,
+            invocationScope.ServiceProvider,
+            CancellationToken.None).ConfigureAwait(false);
 
-            return CreateResponse(results);
-        }
-        finally
-        {
-            FunctionContextFactory.DisposeDeadlineCancellationToken(context);
-        }
+        return CreateResponse(results);
     }
 
     /// <summary>
