@@ -53,19 +53,12 @@ public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAcc
 
         var requestContext = CreateContext(input, context);
 
-        try
-        {
-            await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
-            return await ExecuteHandlerAsync<THandler, TOutput>(
-                invocationScope.ServiceProvider,
-                CancellationToken.None,
-                (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
-        }
-        finally
-        {
-            FunctionContextFactory.DisposeDeadlineCancellationToken(requestContext);
-        }
+        return await ExecuteHandlerAsync<THandler, TOutput>(
+            invocationScope.ServiceProvider,
+            CancellationToken.None,
+            (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
     }
 }
 
