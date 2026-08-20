@@ -41,17 +41,10 @@ public abstract class MinimalEventFunction<TInput, TContext, [DynamicallyAccesse
     {
         var eventContext = CreateContext(input, context);
 
-        try
-        {
-            await using var invocationScope = ServiceProvider.CreateAsyncScope();
-            var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
 
-            await handler.HandleAsync(input, eventContext, CancellationToken.None).ConfigureAwait(false);
-        }
-        finally
-        {
-            FunctionContextFactory.DisposeDeadlineCancellationToken(eventContext);
-        }
+        await handler.HandleAsync(input, eventContext, CancellationToken.None).ConfigureAwait(false);
     }
 }
 
