@@ -17,7 +17,7 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TOutput">The type of the response.</typeparam>
 /// <typeparam name="TContext">The context type passed to the handler.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the request.</typeparam>
-#pragma warning disable S2436 // The six generic roles are intentional and make the request contract explicit.
+#pragma warning disable S2436 // The generic roles are intentional and make the request contract explicit.
 public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : LambdaFunction
 #pragma warning restore S2436
     where TContext : RequestContext
