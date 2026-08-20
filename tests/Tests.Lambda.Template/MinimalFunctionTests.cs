@@ -109,13 +109,18 @@ public class MinimalFunctionTests
     }
 
     [Test]
-    public void MinimalEventFunction_cancels_before_handler_when_no_execution_time_remains()
+    public async Task MinimalEventFunction_passes_generic_token_when_no_execution_time_remains()
     {
         var sut = new TrackingMinimalEventFunction();
         var lambdaContext = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
 
-        Assert.ThrowsAsync<OperationCanceledException>(() => sut.FunctionHandlerAsync("hello", lambdaContext));
-        Assert.That(TrackingEventHandler.Input, Is.Null);
+        await sut.FunctionHandlerAsync("hello", lambdaContext);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(TrackingEventHandler.Input, Is.EqualTo("hello"));
+            Assert.That(TrackingEventHandler.Token, Is.EqualTo(CancellationToken.None));
+        });
     }
 
     [Test]
@@ -236,17 +241,20 @@ public class MinimalFunctionTests
     {
         public static string? Input { get; private set; }
         public static EventContext? Context { get; private set; }
+        public static CancellationToken Token { get; private set; }
 
         public static void Reset()
         {
             Input = null;
             Context = null;
+            Token = default;
         }
 
         public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken)
         {
             Input = input;
             Context = context;
+            Token = cancellationToken;
             return ValueTask.CompletedTask;
         }
     }
