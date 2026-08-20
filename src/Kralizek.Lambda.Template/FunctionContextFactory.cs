@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 using Amazon.Lambda.Core;
@@ -13,7 +12,7 @@ namespace Kralizek.Lambda;
 public static class FunctionContextFactory
 {
     private const string LambdaContextPropertyName = "Kralizek.Lambda.Template.LambdaContext";
-    private static readonly ConditionalWeakTable<FunctionContext, DeadlineCancellationState> DeadlineCancellationStates = new();
+    private const string DeadlineCancellationStatePropertyName = "Kralizek.Lambda.Template.DeadlineCancellationState";
 
     public static EventContext CreateEventContext(ILambdaContext lambdaContext)
     {
@@ -90,13 +89,16 @@ public static class FunctionContextFactory
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var state = DeadlineCancellationStates.GetValue(context, static _ => new DeadlineCancellationState());
+        var state = context.GetOrAddRuntimeState(
+            DeadlineCancellationStatePropertyName,
+            static () => new DeadlineCancellationState());
+
         return state.GetToken(context.GetLambdaContext());
     }
 
     internal static void DisposeDeadlineCancellationToken(FunctionContext context)
     {
-        if (DeadlineCancellationStates.TryGetValue(context, out var state))
+        if (context.TryGetRuntimeState<DeadlineCancellationState>(DeadlineCancellationStatePropertyName, out var state))
         {
             state.Dispose();
         }
