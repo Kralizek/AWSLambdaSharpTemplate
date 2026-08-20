@@ -96,17 +96,15 @@ public static class FunctionContextFactory
 
     internal static void DisposeDeadlineCancellationToken(FunctionContext context)
     {
-        if (!DeadlineCancellationStates.TryGetValue(context, out var state))
+        if (DeadlineCancellationStates.TryGetValue(context, out var state))
         {
-            return;
+            state.Dispose();
         }
-
-        DeadlineCancellationStates.Remove(context);
-        state.Dispose();
     }
 
     private sealed class DeadlineCancellationState : IDisposable
     {
+        private readonly object _syncRoot = new();
         private CancellationTokenSource? _source;
         private CancellationToken _token;
         private bool _initialized;
@@ -114,7 +112,7 @@ public static class FunctionContextFactory
 
         public CancellationToken GetToken(ILambdaContext lambdaContext)
         {
-            lock (this)
+            lock (_syncRoot)
             {
                 ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -123,18 +121,7 @@ public static class FunctionContextFactory
                     return _token;
                 }
 
-                var source = new CancellationTokenSource();
-                var remaining = lambdaContext.RemainingTime;
-
-                if (remaining <= TimeSpan.Zero)
-                {
-                    source.Cancel();
-                }
-                else if (remaining < TimeSpan.FromMilliseconds(int.MaxValue))
-                {
-                    source.CancelAfter(remaining);
-                }
-
+                var source = LambdaInvocationLifetime.CreateCancellationTokenSource(lambdaContext);
                 _source = source;
                 _token = source.Token;
                 _initialized = true;
@@ -144,7 +131,7 @@ public static class FunctionContextFactory
 
         public void Dispose()
         {
-            lock (this)
+            lock (_syncRoot)
             {
                 if (_disposed)
                 {
