@@ -16,6 +16,7 @@ public class SqsBenchmarks
     private TargetSession? _v6Session;
     private ISqsTarget? _rawSdk;
     private ISqsTarget? _v5Typed;
+    private ISqsTarget? _v6Minimal;
     private ISqsTarget? _v6Raw;
     private ISqsTarget? _v6Typed;
 
@@ -31,6 +32,7 @@ public class SqsBenchmarks
 
         _rawSdk = _rawSdkSession.CreateTarget<ISqsTarget>("RawSdkTarget.UppercaseSqsTarget");
         _v5Typed = _v5Session.CreateTarget<ISqsTarget>("V5Target.UppercaseSqsTarget");
+        _v6Minimal = _v6Session.CreateTarget<ISqsTarget>("V6Target.UppercaseMinimalSqsTarget");
         _v6Raw = _v6Session.CreateTarget<ISqsTarget>("V6Target.UppercaseRawSqsTarget");
         _v6Typed = _v6Session.CreateTarget<ISqsTarget>("V6Target.UppercaseTypedSqsTarget");
     }
@@ -40,6 +42,7 @@ public class SqsBenchmarks
     {
         _rawSdk = null;
         _v5Typed = null;
+        _v6Minimal = null;
         _v6Raw = null;
         _v6Typed = null;
 
@@ -57,6 +60,9 @@ public class SqsBenchmarks
 
     [Benchmark]
     public Task<int> V5Typed() => _v5Typed!.InvokeAsync(BatchSize);
+
+    [Benchmark]
+    public Task<int> V6Minimal() => _v6Minimal!.InvokeAsync(BatchSize);
 
     [Benchmark]
     public Task<int> V6Raw() => _v6Raw!.InvokeAsync(BatchSize);
