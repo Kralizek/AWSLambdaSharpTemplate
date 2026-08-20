@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -39,15 +40,19 @@ public abstract class MinimalRequestFunction<TInput, TOutput, TContext, [Dynamic
 
     public virtual async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        using var cts = CreateCancellationTokenSource(context);
-        cts.Token.ThrowIfCancellationRequested();
-
         var requestContext = CreateContext(input, context);
 
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
-        var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
+        try
+        {
+            await using var invocationScope = ServiceProvider.CreateAsyncScope();
+            var handler = invocationScope.ServiceProvider.GetRequiredService<THandler>();
 
-        return await handler.HandleAsync(input, requestContext, cts.Token).ConfigureAwait(false);
+            return await handler.HandleAsync(input, requestContext, CancellationToken.None).ConfigureAwait(false);
+        }
+        finally
+        {
+            FunctionContextFactory.DisposeDeadlineCancellationToken(requestContext);
+        }
     }
 }
 
