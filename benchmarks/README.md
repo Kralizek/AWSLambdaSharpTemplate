@@ -7,7 +7,7 @@ This directory contains performance benchmarks for the Lambda Template libraries
 - `BenchmarkWorkloads` contains dependency-free application workloads shared by every target.
 - `RawSdkTarget` implements the workloads as plain AWS Lambda handlers.
 - `V5Target` is pinned to the published v5 packages and keeps its original .NET 6 dependency graph isolated from the current source tree.
-- `V6Target` references the current projects under `src/` directly.
+- `V6Target` references the current projects under `src/` directly, including full and Minimal hosting contenders where an existing scenario can compare them directly.
 - `Benchmarks` contains the BenchmarkDotNet benchmark host and comparisons.
 
 The benchmark host loads the raw SDK, v5, and v6 targets through separate collectible `AssemblyLoadContext` instances and shares only the neutral `BenchmarkWorkloads` contract. Target loading happens during benchmark setup and is not part of the measured operation.
@@ -193,9 +193,16 @@ The request benchmark uses a trivial uppercase workload to compare:
 
 - a plain AWS Lambda handler (`RawSdk`), used as the BenchmarkDotNet baseline;
 - the published v5 runtime (`V5`);
-- the current v6 source tree (`V6`).
+- the current v6 Minimal request host (`V6Minimal`);
+- the current v6 full request host (`V6`).
+
+`V6Minimal` and `V6` use the same `UppercaseHandler` and the same v6 request/context contract. The only intentional difference is the host. This makes the contender useful for isolating the cost of the full invocation infrastructure from the cost of the v6 application programming model itself.
+
+The Minimal target still pays for the features deliberately retained by the lean host: function-local dependency injection, one async invocation scope, handler resolution, `RequestContext`, cancellation, and async scope disposal. The goal is therefore not to reproduce the raw SDK implementation byte-for-byte; the raw contender remains the lower-level reference point.
 
 The workload itself is shared so the comparison focuses on invocation-framework overhead rather than different application implementations.
+
+No separate Minimal benchmark family is created. Minimal hosting is added only as another contender in existing scenarios where the semantics and workload already allow a direct comparison.
 
 ### SQS functions
 
