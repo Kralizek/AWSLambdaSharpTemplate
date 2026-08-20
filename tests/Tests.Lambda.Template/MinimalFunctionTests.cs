@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +28,7 @@ public class MinimalFunctionTests
         TrackingEventHandler.Reset();
         TrackingRequestHandler.Reset();
         ScopedTrackingHandler.ScopeIds.Clear();
+        ScopedRequestTrackingHandler.ScopeIds.Clear();
         AsyncDisposableDependency.WasDisposed = false;
     }
 
@@ -76,6 +80,35 @@ public class MinimalFunctionTests
     }
 
     [Test]
+    public async Task Minimal_functions_do_not_enrich_invocation_activity_or_record_framework_invocations()
+    {
+        var measurements = new ConcurrentBag<long>();
+
+        using var meterListener = new MeterListener();
+        meterListener.InstrumentPublished = (instrument, listener) =>
+        {
+            if (instrument.Meter.Name == LambdaTelemetry.MeterName &&
+                instrument.Name == "kralizek.lambda.invocations")
+            {
+                listener.EnableMeasurementEvents(instrument);
+            }
+        };
+        meterListener.SetMeasurementEventCallback<long>((_, value, _, _) => measurements.Add(value));
+        meterListener.Start();
+
+        using var invocation = new Activity("lambda-invocation").Start();
+
+        await new TrackingMinimalEventFunction().FunctionHandlerAsync("event", TestLambdaContexts.Create());
+        await new TrackingMinimalRequestFunction().FunctionHandlerAsync("request", TestLambdaContexts.Create());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(invocation.GetTagItem("kralizek.lambda.function.model"), Is.Null);
+            Assert.That(measurements, Is.Empty);
+        });
+    }
+
+    [Test]
     public void MinimalEventFunction_cancels_before_handler_when_no_execution_time_remains()
     {
         var sut = new TrackingMinimalEventFunction();
@@ -99,9 +132,32 @@ public class MinimalFunctionTests
     }
 
     [Test]
+    public async Task MinimalRequestFunction_creates_an_independent_scope_per_invocation()
+    {
+        var sut = new ScopedMinimalRequestFunction();
+        var context = TestLambdaContexts.Create();
+
+        await sut.FunctionHandlerAsync("first", context);
+        await sut.FunctionHandlerAsync("second", context);
+
+        Assert.That(ScopedRequestTrackingHandler.ScopeIds, Has.Count.EqualTo(2));
+        Assert.That(ScopedRequestTrackingHandler.ScopeIds[0], Is.Not.EqualTo(ScopedRequestTrackingHandler.ScopeIds[1]));
+    }
+
+    [Test]
     public async Task MinimalEventFunction_async_disposes_scoped_dependencies_after_handler_completion()
     {
         var sut = new AsyncDisposableMinimalEventFunction();
+
+        await sut.FunctionHandlerAsync("trigger", TestLambdaContexts.Create());
+
+        Assert.That(AsyncDisposableDependency.WasDisposed, Is.True);
+    }
+
+    [Test]
+    public async Task MinimalRequestFunction_async_disposes_scoped_dependencies_after_handler_completion()
+    {
+        var sut = new AsyncDisposableMinimalRequestFunction();
 
         await sut.FunctionHandlerAsync("trigger", TestLambdaContexts.Create());
 
@@ -142,7 +198,19 @@ public class MinimalFunctionTests
             services.AddScoped<ScopedDependency>();
     }
 
+    public sealed class ScopedMinimalRequestFunction : MinimalRequestFunction<string, string, ScopedRequestTrackingHandler>
+    {
+        protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration) =>
+            services.AddScoped<ScopedDependency>();
+    }
+
     public sealed class AsyncDisposableMinimalEventFunction : MinimalEventFunction<string, AsyncDisposableHandler>
+    {
+        protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration) =>
+            services.AddScoped<AsyncDisposableDependency>();
+    }
+
+    public sealed class AsyncDisposableMinimalRequestFunction : MinimalRequestFunction<string, string, AsyncDisposableRequestHandler>
     {
         protected override void ConfigureServices(IServiceCollection services, IConfiguration configuration) =>
             services.AddScoped<AsyncDisposableDependency>();
@@ -216,6 +284,21 @@ public class MinimalFunctionTests
         }
     }
 
+    public sealed class ScopedRequestTrackingHandler : IRequestHandler<string, string>
+    {
+        private readonly ScopedDependency _dependency;
+
+        public ScopedRequestTrackingHandler(ScopedDependency dependency) => _dependency = dependency;
+
+        public static List<Guid> ScopeIds { get; } = [];
+
+        public ValueTask<string> HandleAsync(string input, RequestContext context, CancellationToken cancellationToken)
+        {
+            ScopeIds.Add(_dependency.Id);
+            return ValueTask.FromResult(input);
+        }
+    }
+
     public sealed class AsyncDisposableDependency : IAsyncDisposable
     {
         public static bool WasDisposed { get; set; }
@@ -237,6 +320,19 @@ public class MinimalFunctionTests
         {
             _ = _dependency;
             return ValueTask.CompletedTask;
+        }
+    }
+
+    public sealed class AsyncDisposableRequestHandler : IRequestHandler<string, string>
+    {
+        private readonly AsyncDisposableDependency _dependency;
+
+        public AsyncDisposableRequestHandler(AsyncDisposableDependency dependency) => _dependency = dependency;
+
+        public ValueTask<string> HandleAsync(string input, RequestContext context, CancellationToken cancellationToken)
+        {
+            _ = _dependency;
+            return ValueTask.FromResult(input);
         }
     }
 
