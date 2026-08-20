@@ -147,8 +147,6 @@ The asynchronous SQS suite forces one real local suspension per record through `
 | 100 | Raw SDK | 57.945 us | 14,032 B | 0.70x | 0.35x | 7.75% |
 | 100 | V5 typed | 82.655 us | 39,832 B | 1.00x | 1.00x | 0.84% |
 | 100 | V6 raw | 227.757 us | 137,099 B | 2.76x | 3.44x | 10.37% |
-| 100 | V5 typed | 82.655 us | 39,832 B | 1.00x | 1.00x | 0.84% |
-| 100 | V6 raw | 227.757 us | 137,099 B | 2.76x | 3.44x | 10.37% |
 | 100 | V6 typed | 294.355 us | 161,069 B | 3.56x | 4.04x | 13.33% |
 
 Real suspension remains a more relevant guardrail for async-pipeline conclusions than the completed-task floor. The richer V6 Record pipeline remains measurable in both time and allocations, but the batch-10 timing spread shows why these ratios should not be treated as universal throughput multipliers.
