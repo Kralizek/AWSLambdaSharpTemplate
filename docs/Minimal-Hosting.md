@@ -2,7 +2,7 @@
 
 Version 6 has one request/event handler programming model and two hosting choices.
 
-The normal `EventFunction` and `RequestFunction` hosts provide the complete v6 invocation infrastructure. `MinimalEventFunction` and `MinimalRequestFunction` host the same handlers through a deliberately shorter execution path when the function does not need the richer processing pipeline.
+The normal `EventFunction` and `RequestFunction` hosts provide the complete v6 Request/Event invocation infrastructure. `MinimalEventFunction` and `MinimalRequestFunction` host the same handlers through a deliberately shorter execution path when the function does not need all of that host-level infrastructure.
 
 Minimal hosting is a hosting choice, not a second application programming model. For supported request/event functions, the handler contract and application code stay the same:
 
@@ -36,18 +36,27 @@ This is intentionally similar to the useful infrastructure that v5 could provide
 
 ## What minimal hosting omits
 
-The minimal host does not execute the normal host's internal invocation telemetry or richer processing pipeline. In particular it does not provide:
+For Request/Event functions, Minimal does not execute the default/full host's internal invocation telemetry path. In particular, Minimal does not emit Kralizek.Lambda.Template `ActivitySource` activities or `Meter` instruments for the invocation.
 
-- Kralizek.Lambda.Template `ActivitySource` activities or `Meter` instruments;
-- record processing or per-record result semantics;
+Separately, Minimal hosting in v6.0 does not extend to source-specific Record hosts. Therefore it also does not provide the source-specific Record-processing capabilities owned by those hosts, such as:
+
+- per-record processing and source-specific result semantics;
 - source-specific envelope orchestration;
 - partial-batch response translation;
 - nested record-context propagation;
 - source-specific record processors.
 
-Those capabilities remain part of the normal/source-specific v6 hosts.
+Those Record capabilities are not being removed from `EventFunction` or `RequestFunction`; they belong to the source-specific Record model and remain available through the normal source-specific hosts.
 
 There are intentionally no `MinimalSqsFunction`, `MinimalSnsFunction`, `MinimalS3Function`, or equivalent source-specific Minimal types in v6.0.
+
+## Relationship to the beta-4 performance baseline
+
+The controlled V5-to-V6 reference published for beta 4 measured the default/full V6 paths before Minimal hosting was part of the comparison. That reference remains valid and should continue to be read as the cost of the default/full V6 execution model on the measured workloads.
+
+Minimal does not "fix" that baseline or imply that the richer V6 behavior was accidental. Instead, it gives source-neutral Request/Event functions a smaller hosting capability set when they do not need the full host's internal invocation telemetry or any source-specific Record-processing behavior.
+
+A benchmark that adds `V6Minimal` to the existing Request scenario therefore answers a narrower question: how much of the measured Request overhead belongs to the full hosting path, and how much belongs to the v6 handler/context/DI model that Minimal deliberately retains.
 
 ## OpenTelemetry
 
@@ -93,8 +102,8 @@ For these templates, switching between the normal and Minimal host changes `Func
 
 ## Choosing the host
 
-Prefer the normal host when the function uses source-specific processing semantics, record processing, framework telemetry, or other behavior provided by the full v6 pipeline.
+Prefer the normal Request/Event host when the function wants the full host's invocation infrastructure, including KLT internal invocation telemetry. Prefer the normal source-specific Record hosts when the function needs record processing, result/failure semantics, envelope orchestration, context propagation, or other source-specific behavior.
 
-Prefer Minimal for source-neutral request/event functions where the application wants the v6 handler/context/DI model but does not need that additional orchestration and wants invocation overhead closer to the raw Lambda runtime.
+Prefer Minimal for source-neutral request/event functions where the application wants the v6 handler/context/DI model but does not need that additional host-level behavior and wants lower invocation overhead.
 
 The normal host remains the default. Minimal is an explicit performance-oriented trade-off, not a compatibility mode.
