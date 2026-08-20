@@ -15,11 +15,7 @@ namespace Tests.Lambda;
 public class DeadlineCancellationTests
 {
     [SetUp]
-    public void SetUp()
-    {
-        TrackingHandler.Reset();
-        DeadlineTrackingHandler.Reset();
-    }
+    public void SetUp() => TrackingHandler.Reset();
 
     [TestCase(false)]
     [TestCase(true)]
@@ -44,35 +40,37 @@ public class DeadlineCancellationTests
         });
     }
 
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task Deadline_token_is_created_lazily_from_remaining_time_and_cached(bool minimal)
+    [Test]
+    public void Deadline_cancellation_source_uses_current_remaining_time()
     {
         var lambdaContext = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
+        var context = FunctionContextFactory.CreateRequestContext(lambdaContext);
 
-        if (minimal)
-        {
-            await new MinimalDeadlineTrackingFunction().FunctionHandlerAsync("input", lambdaContext);
-        }
-        else
-        {
-            await new FullDeadlineTrackingFunction().FunctionHandlerAsync("input", lambdaContext);
-        }
+        using var deadline = context.CreateDeadlineCancellationTokenSource();
+
+        Assert.That(deadline.Token.IsCancellationRequested, Is.True);
+    }
+
+    [Test]
+    public void Deadline_cancellation_source_is_caller_owned_and_created_per_request()
+    {
+        var lambdaContext = new TestLambdaContext { RemainingTime = TimeSpan.FromMinutes(1) };
+        var context = FunctionContextFactory.CreateRequestContext(lambdaContext);
+
+        using var first = context.CreateDeadlineCancellationTokenSource();
+        using var second = context.CreateDeadlineCancellationTokenSource();
 
         Assert.Multiple(() =>
         {
-            Assert.That(DeadlineTrackingHandler.FirstToken.IsCancellationRequested, Is.True);
-            Assert.That(DeadlineTrackingHandler.SecondToken, Is.EqualTo(DeadlineTrackingHandler.FirstToken));
+            Assert.That(first, Is.Not.SameAs(second));
+            Assert.That(first.Token.CanBeCanceled, Is.True);
+            Assert.That(second.Token.CanBeCanceled, Is.True);
         });
     }
 
     public sealed class FullTrackingFunction : RequestFunction<string, string, TrackingHandler>;
 
     public sealed class MinimalTrackingFunction : MinimalRequestFunction<string, string, TrackingHandler>;
-
-    public sealed class FullDeadlineTrackingFunction : RequestFunction<string, string, DeadlineTrackingHandler>;
-
-    public sealed class MinimalDeadlineTrackingFunction : MinimalRequestFunction<string, string, DeadlineTrackingHandler>;
 
     public sealed class TrackingHandler : IRequestHandler<string, string>
     {
@@ -89,25 +87,6 @@ public class DeadlineCancellationTests
         {
             Invoked = true;
             Token = cancellationToken;
-            return ValueTask.FromResult(input);
-        }
-    }
-
-    public sealed class DeadlineTrackingHandler : IRequestHandler<string, string>
-    {
-        public static CancellationToken FirstToken { get; private set; }
-        public static CancellationToken SecondToken { get; private set; }
-
-        public static void Reset()
-        {
-            FirstToken = default;
-            SecondToken = default;
-        }
-
-        public ValueTask<string> HandleAsync(string input, RequestContext context, CancellationToken cancellationToken)
-        {
-            FirstToken = context.GetDeadlineCancellationToken();
-            SecondToken = context.GetDeadlineCancellationToken();
             return ValueTask.FromResult(input);
         }
     }
