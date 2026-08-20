@@ -96,15 +96,19 @@ public class RecordFunctionTests
     }
 
     [Test]
-    public void FunctionHandlerAsync_propagates_cancellation_without_translating_it()
+    public async Task FunctionHandlerAsync_does_not_implicitly_cancel_when_no_execution_time_remains()
     {
         var sut = new CancellationRecordFunction();
         var lambdaContext = TestLambdaContexts.Create();
         lambdaContext.RemainingTime = TimeSpan.Zero;
 
-        Assert.ThrowsAsync<OperationCanceledException>(() =>
-            sut.FunctionHandlerAsync(new[] { "timed-out-record" }, lambdaContext));
-        Assert.That(sut.ExceptionWasTranslated, Is.False);
+        var response = await sut.FunctionHandlerAsync(new[] { "timed-out-record" }, lambdaContext);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response, Is.EqualTo(1));
+            Assert.That(sut.ExceptionWasTranslated, Is.False);
+        });
     }
 
     [Test]
