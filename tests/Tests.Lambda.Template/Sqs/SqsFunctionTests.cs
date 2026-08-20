@@ -127,15 +127,19 @@ public class SqsFunctionTests
     }
 
     [Test]
-    public void Invocation_cancellation_aborts_the_batch()
+    public async Task Invocation_does_not_implicitly_cancel_when_deadline_has_elapsed()
     {
         var function = new TestFunction();
         var context = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
         var @event = CreateEvent(("first", "{\"value\":\"one\"}"));
 
-        Assert.That(
-            async () => await function.FunctionHandlerAsync(@event, context),
-            Throws.TypeOf<OperationCanceledException>());
+        var response = await function.FunctionHandlerAsync(@event, context);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.BatchItemFailures, Is.Empty);
+            Assert.That(TestHandler.Messages.Select(message => message.Value), Is.EqualTo(new[] { "one" }));
+        });
     }
 
     [Test]
