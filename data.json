@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787230798812,
+  "lastUpdated": 1787241098165,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -1125,6 +1125,58 @@
             "bytesAllocated": 8936
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1149.50075844356,
+            "unit": "ns",
+            "range": "± 3.713287586997362",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 2420.5851000467937,
+            "unit": "ns",
+            "range": "± 9.63803651684961",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 1533.5990601857504,
+            "unit": "ns",
+            "range": "± 16.01763782209511",
+            "bytesAllocated": 2608
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 5286.322770182292,
+            "unit": "ns",
+            "range": "± 26.574794757010462",
+            "bytesAllocated": 8856
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 5828.159729003906,
+            "unit": "ns",
+            "range": "± 73.31093745800932",
+            "bytesAllocated": 8936
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -1697,6 +1749,51 @@
             "bytesAllocated": 1376
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 19.690837585926054,
+            "unit": "ns",
+            "range": "± 0.3447703001436694",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 122.60169909550594,
+            "unit": "ns",
+            "range": "± 1.5574067383994257",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 376.54993832906086,
+            "unit": "ns",
+            "range": "± 14.379058503604847",
+            "bytesAllocated": 1248
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 456.5520228472623,
+            "unit": "ns",
+            "range": "± 10.197272507137034",
+            "bytesAllocated": 1376
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -2014,6 +2111,58 @@
             "bytesAllocated": 9120
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 1524.319497934977,
+            "unit": "ns",
+            "range": "± 6.763999492169673",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 1718.5714592933655,
+            "unit": "ns",
+            "range": "± 47.655758724035046",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 2011.985428475045,
+            "unit": "ns",
+            "range": "± 66.91644848679152",
+            "bytesAllocated": 2840
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 5836.742988586426,
+            "unit": "ns",
+            "range": "± 33.190397419438476",
+            "bytesAllocated": 9040
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 6202.898632049561,
+            "unit": "ns",
+            "range": "± 23.121329616061338",
+            "bytesAllocated": 9120
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -2282,6 +2431,51 @@
             "bytesAllocated": 6752
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 3118.2289044698077,
+            "unit": "ns",
+            "range": "± 45.94845020760164",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 3435.7425406319753,
+            "unit": "ns",
+            "range": "± 17.514808517416483",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 3647.2460312714447,
+            "unit": "ns",
+            "range": "± 98.30155168417696",
+            "bytesAllocated": 5288
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 4842.393410237631,
+            "unit": "ns",
+            "range": "± 63.4748563511597",
+            "bytesAllocated": 6752
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -2547,6 +2741,51 @@
             "value": 10354.273583984375,
             "unit": "ns",
             "range": "± 181.87964320772292",
+            "bytesAllocated": 8279
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 5285.192099855657,
+            "unit": "ns",
+            "range": "± 229.04879185351248",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 6411.622134399414,
+            "unit": "ns",
+            "range": "± 144.9174500943672",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 6354.253686758188,
+            "unit": "ns",
+            "range": "± 261.91315259019314",
+            "bytesAllocated": 5672
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 8455.768752034504,
+            "unit": "ns",
+            "range": "± 149.18142512263668",
             "bytesAllocated": 8279
           }
         ]
@@ -2867,6 +3106,58 @@
             "bytesAllocated": 12360
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 3042.3505433400474,
+            "unit": "ns",
+            "range": "± 89.56826534204181",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 3704.3303706829365,
+            "unit": "ns",
+            "range": "± 25.093014217994494",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 3584.949613717886,
+            "unit": "ns",
+            "range": "± 23.674457014552022",
+            "bytesAllocated": 3096
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 14127.466020063921,
+            "unit": "ns",
+            "range": "± 340.0077765883319",
+            "bytesAllocated": 10872
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 16382.52172088623,
+            "unit": "ns",
+            "range": "± 138.9274255779144",
+            "bytesAllocated": 12360
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -3182,6 +3473,58 @@
             "unit": "ns",
             "range": "± 490.2647495843959",
             "bytesAllocated": 15903
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "248f58f92a1933039bea2fe9237f7843b35a3d29",
+          "message": "Add minimal Lambda hosting model (#104)",
+          "timestamp": "2026-08-20T15:38:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/248f58f92a1933039bea2fe9237f7843b35a3d29"
+        },
+        "date": 1787241098165,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 7884.161401284708,
+            "unit": "ns",
+            "range": "± 393.4778064580737",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 11913.464713541667,
+            "unit": "ns",
+            "range": "± 92.767435105476",
+            "bytesAllocated": 4493
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 8844.833132425943,
+            "unit": "ns",
+            "range": "± 287.3534399937453",
+            "bytesAllocated": 2985
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 25476.061855740016,
+            "unit": "ns",
+            "range": "± 530.8334192639983",
+            "bytesAllocated": 14064
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 28887.044699532646,
+            "unit": "ns",
+            "range": "± 217.18442330535626",
+            "bytesAllocated": 15901
           }
         ]
       }
