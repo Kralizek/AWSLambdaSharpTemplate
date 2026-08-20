@@ -76,6 +76,8 @@ The benchmark-validation GitHub Actions workflow verifies the pinned SDK, builds
 
 This is the controlled-hardware V5 to V6 reference collected on 2026-08-20. The exact measured repository commit is `a94a87c669969c3f2784f8d460b7c090a441573e`.
 
+This reference was collected for beta 4 before Minimal hosting was added to the comparison. Every `V6` value in the tables below therefore refers to the **default/full V6 host measured at that commit**. These figures remain the historical V5-to-full-V6 baseline. `V6Minimal` is a later contender in the same Request benchmark and should be measured separately rather than retroactively inserted into this reference.
+
 ### Reference environment and method
 
 - Dell XPS 16 9640 with an Intel Core Ultra 9 185H (16 physical cores, 22 logical cores) and 63.46 GiB RAM;
@@ -93,7 +95,7 @@ Each primary comparison was then run three times as independent BenchmarkDotNet 
 
 Controlled local hardware is the source for these absolute comparisons. The GitHub-hosted benchmark history remains useful as release-to-release trend and canary data, but it is not an absolute performance baseline.
 
-Raw SDK is included as the lower-bound framework-cost reference. The primary migration comparison is V5 typed to V6 typed; Raw SDK parity is not a V6 performance requirement.
+Raw SDK is included as the lower-bound framework-cost reference. The primary migration comparison is V5 typed to the default/full V6 path; Raw SDK parity is not a V6 performance requirement.
 
 ### Request baseline
 
@@ -103,9 +105,9 @@ The request benchmark is intentionally trivial, so it exposes invocation-framewo
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Raw SDK | 19.73 ns | 128 B | 0.16x | 0.36x | 12.14% |
 | V5 | 123.18 ns | 352 B | 1.00x | 1.00x | 11.46% |
-| V6 | 676.35 ns | 1,672 B | 5.49x | 4.75x | 3.71% |
+| V6 full | 676.35 ns | 1,672 B | 5.49x | 4.75x | 3.71% |
 
-The relative increase is large because the workload itself does almost no work, while the median absolute difference remains below one microsecond. This benchmark is best read as the cost floor of the richer V6 request pipeline rather than as a prediction of end-to-end application latency.
+The relative increase is large because the workload itself does almost no work, while the median absolute difference remains below one microsecond. This benchmark is best read as the cost floor of the default/full V6 request host rather than as a prediction of end-to-end application latency.
 
 ### SQS framework-overhead floor
 
@@ -126,7 +128,7 @@ The synchronous SQS suite uses already-completed tasks/value tasks. It is the fr
 | 100 | V6 raw | 82.356 us | 108,912 B | 3.02x | 3.76x | 6.50% |
 | 100 | V6 typed | 99.051 us | 124,912 B | 3.63x | 4.31x | 8.74% |
 
-This is deliberately a framework-overhead benchmark. V6 performs substantially more work per record than V5, including record-scoped infrastructure and source-specific processing semantics, so this suite should not be used in isolation to drive optimization decisions.
+This is deliberately a framework-overhead benchmark. The default/source-specific V6 Record paths perform substantially more work per record than V5, including record-scoped infrastructure and source-specific processing semantics, so this suite should not be used in isolation to drive optimization decisions.
 
 ### Genuinely asynchronous SQS
 
@@ -145,9 +147,11 @@ The asynchronous SQS suite forces one real local suspension per record through `
 | 100 | Raw SDK | 57.945 us | 14,032 B | 0.70x | 0.35x | 7.75% |
 | 100 | V5 typed | 82.655 us | 39,832 B | 1.00x | 1.00x | 0.84% |
 | 100 | V6 raw | 227.757 us | 137,099 B | 2.76x | 3.44x | 10.37% |
+| 100 | V5 typed | 82.655 us | 39,832 B | 1.00x | 1.00x | 0.84% |
+| 100 | V6 raw | 227.757 us | 137,099 B | 2.76x | 3.44x | 10.37% |
 | 100 | V6 typed | 294.355 us | 161,069 B | 3.56x | 4.04x | 13.33% |
 
-Real suspension remains a more relevant guardrail for async-pipeline conclusions than the completed-task floor. The richer V6 record pipeline remains measurable in both time and allocations, but the batch-10 timing spread shows why these ratios should not be treated as universal throughput multipliers.
+Real suspension remains a more relevant guardrail for async-pipeline conclusions than the completed-task floor. The richer V6 Record pipeline remains measurable in both time and allocations, but the batch-10 timing spread shows why these ratios should not be treated as universal throughput multipliers.
 
 ### Cross-run stability
 
@@ -163,13 +167,13 @@ One refreshed batch-10 nested execution is included as context only, not as part
 | --- | ---: | ---: | ---: | ---: |
 | Raw SDK | 32.949 us | 38.95 KB | 62.110 us | 39.20 KB |
 | V5 | 35.816 us | 40.39 KB | 80.425 us | 42.18 KB |
-| V6 | 57.448 us | 61.12 KB | 193.772 us | 68.19 KB |
+| V6 full/source-specific | 57.448 us | 61.12 KB | 193.772 us | 68.19 KB |
 
-In this contextual run V6 is about 1.60x V5 synchronously and 2.41x V5 with a genuinely asynchronous leaf, while allocation is about 1.51x and 1.62x V5 respectively. The structural difference matters: V6 is performing source-specific S3 decoding/record processing and context propagation that remain application-owned in the Raw SDK and V5 implementations.
+In this contextual run the default/source-specific V6 path is about 1.60x V5 synchronously and 2.41x V5 with a genuinely asynchronous leaf, while allocation is about 1.51x and 1.62x V5 respectively. The structural difference matters: V6 is performing source-specific S3 decoding/record processing and context propagation that remain application-owned in the Raw SDK and V5 implementations.
 
 ### Interpreting the V6 cost
 
-V6 is a programming-model redesign rather than an optimization of the V5 execution path. The additional measured cost corresponds to capabilities that are intentionally part of the V6 model, including:
+The beta-4 reference measures the default/full V6 execution model rather than Minimal hosting. V6 is a programming-model redesign rather than an optimization of the V5 execution path. The additional measured cost corresponds to capabilities that are intentionally part of the measured V6 paths, including:
 
 - one independent DI scope per record with deterministic disposal;
 - source-specific immutable record contexts and access to raw/origin records;
@@ -179,9 +183,11 @@ V6 is a programming-model redesign rather than an optimization of the V5 executi
 - record-level telemetry seams;
 - reusable nested record processing and context propagation.
 
-Those features do not make every additional allocation unavoidable, and the benchmark suite remains the regression safety net for future implementation improvements. The important distinction is that V5 and V6 are not doing the same amount of framework work. The migration tradeoff is therefore not only throughput versus throughput: V6 moves more AWS event-processing policy and lifecycle behavior from application code into the framework.
+Those features do not make every additional allocation unavoidable, and the benchmark suite remains the regression safety net for future implementation improvements. The important distinction is that V5 and the measured default/full V6 paths are not doing the same amount of framework work. The migration tradeoff is therefore not only throughput versus throughput: V6 moves more AWS event-processing policy and lifecycle behavior from application code into the framework.
 
 The result-list sizing change was the low-risk avoidable allocation identified in the separate performance-hardening work. DI activation, async composition, no-listener telemetry short-circuit, and typed-handler fast-path candidates were also investigated, but did not justify production changes before beta 4.
+
+Minimal hosting should not be interpreted as correcting those semantics. It adds a smaller Request/Event hosting choice for functions that do not need the full host-level behavior. A new controlled run including `V6Minimal` can therefore extend this analysis by isolating the cost of the full Request host from the v6 handler/context/DI model retained by Minimal, while leaving the beta-4 baseline intact.
 
 For performance-sensitive migrations, read synchronous and genuinely asynchronous results together, pay close attention to allocations, and validate the actual workload.
 
