@@ -4,6 +4,12 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      publish_history:
+        description: Publish results to benchmark history
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: benchmark-history-${{ github.ref }}
@@ -11,11 +17,11 @@ concurrency:
 
 jobs:
   benchmark:
-    name: Run and publish benchmarks
+    name: Run benchmarks
     permissions:
       actions: read
       contents: write
     uses: ./.github/workflows/release-benchmarks.yml
     with:
-      publish-history: true
+      publish-history: ${{ github.event_name == 'push' || inputs.publish_history }}
       release-mode: false
