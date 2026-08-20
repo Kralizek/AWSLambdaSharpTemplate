@@ -72,6 +72,119 @@ Publishable performance measurements that require stable absolute comparisons sh
 
 The benchmark-validation GitHub Actions workflow verifies the pinned SDK, builds the benchmark solution, and exercises the `full`, `ci`, and `stress` profile selectors through BenchmarkDotNet list mode. It proves that benchmark code and profile selection remain valid without producing timed performance results.
 
+## Controlled V5 to V6 reference
+
+This is the controlled-hardware V5 to V6 reference collected on 2026-08-20. The exact measured repository commit is `a94a87c669969c3f2784f8d460b7c090a441573e`.
+
+### Reference environment and method
+
+- Dell XPS 16 9640 with an Intel Core Ultra 9 185H (16 physical cores, 22 logical cores) and 63.46 GiB RAM;
+- Windows 11 Enterprise 24H2, build 26100.9106;
+- external AC power and the High performance power plan;
+- .NET SDK 10.0.400, .NET runtime 10.0.11 x64 RyuJIT, and BenchmarkDotNet 0.15.8.
+
+The benchmark solution was built once with:
+
+```bash
+dotnet build Benchmarks.slnx --configuration Release --no-incremental -warnaserror
+```
+
+Each primary comparison was then run three times as independent BenchmarkDotNet processes using the `full` profile and a focused class filter: `Benchmarks.RequestBenchmarks.*`, `Benchmarks.SqsBenchmarks.*`, or `Benchmarks.AsyncSqsBenchmarks.*`. Every process used the JSON exporter. The published time is the median of the three process means; the allocation is the median bytes allocated per operation. Raw reports, logs, the run manifest, and the per-case aggregation are preserved outside the repository in `C:\Users\rg1844\Development\My\AWSLambdaSharpTemplate-benchmark-artifacts\2026-08-20-a94a87c`.
+
+Controlled local hardware is the source for these absolute comparisons. The GitHub-hosted benchmark history remains useful as release-to-release trend and canary data, but it is not an absolute performance baseline.
+
+Raw SDK is included as the lower-bound framework-cost reference. The primary migration comparison is V5 typed to V6 typed; Raw SDK parity is not a V6 performance requirement.
+
+### Request baseline
+
+The request benchmark is intentionally trivial, so it exposes invocation-framework overhead more strongly than a real application workload.
+
+| Model | Median mean | Allocated | Time vs V5 | Allocation vs V5 | Time spread |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Raw SDK | 19.73 ns | 128 B | 0.16x | 0.36x | 12.14% |
+| V5 | 123.18 ns | 352 B | 1.00x | 1.00x | 11.46% |
+| V6 | 676.35 ns | 1,672 B | 5.49x | 4.75x | 3.71% |
+
+The relative increase is large because the workload itself does almost no work, while the median absolute difference remains below one microsecond. This benchmark is best read as the cost floor of the richer V6 request pipeline rather than as a prediction of end-to-end application latency.
+
+### SQS framework-overhead floor
+
+The synchronous SQS suite uses already-completed tasks/value tasks. It is the framework-overhead floor, not a representative production completion mode.
+
+| Batch | Model | Median mean | Allocated | Time vs V5 | Allocation vs V5 | Time spread |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | Raw SDK | 0.210 us | 336 B | 0.44x | 0.75x | 2.97% |
+| 1 | V5 typed | 0.474 us | 448 B | 1.00x | 1.00x | 8.90% |
+| 1 | V6 raw | 1.808 us | 2,784 B | 3.81x | 6.21x | 4.31% |
+| 1 | V6 typed | 2.095 us | 2,944 B | 4.42x | 6.57x | 3.66% |
+| 10 | Raw SDK | 1.445 us | 1,560 B | 0.48x | 0.51x | 2.48% |
+| 10 | V5 typed | 2.997 us | 3,040 B | 1.00x | 1.00x | 3.36% |
+| 10 | V6 raw | 9.824 us | 12,432 B | 3.28x | 4.09x | 7.69% |
+| 10 | V6 typed | 11.531 us | 14,032 B | 3.85x | 4.62x | 6.41% |
+| 100 | Raw SDK | 14.185 us | 13,800 B | 0.52x | 0.48x | 13.36% |
+| 100 | V5 typed | 27.286 us | 28,960 B | 1.00x | 1.00x | 6.60% |
+| 100 | V6 raw | 82.356 us | 108,912 B | 3.02x | 3.76x | 6.50% |
+| 100 | V6 typed | 99.051 us | 124,912 B | 3.63x | 4.31x | 8.74% |
+
+This is deliberately a framework-overhead benchmark. V6 performs substantially more work per record than V5, including record-scoped infrastructure and source-specific processing semantics, so this suite should not be used in isolation to drive optimization decisions.
+
+### Genuinely asynchronous SQS
+
+The asynchronous SQS suite forces one real local suspension per record through `Task.Yield()`. It is still synthetic and does not model network or service latency, but it exercises the async control flow used by typical I/O-bound handlers.
+
+| Batch | Model | Median mean | Allocated | Time vs V5 | Allocation vs V5 | Time spread |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | Raw SDK | 1.038 us | 504 B | 0.70x | 0.53x | 9.14% |
+| 1 | V5 typed | 1.484 us | 960 B | 1.00x | 1.00x | 1.09% |
+| 1 | V6 raw | 3.104 us | 3,192 B | 2.09x | 3.33x | 5.75% |
+| 1 | V6 typed | 3.512 us | 3,431 B | 2.37x | 3.57x | 2.52% |
+| 10 | Raw SDK | 5.801 us | 1,730 B | 0.54x | 0.38x | 7.48% |
+| 10 | V5 typed | 10.678 us | 4,497 B | 1.00x | 1.00x | 29.95% |
+| 10 | V6 raw | 46.273 us | 15,423 B | 4.33x | 3.43x | 10.00% |
+| 10 | V6 typed | 52.896 us | 17,821 B | 4.95x | 3.96x | 21.10% |
+| 100 | Raw SDK | 57.945 us | 14,032 B | 0.70x | 0.35x | 7.75% |
+| 100 | V5 typed | 82.655 us | 39,832 B | 1.00x | 1.00x | 0.84% |
+| 100 | V6 raw | 227.757 us | 137,099 B | 2.76x | 3.44x | 10.37% |
+| 100 | V6 typed | 294.355 us | 161,069 B | 3.56x | 4.04x | 13.33% |
+
+Real suspension remains a more relevant guardrail for async-pipeline conclusions than the completed-task floor. The richer V6 record pipeline remains measurable in both time and allocations, but the batch-10 timing spread shows why these ratios should not be treated as universal throughput multipliers.
+
+### Cross-run stability
+
+Time spread is `(max - min) / median` across the three independent process means. Request spread was 3.71% to 12.14%, synchronous SQS spread was 2.48% to 13.36%, and genuinely asynchronous SQS spread was 0.84% to 29.95%. The 29.95% async batch-10 V5 result and the 21.10% V6 typed result make that particular timing ratio less stable than the allocation signal.
+
+Allocations were exact across every Request and synchronous SQS run. Asynchronous SQS allocation differed by at most 13 B across runs (0.07% of the affected result). The preserved aggregation contains each individual process mean, median, min, max, spread, and allocation value for every published target and batch.
+
+### Nested context
+
+One refreshed batch-10 nested execution is included as context only, not as part of the repeated primary baseline. A nested workload gives a different view because V6 owns more of the useful event plumbing instead of comparing only framework dispatch around a trivial leaf handler.
+
+| Model | Sync mean | Sync allocated | Async mean | Async allocated |
+| --- | ---: | ---: | ---: | ---: |
+| Raw SDK | 32.949 us | 38.95 KB | 62.110 us | 39.20 KB |
+| V5 | 35.816 us | 40.39 KB | 80.425 us | 42.18 KB |
+| V6 | 57.448 us | 61.12 KB | 193.772 us | 68.19 KB |
+
+In this contextual run V6 is about 1.60x V5 synchronously and 2.41x V5 with a genuinely asynchronous leaf, while allocation is about 1.51x and 1.62x V5 respectively. The structural difference matters: V6 is performing source-specific S3 decoding/record processing and context propagation that remain application-owned in the Raw SDK and V5 implementations.
+
+### Interpreting the V6 cost
+
+V6 is a programming-model redesign rather than an optimization of the V5 execution path. The additional measured cost corresponds to capabilities that are intentionally part of the V6 model, including:
+
+- one independent DI scope per record with deterministic disposal;
+- source-specific immutable record contexts and access to raw/origin records;
+- built-in record result and partial-batch response handling;
+- automatic exception-to-source-result translation;
+- cancellation and consistent async composition;
+- record-level telemetry seams;
+- reusable nested record processing and context propagation.
+
+Those features do not make every additional allocation unavoidable, and the benchmark suite remains the regression safety net for future implementation improvements. The important distinction is that V5 and V6 are not doing the same amount of framework work. The migration tradeoff is therefore not only throughput versus throughput: V6 moves more AWS event-processing policy and lifecycle behavior from application code into the framework.
+
+The result-list sizing change was the low-risk avoidable allocation identified in the separate performance-hardening work. DI activation, async composition, no-listener telemetry short-circuit, and typed-handler fast-path candidates were also investigated, but did not justify production changes before beta 4.
+
+For performance-sensitive migrations, read synchronous and genuinely asynchronous results together, pay close attention to allocations, and validate the actual workload.
+
 ## Current coverage
 
 ### Request functions
