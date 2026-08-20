@@ -11,7 +11,9 @@ using Microsoft.Extensions.Logging;
 #if (otel)
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AWSLambda;
+#if (!minimal)
 using OpenTelemetry.Metrics;
+#endif
 using OpenTelemetry.Trace;
 #endif
 
@@ -21,11 +23,17 @@ using OpenTelemetry.Trace;
 
 namespace LambdaFunctionProject;
 
+#if (minimal)
+public class Function : MinimalEventFunction<string, StringEventHandler>
+#else
 public class Function : EventFunction<string, StringEventHandler>
+#endif
 {
 #if (otel)
     private static readonly TracerProvider TracerProvider = ConfigureTracing();
+#if (!minimal)
     private static readonly MeterProvider MeterProvider = ConfigureMetrics();
+#endif
 #endif
 
     protected override void ConfigureConfiguration(IConfigurationBuilder configuration)
@@ -49,6 +57,13 @@ public class Function : EventFunction<string, StringEventHandler>
 #if (otel)
     public override async Task FunctionHandlerAsync(string input, ILambdaContext context)
     {
+#if (minimal)
+        await AWSLambdaWrapper.TraceAsync(
+            TracerProvider,
+            base.FunctionHandlerAsync,
+            input,
+            context).ConfigureAwait(false);
+#else
         try
         {
             await AWSLambdaWrapper.TraceAsync(
@@ -61,11 +76,17 @@ public class Function : EventFunction<string, StringEventHandler>
         {
             MeterProvider.ForceFlush();
         }
+#endif
     }
 
-    private static TracerProvider ConfigureTracing() =>
-        Sdk.CreateTracerProviderBuilder()
-            .AddSource(LambdaTelemetry.ActivitySourceName)
+    private static TracerProvider ConfigureTracing()
+    {
+        var builder = Sdk.CreateTracerProviderBuilder();
+#if (!minimal)
+        builder.AddSource(LambdaTelemetry.ActivitySourceName);
+#endif
+
+        return builder
             .AddAWSLambdaConfigurations(options =>
             {
                 // Uncomment when X-Ray is not used and its Lambda context prevents OpenTelemetry spans from being recorded.
@@ -73,11 +94,14 @@ public class Function : EventFunction<string, StringEventHandler>
             })
             .AddOtlpExporter()
             .Build();
+    }
 
+#if (!minimal)
     private static MeterProvider ConfigureMetrics() =>
         Sdk.CreateMeterProviderBuilder()
             .AddMeter(LambdaTelemetry.MeterName)
             .AddOtlpExporter()
             .Build();
+#endif
 #endif
 }

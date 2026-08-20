@@ -17,6 +17,7 @@ public class SqsExceptionFailureBenchmarks
     private TargetSession? _v6Session;
     private ISqsFailureTarget? _rawSdk;
     private ISqsFailureTarget? _v5;
+    private ISqsFailureTarget? _v6Minimal;
     private ISqsFailureTarget? _v6Raw;
     private ISqsFailureTarget? _v6Typed;
 
@@ -32,11 +33,13 @@ public class SqsExceptionFailureBenchmarks
 
         _rawSdk = _rawSdkSession.CreateTarget<ISqsFailureTarget>("RawSdkTarget.FailureSqsTarget");
         _v5 = _v5Session.CreateTarget<ISqsFailureTarget>("V5Target.FailureSqsTarget");
+        _v6Minimal = _v6Session.CreateTarget<ISqsFailureTarget>("V6Target.FailureMinimalSqsTarget");
         _v6Raw = _v6Session.CreateTarget<ISqsFailureTarget>("V6Target.FailureRawSqsTarget");
         _v6Typed = _v6Session.CreateTarget<ISqsFailureTarget>("V6Target.FailureTypedSqsTarget");
 
         ValidateTarget(_rawSdk, "RawSdk");
         ValidateTarget(_v5, "V5RequestResponse");
+        ValidateTarget(_v6Minimal, "V6Minimal");
         ValidateTarget(_v6Raw, "V6Raw");
         ValidateTarget(_v6Typed, "V6Typed");
     }
@@ -46,6 +49,7 @@ public class SqsExceptionFailureBenchmarks
     {
         _rawSdk = null;
         _v5 = null;
+        _v6Minimal = null;
         _v6Raw = null;
         _v6Typed = null;
 
@@ -65,6 +69,10 @@ public class SqsExceptionFailureBenchmarks
     [Benchmark]
     public Task<int> V5RequestResponseExceptionFailure() =>
         _v5!.InvokeAsync(FailurePercent, SqsFailureMode.Exception);
+
+    [Benchmark]
+    public Task<int> V6MinimalExceptionFailure() =>
+        _v6Minimal!.InvokeAsync(FailurePercent, SqsFailureMode.Exception);
 
     [Benchmark]
     public Task<int> V6RawExceptionFailure() =>

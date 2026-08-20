@@ -15,6 +15,22 @@ using Kralizek.Lambda;
 
 namespace V6Target;
 
+public sealed class UppercaseMinimalSqsTarget : ISqsTarget
+{
+    private readonly UppercaseMinimalSqsFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
 public sealed class UppercaseRawSqsTarget : ISqsTarget
 {
     private readonly UppercaseRawSqsFunction _function = new();
@@ -34,6 +50,22 @@ public sealed class UppercaseRawSqsTarget : ISqsTarget
 public sealed class UppercaseTypedSqsTarget : ISqsTarget
 {
     private readonly UppercaseTypedSqsFunction _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
+public sealed class UppercaseAsyncMinimalSqsTarget : ISqsTarget
+{
+    private readonly UppercaseAsyncMinimalSqsFunction _function = new();
     private readonly ILambdaContext _context = new TestLambdaContext
     {
         RemainingTime = TimeSpan.FromMinutes(1)
@@ -79,6 +111,27 @@ public sealed class UppercaseAsyncTypedSqsTarget : ISqsTarget
     }
 }
 
+public sealed class UppercaseMinimalSqsFunction : MinimalRequestFunction<SQSEvent, SQSBatchResponse, UppercaseMinimalSqsHandler>;
+
+public sealed class UppercaseMinimalSqsHandler : IRequestHandler<SQSEvent, SQSBatchResponse>
+{
+    public ValueTask<SQSBatchResponse> HandleAsync(
+        SQSEvent input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        foreach (var record in input.Records ?? [])
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
+            _ = SqsWorkload.Execute(message);
+        }
+
+        return ValueTask.FromResult(new SQSBatchResponse());
+    }
+}
+
 public sealed class UppercaseRawSqsFunction : SqsFunction<UppercaseRawSqsHandler>;
 
 public sealed class UppercaseRawSqsHandler : ISqsRecordHandler
@@ -111,6 +164,30 @@ public sealed class UppercaseTypedSqsHandler : ISqsMessageHandler<SqsBenchmarkMe
         _ = SqsWorkload.Execute(message);
 
         return ValueTask.FromResult(SqsRecordResult.Success);
+    }
+}
+
+public sealed class UppercaseAsyncMinimalSqsFunction : MinimalRequestFunction<SQSEvent, SQSBatchResponse, UppercaseAsyncMinimalSqsHandler>;
+
+public sealed class UppercaseAsyncMinimalSqsHandler : IRequestHandler<SQSEvent, SQSBatchResponse>
+{
+    public async ValueTask<SQSBatchResponse> HandleAsync(
+        SQSEvent input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        foreach (var record in input.Records ?? [])
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await AsyncWorkload.Suspend();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var message = JsonSerializer.Deserialize<SqsBenchmarkMessage>(record.Body)!;
+            _ = SqsWorkload.Execute(message);
+        }
+
+        return new SQSBatchResponse();
     }
 }
 

@@ -16,6 +16,7 @@ public class NestedSqsSnsS3Benchmarks
     private TargetSession? _v6Session;
     private ISqsTarget? _rawSdk;
     private ISqsTarget? _v5;
+    private ISqsTarget? _v6Minimal;
     private ISqsTarget? _v6;
 
     [Params(1, 10)]
@@ -30,6 +31,7 @@ public class NestedSqsSnsS3Benchmarks
 
         _rawSdk = _rawSdkSession.CreateTarget<ISqsTarget>("RawSdkTarget.NestedSqsSnsS3Target");
         _v5 = _v5Session.CreateTarget<ISqsTarget>("V5Target.NestedSqsSnsS3Target");
+        _v6Minimal = _v6Session.CreateTarget<ISqsTarget>("V6Target.NestedMinimalSqsSnsS3Target");
         _v6 = _v6Session.CreateTarget<ISqsTarget>("V6Target.NestedSqsSnsS3Target");
     }
 
@@ -38,6 +40,7 @@ public class NestedSqsSnsS3Benchmarks
     {
         _rawSdk = null;
         _v5 = null;
+        _v6Minimal = null;
         _v6 = null;
 
         _rawSdkSession?.Dispose();
@@ -54,6 +57,9 @@ public class NestedSqsSnsS3Benchmarks
 
     [Benchmark]
     public Task<int> V5() => _v5!.InvokeAsync(BatchSize);
+
+    [Benchmark]
+    public Task<int> V6Minimal() => _v6Minimal!.InvokeAsync(BatchSize);
 
     [Benchmark]
     public Task<int> V6() => _v6!.InvokeAsync(BatchSize);

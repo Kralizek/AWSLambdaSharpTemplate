@@ -9,7 +9,9 @@ Each sample README shows the expected Lambda input shape and how that input maps
 | If you want to demonstrate... | Start here | What it shows |
 | --- | --- | --- |
 | A Lambda that consumes an event and returns no application response | [EventFunction](EventFunction/) | `EventFunction<TInput, THandler>`, handler DI, logging, and `EventContext` |
+| The same source-neutral event model on the lean host | [MinimalEventFunction](MinimalEventFunction/) | `MinimalEventFunction<TInput, THandler>` with the same handler/context/DI contract and less invocation machinery |
 | A Lambda with a typed request and response | [RequestFunction](RequestFunction/) | `RequestFunction<TInput, TOutput, THandler>` and `RequestContext` |
+| The same source-neutral request model on the lean host | [MinimalRequestFunction](MinimalRequestFunction/) | `MinimalRequestFunction<TInput, TOutput, THandler>` with the same handler/context/DI contract and less invocation machinery |
 | Native AOT hosting for a typed SQS function | [NativeAotSqsFunction](NativeAotSqsFunction/) | executable Lambda bootstrap, source-generated boundary metadata, and an AOT-safe nested JSON decoder |
 | Native AOT for S3 events delivered through an SNS envelope and SQS | [NativeAotSqsSnsS3Function](NativeAotSqsSnsS3Function/) | typed SNS-envelope decoding plus AOT-safe nested S3 event decoding |
 | OpenTelemetry instrumentation for a request/response Lambda | [OpenTelemetryRequestFunction](OpenTelemetryRequestFunction/) | wrapping the inherited request handler with `AWSLambdaWrapper.TraceAsync` and exporting the invocation span |
@@ -27,6 +29,10 @@ Each sample README shows the expected Lambda input shape and how that input maps
 | A Cognito trigger that mutates and returns the trigger event | [CognitoPreSignUpFunction](CognitoPreSignUpFunction/) | a concrete Cognito specialization using the pre-sign-up contract |
 
 ## Useful comparisons
+
+### Full vs minimal hosting
+
+Compare [EventFunction](EventFunction/) with [MinimalEventFunction](MinimalEventFunction/), or [RequestFunction](RequestFunction/) with [MinimalRequestFunction](MinimalRequestFunction/). Each pair uses the same application handler shape, context model, dependency injection, logging, and cancellation. The difference is the host: the Minimal samples omit the richer invocation processing and internal KLT telemetry path.
 
 ### Generic event vs request/response
 

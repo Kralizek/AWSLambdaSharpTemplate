@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace RequestFunction;
+namespace MinimalRequestFunction;
 
-public class Function : RequestFunction<string, string, UpperCaseHandler>;
+public class Function : MinimalRequestFunction<string, string, UpperCaseHandler>;
 
 public class UpperCaseHandler : IRequestHandler<string, string>
 {

@@ -17,6 +17,29 @@ using Microsoft.Extensions.Logging;
 
 namespace V6Target;
 
+public sealed class FailureMinimalSqsTarget : ISqsFailureTarget
+{
+    private readonly ReturnedFailureMinimalSqsFunction _returnedFunction = new();
+    private readonly ExceptionFailureMinimalSqsFunction _exceptionFunction = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = SqsFailureEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int failurePercent, SqsFailureMode mode)
+    {
+        var response = mode switch
+        {
+            SqsFailureMode.ReturnedResult => await _returnedFunction.FunctionHandlerAsync(_events[failurePercent], _context).ConfigureAwait(false),
+            SqsFailureMode.Exception => await _exceptionFunction.FunctionHandlerAsync(_events[failurePercent], _context).ConfigureAwait(false),
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+        };
+
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
 public sealed class FailureRawSqsTarget : ISqsFailureTarget
 {
     private readonly ReturnedFailureRawSqsFunction _returnedFunction = new();
@@ -60,6 +83,83 @@ public sealed class FailureTypedSqsTarget : ISqsFailureTarget
         };
 
         return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
+public sealed class ReturnedFailureMinimalSqsFunction : MinimalRequestFunction<SQSEvent, SQSBatchResponse, ReturnedFailureMinimalSqsHandler>;
+
+public sealed class ReturnedFailureMinimalSqsHandler : IRequestHandler<SQSEvent, SQSBatchResponse>
+{
+    public ValueTask<SQSBatchResponse> HandleAsync(
+        SQSEvent input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<SQSBatchResponse.BatchItemFailure>();
+
+        foreach (var record in input.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var message = JsonSerializer.Deserialize<SqsFailureBenchmarkMessage>(record.Body)
+                ?? throw new JsonException("The benchmark SQS message could not be deserialized.");
+            _ = SqsFailureWorkload.Execute(message);
+
+            if (message.ShouldFail)
+            {
+                failures.Add(new SQSBatchResponse.BatchItemFailure
+                {
+                    ItemIdentifier = record.MessageId
+                });
+            }
+        }
+
+        return ValueTask.FromResult(new SQSBatchResponse
+        {
+            BatchItemFailures = failures
+        });
+    }
+}
+
+public sealed class ExceptionFailureMinimalSqsFunction : MinimalRequestFunction<SQSEvent, SQSBatchResponse, ExceptionFailureMinimalSqsHandler>;
+
+public sealed class ExceptionFailureMinimalSqsHandler : IRequestHandler<SQSEvent, SQSBatchResponse>
+{
+    public ValueTask<SQSBatchResponse> HandleAsync(
+        SQSEvent input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<SQSBatchResponse.BatchItemFailure>();
+
+        foreach (var record in input.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                var message = JsonSerializer.Deserialize<SqsFailureBenchmarkMessage>(record.Body)
+                    ?? throw new JsonException("The benchmark SQS message could not be deserialized.");
+                _ = SqsFailureWorkload.Execute(message);
+
+                if (message.ShouldFail)
+                {
+                    throw new InvalidOperationException("benchmark failure");
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                failures.Add(new SQSBatchResponse.BatchItemFailure
+                {
+                    ItemIdentifier = record.MessageId
+                });
+            }
+        }
+
+        return ValueTask.FromResult(new SQSBatchResponse
+        {
+            BatchItemFailures = failures
+        });
     }
 }
 

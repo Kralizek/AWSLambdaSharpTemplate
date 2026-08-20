@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace EventFunction;
+namespace MinimalEventFunction;
 
-public class Function : EventFunction<string, StringEventHandler>;
+public class Function : MinimalEventFunction<string, StringEventHandler>;
 
 public class StringEventHandler : IEventHandler<string>
 {
@@ -24,7 +24,7 @@ public class StringEventHandler : IEventHandler<string>
 
     public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Input {Input} for request {AwsRequestId}", input, context.AwsRequestId);
+        _logger.LogInformation("Input {Input} for invocation {AwsRequestId}", input, context.AwsRequestId);
         return ValueTask.CompletedTask;
     }
 }

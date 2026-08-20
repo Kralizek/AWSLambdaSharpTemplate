@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,9 +20,41 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace V6Target;
 
+public sealed class NestedMinimalSqsSnsS3Target : ISqsTarget
+{
+    private readonly NestedMinimalSqsSnsS3Function _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = NestedSqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
 public sealed class NestedSqsSnsS3Target : ISqsTarget
 {
     private readonly NestedSqsSnsS3Function _function = new();
+    private readonly ILambdaContext _context = new TestLambdaContext
+    {
+        RemainingTime = TimeSpan.FromMinutes(1)
+    };
+    private readonly IReadOnlyDictionary<int, SQSEvent> _events = NestedSqsEnvelopeFactory.Create();
+
+    public async Task<int> InvokeAsync(int batchSize)
+    {
+        var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
+        return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
+public sealed class NestedAsyncMinimalSqsSnsS3Target : ISqsTarget
+{
+    private readonly NestedAsyncMinimalSqsSnsS3Function _function = new();
     private readonly ILambdaContext _context = new TestLambdaContext
     {
         RemainingTime = TimeSpan.FromMinutes(1)
@@ -48,6 +81,76 @@ public sealed class NestedAsyncSqsSnsS3Target : ISqsTarget
     {
         var response = await _function.FunctionHandlerAsync(_events[batchSize], _context).ConfigureAwait(false);
         return response.BatchItemFailures?.Count ?? 0;
+    }
+}
+
+public sealed class NestedMinimalSqsSnsS3Function : MinimalRequestFunction<SQSEvent, SQSBatchResponse, NestedMinimalSqsSnsS3Handler>;
+
+public sealed class NestedMinimalSqsSnsS3Handler : IRequestHandler<SQSEvent, SQSBatchResponse>
+{
+    public ValueTask<SQSBatchResponse> HandleAsync(
+        SQSEvent input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        foreach (var sqsRecord in input.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var snsEnvelope = JsonSerializer.Deserialize<NestedSnsEnvelope>(sqsRecord.Body, NestedMinimalJson.Options)
+                ?? throw new JsonException("The benchmark SNS envelope could not be deserialized.");
+            var s3Event = JsonSerializer.Deserialize<S3Event>(snsEnvelope.Message, NestedMinimalJson.Options)
+                ?? throw new JsonException("The benchmark S3 event payload could not be deserialized.");
+
+#pragma warning disable S3267 // Preserve the explicit Minimal S3 record loop so the benchmark does not add LINQ allocations.
+            foreach (var s3Record in s3Event.Records ?? [])
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _ = NestedSqsSnsS3Workload.Execute(s3Record.S3.Bucket.Name, s3Record.S3.Object.Key);
+            }
+#pragma warning restore S3267
+        }
+
+        return ValueTask.FromResult(new SQSBatchResponse
+        {
+            BatchItemFailures = []
+        });
+    }
+}
+
+public sealed class NestedAsyncMinimalSqsSnsS3Function : MinimalRequestFunction<SQSEvent, SQSBatchResponse, NestedAsyncMinimalSqsSnsS3Handler>;
+
+public sealed class NestedAsyncMinimalSqsSnsS3Handler : IRequestHandler<SQSEvent, SQSBatchResponse>
+{
+    public async ValueTask<SQSBatchResponse> HandleAsync(
+        SQSEvent input,
+        RequestContext context,
+        CancellationToken cancellationToken)
+    {
+        foreach (var sqsRecord in input.Records ?? Enumerable.Empty<SQSEvent.SQSMessage>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var snsEnvelope = JsonSerializer.Deserialize<NestedSnsEnvelope>(sqsRecord.Body, NestedMinimalJson.Options)
+                ?? throw new JsonException("The benchmark SNS envelope could not be deserialized.");
+            var s3Event = JsonSerializer.Deserialize<S3Event>(snsEnvelope.Message, NestedMinimalJson.Options)
+                ?? throw new JsonException("The benchmark S3 event payload could not be deserialized.");
+
+#pragma warning disable S3267 // Preserve the explicit async Minimal S3 record loop so the benchmark does not add LINQ allocations.
+            foreach (var s3Record in s3Event.Records ?? [])
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await AsyncWorkload.Suspend();
+                cancellationToken.ThrowIfCancellationRequested();
+                _ = NestedSqsSnsS3Workload.Execute(s3Record.S3.Bucket.Name, s3Record.S3.Object.Key);
+            }
+#pragma warning restore S3267
+        }
+
+        return new SQSBatchResponse
+        {
+            BatchItemFailures = []
+        };
     }
 }
 
@@ -133,6 +236,14 @@ public sealed class NestedAsyncS3ObjectEventHandler : IS3ObjectEventHandler
         await AsyncWorkload.Suspend();
         _ = NestedSqsSnsS3Workload.Execute(item.Object.Bucket, item.Object.Key);
     }
+}
+
+internal static class NestedMinimalJson
+{
+    public static JsonSerializerOptions Options { get; } = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 }
 
 internal static class NestedSqsEnvelopeFactory

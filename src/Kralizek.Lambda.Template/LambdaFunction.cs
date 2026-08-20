@@ -18,39 +18,14 @@ public abstract class LambdaFunction
 #pragma warning disable S1699 // Configuration hooks intentionally execute during base construction. Overrides must not depend on derived-constructor state.
     protected LambdaFunction()
     {
-        var configurationBuilder = new ConfigurationBuilder();
+        var host = LambdaHostBuilder.Build(
+            ConfigureConfiguration,
+            ConfigureLogging,
+            RegisterFrameworkServices,
+            ConfigureServices);
 
-        ConfigureConfiguration(configurationBuilder);
-
-        Configuration = configurationBuilder.Build();
-
-        var executionEnvironment = new LambdaExecutionEnvironment
-        {
-            EnvironmentName = Configuration["Environment"] ?? LambdaExecutionEnvironment.DevelopmentEnvironmentName,
-            IsLambda = Environment.GetEnvironmentVariable("LAMBDA_RUNTIME_DIR") != null
-        };
-
-        var services = new ServiceCollection();
-
-        services.AddSingleton<IExecutionEnvironment>(executionEnvironment);
-        services.AddSingleton<IConfiguration>(Configuration);
-        services.AddSingleton(Configuration);
-        services.AddLogging(logging =>
-        {
-            logging.AddLambdaLogger(new LambdaLoggerOptions
-            {
-                IncludeCategory = true,
-                IncludeLogLevel = true,
-                IncludeNewline = true
-            });
-
-            ConfigureLogging(logging);
-        });
-
-        RegisterFrameworkServices(services);
-        ConfigureServices(services, Configuration);
-
-        ServiceProvider = services.BuildServiceProvider();
+        Configuration = host.Configuration;
+        ServiceProvider = host.ServiceProvider;
         Logger = ServiceProvider.GetRequiredService<ILogger<LambdaFunction>>();
     }
 #pragma warning restore S1699
@@ -148,22 +123,6 @@ public abstract class LambdaFunction
     /// <summary>
     /// Creates a <see cref="CancellationTokenSource"/> that is cancelled when the Lambda invocation runs out of time.
     /// </summary>
-    protected static CancellationTokenSource CreateCancellationTokenSource(ILambdaContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        var cancellationTokenSource = new CancellationTokenSource();
-        var remaining = context.RemainingTime;
-
-        if (remaining <= TimeSpan.Zero)
-        {
-            cancellationTokenSource.Cancel();
-        }
-        else if (remaining < TimeSpan.FromMilliseconds(int.MaxValue))
-        {
-            cancellationTokenSource.CancelAfter(remaining);
-        }
-
-        return cancellationTokenSource;
-    }
+    protected static CancellationTokenSource CreateCancellationTokenSource(ILambdaContext context) =>
+        LambdaInvocationLifetime.CreateCancellationTokenSource(context);
 }

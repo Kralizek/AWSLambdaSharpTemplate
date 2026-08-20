@@ -11,6 +11,17 @@
       "mustNotMatch": ["OpenTelemetry"]
     },
     {
+      "name": "Event (Minimal)",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEventMinimal",
+      "when": ["pr", "master", "release"],
+      "minimal": true,
+      "mustExist": ["Function.cs", "StringEventHandler.cs", "SmokeEventMinimal.csproj"],
+      "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["MinimalEventFunction<string, StringEventHandler>", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
+      "mustNotMatch": ["LambdaTelemetry", "OpenTelemetry", "MeterProvider"]
+    },
+    {
       "name": "Event (OpenTelemetry)",
       "shortName": "lambda-template-event",
       "projectName": "SmokeEventOtel",
@@ -20,6 +31,18 @@
       "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["EventFunction<string, StringEventHandler>", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
       "mustNotMatch": []
+    },
+    {
+      "name": "Event (Minimal, OpenTelemetry)",
+      "shortName": "lambda-template-event",
+      "projectName": "SmokeEventMinimalOtel",
+      "when": ["pr", "master", "release"],
+      "minimal": true,
+      "otel": true,
+      "mustExist": ["Function.cs", "StringEventHandler.cs", "SmokeEventMinimalOtel.csproj"],
+      "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["MinimalEventFunction<string, StringEventHandler>", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
+      "mustNotMatch": ["LambdaTelemetry", "MeterProvider", "AddMeter"]
     },
     {
       "name": "Request",
@@ -32,6 +55,17 @@
       "mustNotMatch": ["OpenTelemetry"]
     },
     {
+      "name": "Request (Minimal)",
+      "shortName": "lambda-template-request",
+      "projectName": "SmokeRequestMinimal",
+      "when": ["pr", "master", "release"],
+      "minimal": true,
+      "mustExist": ["Function.cs", "ToUpperStringRequestHandler.cs", "SmokeRequestMinimal.csproj"],
+      "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["MinimalRequestFunction<string, string, ToUpperStringRequestHandler>", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
+      "mustNotMatch": ["LambdaTelemetry", "OpenTelemetry", "MeterProvider"]
+    },
+    {
       "name": "Request (OpenTelemetry)",
       "shortName": "lambda-template-request",
       "projectName": "SmokeRequestOtel",
@@ -41,6 +75,18 @@
       "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["RequestFunction<string, string, ToUpperStringRequestHandler>", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
       "mustNotMatch": []
+    },
+    {
+      "name": "Request (Minimal, Native AOT)",
+      "shortName": "lambda-template-request",
+      "projectName": "SmokeRequestMinimalAot",
+      "when": ["pr", "master", "release"],
+      "minimal": true,
+      "aot": true,
+      "mustExist": ["Function.cs", "Program.cs", "ToUpperStringRequestHandler.cs", "SmokeRequestMinimalAot.csproj"],
+      "mustNotExist": ["LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["MinimalRequestFunction<string, string, ToUpperStringRequestHandler>", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "<OutputType>Exe</OutputType>", "\"function-handler\": \"SmokeRequestMinimalAot\""],
+      "mustNotMatch": ["LambdaTelemetry", "OpenTelemetry", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"]
     },
     {
       "name": "EventBridge",

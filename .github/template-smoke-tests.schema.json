@@ -68,6 +68,10 @@
           "type": "boolean",
           "default": false
         },
+        "minimal": {
+          "type": "boolean",
+          "default": false
+        },
         "version": {
           "type": "string",
           "enum": ["v1", "v2"]

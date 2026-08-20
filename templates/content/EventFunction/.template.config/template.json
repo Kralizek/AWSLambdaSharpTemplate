@@ -12,6 +12,7 @@
     "profile": { "type": "parameter", "datatype": "string", "replaces": "DefaultProfile", "defaultValue": "" },
     "region": { "type": "parameter", "datatype": "string", "replaces": "DefaultRegion", "defaultValue": "" },
     "role": { "type": "parameter", "datatype": "string", "replaces": "DefaultRole", "defaultValue": "" },
+    "minimal": { "type": "parameter", "description": "Use the minimal hosting model while keeping the same event handler contract.", "datatype": "bool", "defaultValue": "false" },
     "otel": { "type": "parameter", "description": "Enable OpenTelemetry using the standard AWS Lambda instrumentation.", "datatype": "bool", "defaultValue": "false" },
     "aot": { "type": "parameter", "description": "Generate a Native AOT Lambda executable with source-generated JSON serialization.", "datatype": "bool", "defaultValue": "false" }
   },
