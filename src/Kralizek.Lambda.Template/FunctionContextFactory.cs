@@ -12,7 +12,6 @@ namespace Kralizek.Lambda;
 public static class FunctionContextFactory
 {
     private const string LambdaContextPropertyName = "Kralizek.Lambda.Template.LambdaContext";
-    private const string DeadlineCancellationStatePropertyName = "Kralizek.Lambda.Template.DeadlineCancellationState";
 
     public static EventContext CreateEventContext(ILambdaContext lambdaContext)
     {
@@ -79,73 +78,16 @@ public static class FunctionContextFactory
     }
 
     /// <summary>
-    /// Gets a cancellation token that is cancelled when the current Lambda invocation reaches its remaining-time deadline.
+    /// Creates a cancellation token source that is cancelled when the current Lambda invocation reaches its remaining-time deadline.
     /// </summary>
     /// <remarks>
-    /// The deadline source is created lazily on first access and cached for the lifetime of this invocation context.
-    /// Applications do not own or dispose the returned token.
+    /// The caller owns the returned cancellation token source and must dispose it.
     /// </remarks>
-    public static CancellationToken GetDeadlineCancellationToken(this FunctionContext context)
+    public static CancellationTokenSource CreateDeadlineCancellationTokenSource(this FunctionContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var state = context.GetOrAddRuntimeState(
-            DeadlineCancellationStatePropertyName,
-            static () => new DeadlineCancellationState());
-
-        return state.GetToken(context.GetLambdaContext());
-    }
-
-    internal static void DisposeDeadlineCancellationToken(FunctionContext context)
-    {
-        if (context.TryGetRuntimeState<DeadlineCancellationState>(DeadlineCancellationStatePropertyName, out var state)
-            && state is not null)
-        {
-            state.Dispose();
-        }
-    }
-
-    private sealed class DeadlineCancellationState : IDisposable
-    {
-        private readonly Lock _syncRoot = new();
-        private CancellationTokenSource? _source;
-        private CancellationToken _token;
-        private bool _initialized;
-        private bool _disposed;
-
-        public CancellationToken GetToken(ILambdaContext lambdaContext)
-        {
-            lock (_syncRoot)
-            {
-                ObjectDisposedException.ThrowIf(_disposed, this);
-
-                if (_initialized)
-                {
-                    return _token;
-                }
-
-                var source = LambdaInvocationLifetime.CreateCancellationTokenSource(lambdaContext);
-                _source = source;
-                _token = source.Token;
-                _initialized = true;
-                return _token;
-            }
-        }
-
-        public void Dispose()
-        {
-            lock (_syncRoot)
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                _disposed = true;
-                _source?.Dispose();
-                _source = null;
-            }
-        }
+        return LambdaInvocationLifetime.CreateCancellationTokenSource(context.GetLambdaContext());
     }
 
     private sealed class DefaultEventContext(
