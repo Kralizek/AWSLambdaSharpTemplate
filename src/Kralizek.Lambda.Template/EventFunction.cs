@@ -52,19 +52,12 @@ public abstract class EventFunction<TInput, TContext, [DynamicallyAccessedMember
 
         var eventContext = CreateContext(input, context);
 
-        try
-        {
-            await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
-            await ExecuteHandlerAsync<THandler>(
-                invocationScope.ServiceProvider,
-                CancellationToken.None,
-                (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
-        }
-        finally
-        {
-            FunctionContextFactory.DisposeDeadlineCancellationToken(eventContext);
-        }
+        await ExecuteHandlerAsync<THandler>(
+            invocationScope.ServiceProvider,
+            CancellationToken.None,
+            (handler, cancellationToken) => handler.HandleAsync(input, eventContext, cancellationToken)).ConfigureAwait(false);
     }
 }
 
