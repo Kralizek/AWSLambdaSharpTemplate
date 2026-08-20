@@ -81,15 +81,15 @@ public class EventFunctionTests
     }
 
     [Test]
-    public void FunctionHandlerAsync_cancels_when_no_execution_time_remains()
+    public async Task FunctionHandlerAsync_does_not_implicitly_cancel_when_no_execution_time_remains()
     {
         TrackingHandler.Reset();
         var sut = new TrackingHandlerFunction();
         var lambdaContext = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
 
-        Assert.ThrowsAsync<OperationCanceledException>(() =>
-            sut.FunctionHandlerAsync("hello", lambdaContext));
-        Assert.That(TrackingHandler.WasInvoked, Is.False);
+        await sut.FunctionHandlerAsync("hello", lambdaContext);
+
+        Assert.That(TrackingHandler.WasInvoked, Is.True);
     }
 
     public class TestEventFunction : EventFunction<string, NoOpHandler>
