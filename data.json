@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787176142832,
+  "lastUpdated": 1787225245741,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -990,6 +990,51 @@
             "bytesAllocated": 8936
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1852.2786081859044,
+            "unit": "ns",
+            "range": "± 2.732025639460898",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 3715.2024342673167,
+            "unit": "ns",
+            "range": "± 15.553043782370944",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 8546.812966918946,
+            "unit": "ns",
+            "range": "± 30.8495786402394",
+            "bytesAllocated": 8856
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 8980.635581970215,
+            "unit": "ns",
+            "range": "± 25.407912379017553",
+            "bytesAllocated": 8936
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -1448,6 +1493,44 @@
             "bytesAllocated": 1376
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 28.345857206980387,
+            "unit": "ns",
+            "range": "± 0.2599540349268481",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 170.63513282367163,
+            "unit": "ns",
+            "range": "± 0.8146783206453141",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 659.6026793207441,
+            "unit": "ns",
+            "range": "± 2.3247290393023827",
+            "bytesAllocated": 1376
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -1630,6 +1713,51 @@
             "bytesAllocated": 9120
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2318.7903717585973,
+            "unit": "ns",
+            "range": "± 5.618783913697929",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2492.21757213886,
+            "unit": "ns",
+            "range": "± 7.4012351436082415",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 8882.465977595402,
+            "unit": "ns",
+            "range": "± 30.31184272237242",
+            "bytesAllocated": 9040
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 9810.294137573243,
+            "unit": "ns",
+            "range": "± 78.48229078061114",
+            "bytesAllocated": 9120
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -1781,6 +1909,44 @@
             "value": 7518.148955281576,
             "unit": "ns",
             "range": "± 54.05816603339174",
+            "bytesAllocated": 6752
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 4683.982604393592,
+            "unit": "ns",
+            "range": "± 25.57283912410078",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5250.833018711635,
+            "unit": "ns",
+            "range": "± 45.25364261337703",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 7387.318158976237,
+            "unit": "ns",
+            "range": "± 99.95225131020392",
             "bytesAllocated": 6752
           }
         ]
@@ -1936,6 +2102,44 @@
             "unit": "ns",
             "range": "± 468.52612552636083",
             "bytesAllocated": 8278
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8191.671765441894,
+            "unit": "ns",
+            "range": "± 1026.1241453395453",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 9070.027740783691,
+            "unit": "ns",
+            "range": "± 841.6539675891399",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 12869.979810442243,
+            "unit": "ns",
+            "range": "± 584.0915287443216",
+            "bytesAllocated": 8277
           }
         ]
       }
@@ -2120,6 +2324,51 @@
             "bytesAllocated": 12360
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4574.520267486572,
+            "unit": "ns",
+            "range": "± 8.539782419733834",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5483.478755950928,
+            "unit": "ns",
+            "range": "± 16.97546626460978",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 20121.551363431492,
+            "unit": "ns",
+            "range": "± 27.49377376301224",
+            "bytesAllocated": 10872
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 24227.130504063196,
+            "unit": "ns",
+            "range": "± 56.404403266884344",
+            "bytesAllocated": 12360
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -2300,6 +2549,51 @@
             "unit": "ns",
             "range": "± 279.575898252394",
             "bytesAllocated": 15907
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8667c27949567ae3c4127ec00781475fa4f9551c",
+          "message": "Document V5 to V6 performance (#101)",
+          "timestamp": "2026-08-20T11:17:41Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8667c27949567ae3c4127ec00781475fa4f9551c"
+        },
+        "date": 1787225245741,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 8168.863795560949,
+            "unit": "ns",
+            "range": "± 260.5594271439227",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 16127.637298583984,
+            "unit": "ns",
+            "range": "± 690.3743192435778",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 31607.68156215123,
+            "unit": "ns",
+            "range": "± 447.88853381768365",
+            "bytesAllocated": 14067
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 35058.59172276088,
+            "unit": "ns",
+            "range": "± 499.2481155601413",
+            "bytesAllocated": 15906
           }
         ]
       }
