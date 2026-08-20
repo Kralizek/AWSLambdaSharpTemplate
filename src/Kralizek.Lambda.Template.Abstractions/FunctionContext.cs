@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace Kralizek.Lambda;
 
@@ -23,6 +24,9 @@ public sealed record FunctionContextMetadata(
 /// </summary>
 public abstract class FunctionContext
 {
+    private readonly Dictionary<string, object?> _properties;
+    private readonly Lock _runtimeStateLock = new();
+
     protected FunctionContext(
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
@@ -38,11 +42,11 @@ public abstract class FunctionContext
         LogGroupName = metadata.LogGroupName;
         LogStreamName = metadata.LogStreamName;
 
-        var propertySnapshot = properties is null
+        _properties = properties is null
             ? new Dictionary<string, object?>()
             : new Dictionary<string, object?>(properties);
 
-        Properties = new ReadOnlyDictionary<string, object?>(propertySnapshot);
+        Properties = new ReadOnlyDictionary<string, object?>(_properties);
     }
 
     protected FunctionContext(
@@ -82,7 +86,8 @@ public abstract class FunctionContext
         RemainingTime = source.RemainingTime;
         LogGroupName = source.LogGroupName;
         LogStreamName = source.LogStreamName;
-        Properties = properties;
+        _properties = new Dictionary<string, object?>(properties);
+        Properties = new ReadOnlyDictionary<string, object?>(_properties);
     }
 
     public string AwsRequestId { get; }
@@ -105,6 +110,44 @@ public abstract class FunctionContext
     /// Gets additional runtime-specific data that is not represented by the strongly typed properties.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
+
+    internal T GetOrAddRuntimeState<T>(string key, Func<T> factory)
+        where T : class
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        lock (_runtimeStateLock)
+        {
+            if (_properties.TryGetValue(key, out var existing))
+            {
+                return existing as T
+                    ?? throw new InvalidOperationException($"Runtime state '{key}' is not of type {typeof(T).FullName}.");
+            }
+
+            var created = factory();
+            _properties[key] = created;
+            return created;
+        }
+    }
+
+    internal bool TryGetRuntimeState<T>(string key, out T? state)
+        where T : class
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
+        lock (_runtimeStateLock)
+        {
+            if (_properties.TryGetValue(key, out var existing) && existing is T typed)
+            {
+                state = typed;
+                return true;
+            }
+
+            state = null;
+            return false;
+        }
+    }
 
     private static IReadOnlyDictionary<string, object?> CreatePropertyOverlay(
         FunctionContext source,
