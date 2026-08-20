@@ -12,4 +12,4 @@ await DoWorkAsync(deadline.Token);
 
 `CreateDeadlineCancellationTokenSource()` creates a new `CancellationTokenSource` from the current `ILambdaContext.RemainingTime`. The caller owns the returned source and must dispose it.
 
-This keeps deadline cancellation completely opt-in: handlers that do not request it pay no cancellation-specific allocation or synchronization cost. The same extension method is available on Request, Event, and Record contexts; Minimal hosting currently covers Request and Event functions.
+This separates generic host cancellation from AWS-specific deadline cancellation while keeping the deadline path completely opt-in. Handlers that do not request it pay no cancellation-specific allocation or synchronization cost. The same extension method is available on Request, Event, and Record contexts; Minimal hosting currently covers Request and Event functions.
