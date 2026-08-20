@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -16,7 +17,7 @@ namespace Kralizek.Lambda;
 /// <typeparam name="TOutput">The type of the response.</typeparam>
 /// <typeparam name="TContext">The context type passed to the handler.</typeparam>
 /// <typeparam name="THandler">The concrete handler type that processes the request.</typeparam>
-#pragma warning disable S2436 // The generic roles are intentional and make the request contract explicit.
+#pragma warning disable S2436 // The six generic roles are intentional and make the request contract explicit.
 public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler> : LambdaFunction
 #pragma warning restore S2436
     where TContext : RequestContext
@@ -50,15 +51,21 @@ public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAcc
             EnrichInvocationActivity(activity, input, context);
         }
 
-        using var cts = CreateCancellationTokenSource(context);
         var requestContext = CreateContext(input, context);
 
-        await using var invocationScope = ServiceProvider.CreateAsyncScope();
+        try
+        {
+            await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
-        return await ExecuteHandlerAsync<THandler, TOutput>(
-            invocationScope.ServiceProvider,
-            cts.Token,
-            (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
+            return await ExecuteHandlerAsync<THandler, TOutput>(
+                invocationScope.ServiceProvider,
+                CancellationToken.None,
+                (handler, cancellationToken) => handler.HandleAsync(input, requestContext, cancellationToken)).ConfigureAwait(false);
+        }
+        finally
+        {
+            FunctionContextFactory.DisposeDeadlineCancellationToken(requestContext);
+        }
     }
 }
 
