@@ -109,7 +109,7 @@ public class MinimalFunctionTests
     }
 
     [Test]
-    public async Task MinimalEventFunction_passes_generic_token_when_no_execution_time_remains()
+    public async Task MinimalEventFunction_uses_generic_handler_cancellation_token()
     {
         var sut = new TrackingMinimalEventFunction();
         var lambdaContext = new TestLambdaContext { RemainingTime = TimeSpan.Zero };
