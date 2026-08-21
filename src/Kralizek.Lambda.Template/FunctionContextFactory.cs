@@ -94,17 +94,17 @@ public static class FunctionContextFactory
         FunctionContextMetadata metadata,
         string propertyName,
         object? propertyValue)
-        : EventContext(metadata, propertyName, propertyValue);
+        : EventContext(metadata, CreateImmutableProperties(propertyName, propertyValue));
 
     private sealed class DefaultRequestContext(
         FunctionContextMetadata metadata,
         string propertyName,
         object? propertyValue)
-        : RequestContext(metadata, propertyName, propertyValue);
+        : RequestContext(metadata, CreateImmutableProperties(propertyName, propertyValue));
 
     private sealed class DefaultRecordContext(
         FunctionContextMetadata metadata,
         string propertyName,
         object? propertyValue)
-        : RecordContext(metadata, propertyName, propertyValue);
+        : RecordContext(metadata, CreateImmutableProperties(propertyName, propertyValue));
 }
