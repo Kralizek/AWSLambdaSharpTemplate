@@ -5,6 +5,15 @@ on:
     branches: [master]
   workflow_dispatch:
     inputs:
+      profile:
+        description: Benchmark profile to run
+        type: choice
+        required: true
+        default: ci
+        options:
+          - ci
+          - full
+          - stress
       publish_history:
         description: Publish results to benchmark history
         type: boolean
@@ -23,5 +32,6 @@ jobs:
       contents: write
     uses: ./.github/workflows/release-benchmarks.yml
     with:
+      benchmark-profile: ${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'ci' }}
       publish-history: ${{ github.event_name == 'push' || inputs.publish_history }}
       release-mode: false
