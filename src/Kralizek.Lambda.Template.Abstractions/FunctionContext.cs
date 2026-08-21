@@ -26,23 +26,16 @@ public abstract class FunctionContext
     protected FunctionContext(
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
+        : this(metadata, CreatePropertySnapshot(properties))
     {
-        ArgumentNullException.ThrowIfNull(metadata);
+    }
 
-        AwsRequestId = metadata.AwsRequestId;
-        FunctionName = metadata.FunctionName;
-        FunctionVersion = metadata.FunctionVersion;
-        InvokedFunctionArn = metadata.InvokedFunctionArn;
-        MemoryLimitInMB = metadata.MemoryLimitInMB;
-        RemainingTime = metadata.RemainingTime;
-        LogGroupName = metadata.LogGroupName;
-        LogStreamName = metadata.LogStreamName;
-
-        var propertySnapshot = properties is null
-            ? new Dictionary<string, object?>()
-            : new Dictionary<string, object?>(properties);
-
-        Properties = new ReadOnlyDictionary<string, object?>(propertySnapshot);
+    protected FunctionContext(
+        FunctionContextMetadata metadata,
+        string propertyName,
+        object? propertyValue)
+        : this(metadata, new SinglePropertyDictionary(propertyName, propertyValue))
+    {
     }
 
     protected FunctionContext(
@@ -68,6 +61,23 @@ public abstract class FunctionContext
                 secondPropertyName,
                 secondPropertyValue))
     {
+    }
+
+    private FunctionContext(
+        FunctionContextMetadata metadata,
+        IReadOnlyDictionary<string, object?> properties)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+
+        AwsRequestId = metadata.AwsRequestId;
+        FunctionName = metadata.FunctionName;
+        FunctionVersion = metadata.FunctionVersion;
+        InvokedFunctionArn = metadata.InvokedFunctionArn;
+        MemoryLimitInMB = metadata.MemoryLimitInMB;
+        RemainingTime = metadata.RemainingTime;
+        LogGroupName = metadata.LogGroupName;
+        LogStreamName = metadata.LogStreamName;
+        Properties = properties;
     }
 
     private FunctionContext(FunctionContext source, IReadOnlyDictionary<string, object?> properties)
@@ -106,6 +116,16 @@ public abstract class FunctionContext
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
 
+    private static IReadOnlyDictionary<string, object?> CreatePropertySnapshot(
+        IReadOnlyDictionary<string, object?>? properties)
+    {
+        var propertySnapshot = properties is null
+            ? new Dictionary<string, object?>()
+            : new Dictionary<string, object?>(properties);
+
+        return new ReadOnlyDictionary<string, object?>(propertySnapshot);
+    }
+
     private static IReadOnlyDictionary<string, object?> CreatePropertyOverlay(
         FunctionContext source,
         string propertyName,
@@ -134,6 +154,64 @@ public abstract class FunctionContext
             firstPropertyValue,
             secondPropertyName,
             secondPropertyValue);
+    }
+
+    private sealed class SinglePropertyDictionary : IReadOnlyDictionary<string, object?>
+    {
+        private readonly string _propertyName;
+        private readonly object? _propertyValue;
+
+        public SinglePropertyDictionary(string propertyName, object? propertyValue)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
+            _propertyName = propertyName;
+            _propertyValue = propertyValue;
+        }
+
+        public int Count => 1;
+
+        public IEnumerable<string> Keys
+        {
+            get
+            {
+                yield return _propertyName;
+            }
+        }
+
+        public IEnumerable<object?> Values
+        {
+            get
+            {
+                yield return _propertyValue;
+            }
+        }
+
+        public object? this[string key]
+            => string.Equals(key, _propertyName, StringComparison.Ordinal)
+                ? _propertyValue
+                : throw new KeyNotFoundException();
+
+        public bool ContainsKey(string key) => string.Equals(key, _propertyName, StringComparison.Ordinal);
+
+        public bool TryGetValue(string key, out object? value)
+        {
+            if (string.Equals(key, _propertyName, StringComparison.Ordinal))
+            {
+                value = _propertyValue;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        {
+            yield return new KeyValuePair<string, object?>(_propertyName, _propertyValue);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
 #pragma warning disable S3267 // Explicit loops avoid LINQ iterator allocations on this per-record hot path.
@@ -323,6 +401,12 @@ public class EventContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
+
+    protected EventContext(
+        FunctionContextMetadata metadata,
+        string propertyName,
+        object? propertyValue)
+        : base(metadata, propertyName, propertyValue) { }
 }
 
 /// <summary>
@@ -334,6 +418,12 @@ public class RequestContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
+
+    protected RequestContext(
+        FunctionContextMetadata metadata,
+        string propertyName,
+        object? propertyValue)
+        : base(metadata, propertyName, propertyValue) { }
 }
 
 /// <summary>
@@ -345,6 +435,12 @@ public class RecordContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
+
+    protected RecordContext(
+        FunctionContextMetadata metadata,
+        string propertyName,
+        object? propertyValue)
+        : base(metadata, propertyName, propertyValue) { }
 
     protected RecordContext(
         RecordContext source,
