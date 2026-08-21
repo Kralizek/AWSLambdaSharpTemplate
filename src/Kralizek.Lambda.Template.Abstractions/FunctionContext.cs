@@ -26,16 +26,20 @@ public abstract class FunctionContext
     protected FunctionContext(
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
-        : this(metadata, CreatePropertySnapshot(properties), PropertyStorage.Immutable)
     {
-    }
+        ArgumentNullException.ThrowIfNull(metadata);
 
-    protected FunctionContext(
-        FunctionContextMetadata metadata,
-        string propertyName,
-        object? propertyValue)
-        : this(metadata, new SinglePropertyDictionary(propertyName, propertyValue), PropertyStorage.Immutable)
-    {
+        AwsRequestId = metadata.AwsRequestId;
+        FunctionName = metadata.FunctionName;
+        FunctionVersion = metadata.FunctionVersion;
+        InvokedFunctionArn = metadata.InvokedFunctionArn;
+        MemoryLimitInMB = metadata.MemoryLimitInMB;
+        RemainingTime = metadata.RemainingTime;
+        LogGroupName = metadata.LogGroupName;
+        LogStreamName = metadata.LogStreamName;
+        Properties = properties is SinglePropertyDictionary
+            ? properties
+            : CreatePropertySnapshot(properties);
     }
 
     protected FunctionContext(
@@ -61,24 +65,6 @@ public abstract class FunctionContext
                 secondPropertyName,
                 secondPropertyValue))
     {
-    }
-
-    private FunctionContext(
-        FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties,
-        PropertyStorage _)
-    {
-        ArgumentNullException.ThrowIfNull(metadata);
-
-        AwsRequestId = metadata.AwsRequestId;
-        FunctionName = metadata.FunctionName;
-        FunctionVersion = metadata.FunctionVersion;
-        InvokedFunctionArn = metadata.InvokedFunctionArn;
-        MemoryLimitInMB = metadata.MemoryLimitInMB;
-        RemainingTime = metadata.RemainingTime;
-        LogGroupName = metadata.LogGroupName;
-        LogStreamName = metadata.LogStreamName;
-        Properties = properties;
     }
 
     private FunctionContext(FunctionContext source, IReadOnlyDictionary<string, object?> properties)
@@ -116,6 +102,14 @@ public abstract class FunctionContext
     /// Gets additional runtime-specific data that is not represented by the strongly typed properties.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
+
+    /// <summary>
+    /// Creates an immutable one-property state bag that can be retained directly by a context.
+    /// </summary>
+    protected static IReadOnlyDictionary<string, object?> CreateImmutableProperties(
+        string propertyName,
+        object? propertyValue) =>
+        new SinglePropertyDictionary(propertyName, propertyValue);
 
     private static IReadOnlyDictionary<string, object?> CreatePropertySnapshot(
         IReadOnlyDictionary<string, object?>? properties)
@@ -155,11 +149,6 @@ public abstract class FunctionContext
             firstPropertyValue,
             secondPropertyName,
             secondPropertyValue);
-    }
-
-    private enum PropertyStorage
-    {
-        Immutable
     }
 
     private sealed class SinglePropertyDictionary : IReadOnlyDictionary<string, object?>
@@ -407,12 +396,6 @@ public class EventContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
-
-    protected EventContext(
-        FunctionContextMetadata metadata,
-        string propertyName,
-        object? propertyValue)
-        : base(metadata, propertyName, propertyValue) { }
 }
 
 /// <summary>
@@ -424,12 +407,6 @@ public class RequestContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
-
-    protected RequestContext(
-        FunctionContextMetadata metadata,
-        string propertyName,
-        object? propertyValue)
-        : base(metadata, propertyName, propertyValue) { }
 }
 
 /// <summary>
@@ -441,12 +418,6 @@ public class RecordContext : FunctionContext
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
         : base(metadata, properties) { }
-
-    protected RecordContext(
-        FunctionContextMetadata metadata,
-        string propertyName,
-        object? propertyValue)
-        : base(metadata, propertyName, propertyValue) { }
 
     protected RecordContext(
         RecordContext source,
