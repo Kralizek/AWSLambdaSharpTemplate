@@ -49,6 +49,19 @@ public class FunctionContextTests
     }
 
     [Test]
+    public void Factory_root_properties_match_dictionary_null_key_behavior()
+    {
+        var context = FunctionContextFactory.CreateRequestContext(TestLambdaContexts.Create());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(() => { _ = context.Properties[null!]; }, Throws.ArgumentNullException);
+            Assert.That(() => { _ = context.Properties.ContainsKey(null!); }, Throws.ArgumentNullException);
+            Assert.That(() => { _ = context.Properties.TryGetValue(null!, out _); }, Throws.ArgumentNullException);
+        });
+    }
+
+    [Test]
     public void Semantic_contexts_can_be_specialized_without_accepting_lambda_context()
     {
         var lambdaContext = TestLambdaContexts.Create();
