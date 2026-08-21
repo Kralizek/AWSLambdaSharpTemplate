@@ -26,7 +26,7 @@ public abstract class FunctionContext
     protected FunctionContext(
         FunctionContextMetadata metadata,
         IReadOnlyDictionary<string, object?>? properties = null)
-        : this(metadata, CreatePropertySnapshot(properties))
+        : this(metadata, CreatePropertySnapshot(properties), PropertyStorage.Immutable)
     {
     }
 
@@ -34,7 +34,7 @@ public abstract class FunctionContext
         FunctionContextMetadata metadata,
         string propertyName,
         object? propertyValue)
-        : this(metadata, new SinglePropertyDictionary(propertyName, propertyValue))
+        : this(metadata, new SinglePropertyDictionary(propertyName, propertyValue), PropertyStorage.Immutable)
     {
     }
 
@@ -65,7 +65,8 @@ public abstract class FunctionContext
 
     private FunctionContext(
         FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties)
+        IReadOnlyDictionary<string, object?> properties,
+        PropertyStorage _)
     {
         ArgumentNullException.ThrowIfNull(metadata);
 
@@ -154,6 +155,11 @@ public abstract class FunctionContext
             firstPropertyValue,
             secondPropertyName,
             secondPropertyValue);
+    }
+
+    private enum PropertyStorage
+    {
+        Immutable
     }
 
     private sealed class SinglePropertyDictionary : IReadOnlyDictionary<string, object?>
