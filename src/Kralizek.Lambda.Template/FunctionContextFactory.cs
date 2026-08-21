@@ -16,19 +16,19 @@ public static class FunctionContextFactory
     public static EventContext CreateEventContext(ILambdaContext lambdaContext)
     {
         ArgumentNullException.ThrowIfNull(lambdaContext);
-        return new DefaultEventContext(CreateMetadata(lambdaContext), CreateProperties(lambdaContext));
+        return new DefaultEventContext(CreateMetadata(lambdaContext), LambdaContextPropertyName, lambdaContext);
     }
 
     public static RequestContext CreateRequestContext(ILambdaContext lambdaContext)
     {
         ArgumentNullException.ThrowIfNull(lambdaContext);
-        return new DefaultRequestContext(CreateMetadata(lambdaContext), CreateProperties(lambdaContext));
+        return new DefaultRequestContext(CreateMetadata(lambdaContext), LambdaContextPropertyName, lambdaContext);
     }
 
     public static RecordContext CreateRecordContext(ILambdaContext lambdaContext)
     {
         ArgumentNullException.ThrowIfNull(lambdaContext);
-        return new DefaultRecordContext(CreateMetadata(lambdaContext), CreateProperties(lambdaContext));
+        return new DefaultRecordContext(CreateMetadata(lambdaContext), LambdaContextPropertyName, lambdaContext);
     }
 
     /// <summary>
@@ -92,16 +92,19 @@ public static class FunctionContextFactory
 
     private sealed class DefaultEventContext(
         FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties)
-        : EventContext(metadata, properties);
+        string propertyName,
+        object? propertyValue)
+        : EventContext(metadata, propertyName, propertyValue);
 
     private sealed class DefaultRequestContext(
         FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties)
-        : RequestContext(metadata, properties);
+        string propertyName,
+        object? propertyValue)
+        : RequestContext(metadata, propertyName, propertyValue);
 
     private sealed class DefaultRecordContext(
         FunctionContextMetadata metadata,
-        IReadOnlyDictionary<string, object?> properties)
-        : RecordContext(metadata, properties);
+        string propertyName,
+        object? propertyValue)
+        : RecordContext(metadata, propertyName, propertyValue);
 }
