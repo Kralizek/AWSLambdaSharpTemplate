@@ -37,12 +37,9 @@ public abstract class FunctionContext
         RemainingTime = metadata.RemainingTime;
         LogGroupName = metadata.LogGroupName;
         LogStreamName = metadata.LogStreamName;
-
-        var propertySnapshot = properties is null
-            ? new Dictionary<string, object?>()
-            : new Dictionary<string, object?>(properties);
-
-        Properties = new ReadOnlyDictionary<string, object?>(propertySnapshot);
+        Properties = properties is SinglePropertyDictionary
+            ? properties
+            : CreatePropertySnapshot(properties);
     }
 
     protected FunctionContext(
@@ -106,6 +103,24 @@ public abstract class FunctionContext
     /// </summary>
     public IReadOnlyDictionary<string, object?> Properties { get; }
 
+    /// <summary>
+    /// Creates an immutable one-property state bag that can be retained directly by a context.
+    /// </summary>
+    protected static IReadOnlyDictionary<string, object?> CreateImmutableProperties(
+        string propertyName,
+        object? propertyValue) =>
+        new SinglePropertyDictionary(propertyName, propertyValue);
+
+    private static IReadOnlyDictionary<string, object?> CreatePropertySnapshot(
+        IReadOnlyDictionary<string, object?>? properties)
+    {
+        var propertySnapshot = properties is null
+            ? new Dictionary<string, object?>()
+            : new Dictionary<string, object?>(properties);
+
+        return new ReadOnlyDictionary<string, object?>(propertySnapshot);
+    }
+
     private static IReadOnlyDictionary<string, object?> CreatePropertyOverlay(
         FunctionContext source,
         string propertyName,
@@ -134,6 +149,78 @@ public abstract class FunctionContext
             firstPropertyValue,
             secondPropertyName,
             secondPropertyValue);
+    }
+
+    private sealed class SinglePropertyDictionary : IReadOnlyDictionary<string, object?>
+    {
+        private readonly string _propertyName;
+        private readonly object? _propertyValue;
+
+        public SinglePropertyDictionary(string propertyName, object? propertyValue)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
+            _propertyName = propertyName;
+            _propertyValue = propertyValue;
+        }
+
+        public int Count => 1;
+
+        public IEnumerable<string> Keys
+        {
+            get
+            {
+                yield return _propertyName;
+            }
+        }
+
+        public IEnumerable<object?> Values
+        {
+            get
+            {
+                yield return _propertyValue;
+            }
+        }
+
+        public object? this[string key]
+        {
+            get
+            {
+                ArgumentNullException.ThrowIfNull(key);
+
+                return string.Equals(key, _propertyName, StringComparison.Ordinal)
+                    ? _propertyValue
+                    : throw new KeyNotFoundException();
+            }
+        }
+
+        public bool ContainsKey(string key)
+        {
+            ArgumentNullException.ThrowIfNull(key);
+
+            return string.Equals(key, _propertyName, StringComparison.Ordinal);
+        }
+
+        public bool TryGetValue(string key, out object? value)
+        {
+            ArgumentNullException.ThrowIfNull(key);
+
+            if (string.Equals(key, _propertyName, StringComparison.Ordinal))
+            {
+                value = _propertyValue;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        {
+            yield return new KeyValuePair<string, object?>(_propertyName, _propertyValue);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
 #pragma warning disable S3267 // Explicit loops avoid LINQ iterator allocations on this per-record hot path.
