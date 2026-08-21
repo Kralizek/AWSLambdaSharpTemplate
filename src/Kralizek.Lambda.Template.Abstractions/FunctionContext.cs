@@ -183,14 +183,28 @@ public abstract class FunctionContext
         }
 
         public object? this[string key]
-            => string.Equals(key, _propertyName, StringComparison.Ordinal)
-                ? _propertyValue
-                : throw new KeyNotFoundException();
+        {
+            get
+            {
+                ArgumentNullException.ThrowIfNull(key);
 
-        public bool ContainsKey(string key) => string.Equals(key, _propertyName, StringComparison.Ordinal);
+                return string.Equals(key, _propertyName, StringComparison.Ordinal)
+                    ? _propertyValue
+                    : throw new KeyNotFoundException();
+            }
+        }
+
+        public bool ContainsKey(string key)
+        {
+            ArgumentNullException.ThrowIfNull(key);
+
+            return string.Equals(key, _propertyName, StringComparison.Ordinal);
+        }
 
         public bool TryGetValue(string key, out object? value)
         {
+            ArgumentNullException.ThrowIfNull(key);
+
             if (string.Equals(key, _propertyName, StringComparison.Ordinal))
             {
                 value = _propertyValue;
