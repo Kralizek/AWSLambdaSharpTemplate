@@ -32,6 +32,23 @@ public class FunctionContextTests
     }
 
     [Test]
+    public void Factory_root_properties_are_immutable_and_fully_enumerable()
+    {
+        var lambdaContext = TestLambdaContexts.Create();
+
+        var context = FunctionContextFactory.CreateRequestContext(lambdaContext);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(context.Properties, Is.Not.AssignableTo<IDictionary<string, object?>>());
+            Assert.That(context.Properties.Count, Is.EqualTo(1));
+            Assert.That(context.Properties.Values.Single(), Is.SameAs(lambdaContext));
+            Assert.That(context.Properties.Single().Value, Is.SameAs(lambdaContext));
+            Assert.That(context.GetLambdaContext(), Is.SameAs(lambdaContext));
+        });
+    }
+
+    [Test]
     public void Semantic_contexts_can_be_specialized_without_accepting_lambda_context()
     {
         var lambdaContext = TestLambdaContexts.Create();
