@@ -29,7 +29,7 @@ Minimal hosting deliberately spends a small amount of runtime overhead on applic
 - handler activation through the invocation scope;
 - the same `EventContext` / `RequestContext` contracts as the normal host;
 - the original `ILambdaContext` escape hatch through the framework context;
-- cancellation tied to the Lambda invocation's remaining time;
+- cancellation tied to the Lambda invocation's remaining time when enabled;
 - asynchronous disposal of scoped services.
 
 This is intentionally similar to the useful infrastructure that v5 could provide at comparatively low invocation cost, while retaining the v6 handler and context contracts.
@@ -50,13 +50,37 @@ Those Record capabilities are not being removed from `EventFunction` or `Request
 
 There are intentionally no `MinimalSqsFunction`, `MinimalSnsFunction`, `MinimalS3Function`, or equivalent source-specific Minimal types in v6.0.
 
-## Relationship to the beta-4 performance baseline
+## Performance
 
-The controlled V5-to-V6 reference published for beta 4 measured the default/full V6 paths before Minimal hosting was part of the comparison. That reference remains valid and should continue to be read as the cost of the default/full V6 execution model on the measured workloads.
+Beta 5 is the first release where Minimal and full V6 hosting can be compared as two current V6 choices rather than treating Minimal as an appendix to the earlier beta-4 baseline.
 
-Minimal does not "fix" that baseline or imply that the richer V6 behavior was accidental. Instead, it gives source-neutral Request/Event functions a smaller hosting capability set when they do not need the full host's internal invocation telemetry or any source-specific Record-processing behavior.
+The release Request benchmark measured:
 
-A benchmark that adds `V6Minimal` to the existing Request scenario therefore answers a narrower question: how much of the measured Request overhead belongs to the full hosting path, and how much belongs to the v6 handler/context/DI model that Minimal deliberately retains.
+| Model | Mean | Allocated |
+| --- | ---: | ---: |
+| Raw AWS SDK | 32.2 ns | 128 B |
+| V5 | 196.7 ns | 352 B |
+| V6 Minimal | 299.6 ns | 584 B |
+| V6 full | 443.0 ns | 712 B |
+
+The workload is intentionally trivial, so these numbers expose framework cost rather than realistic end-to-end Lambda latency. In this snapshot, Minimal was about 32% faster than the full V6 Request host and allocated 128 B less per invocation. Compared with V5 it retained a measurable framework floor of roughly 103 ns and 232 B.
+
+A nested SQS -> SNS -> S3 benchmark gives a more application-shaped comparison:
+
+| Model | Mean | Allocated |
+| --- | ---: | ---: |
+| Raw AWS SDK | 5.60 us | 4,168 B |
+| V5 | 6.01 us | 4,280 B |
+| V6 Minimal comparison | 5.88 us | 4,624 B |
+| V6 full/source-specific | 7.93 us | 6,088 B |
+
+The `V6Minimal` contender in source-specific benchmark suites is deliberately application-owned orchestration running on Minimal hosting. It is not a `MinimalSqsFunction` or other source-specific Minimal API. The comparison shows the cost boundary between lean V6 hosting and the source-specific processing that the full Record model owns.
+
+Beta 5 also reduced root `FunctionContext` bookkeeping. The change removed 520 B per invocation from both Minimal and full V6 paths across independent benchmark suites. That fixed allocation reduction is more reliable evidence than very small timing deltas on GitHub-hosted runners.
+
+The important conclusion is not that Minimal makes V6 equivalent to V5 in every microbenchmark. It is that V6 now exposes an explicit capability/performance choice while keeping the same Request/Event handler programming model. Minimal substantially lowers the framework floor; the full host intentionally spends more on framework-owned behavior.
+
+GitHub-hosted release measurements are useful for trends, but they are not controlled hardware. Consumers with strict latency or allocation requirements should benchmark their own workload. See [the benchmark documentation](../benchmarks/README.md) for the broader matrix and methodology.
 
 ## OpenTelemetry
 
