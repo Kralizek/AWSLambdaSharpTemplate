@@ -76,8 +76,6 @@ A nested SQS -> SNS -> S3 benchmark gives a more application-shaped comparison:
 
 The `V6Minimal` contender in source-specific benchmark suites is deliberately application-owned orchestration running on Minimal hosting. It is not a `MinimalSqsFunction` or other source-specific Minimal API. The comparison shows the cost boundary between lean V6 hosting and the source-specific processing that the full Record model owns.
 
-The current implementation also avoids unnecessary root `FunctionContext` bookkeeping, reducing allocations by 520 B per invocation for both Minimal and full V6 paths compared with the previous implementation. That fixed allocation reduction is more reliable evidence than very small timing deltas on GitHub-hosted runners.
-
 The important conclusion is not that Minimal makes V6 equivalent to V5 in every microbenchmark. It is that V6 exposes an explicit capability/performance choice while keeping the same Request/Event handler programming model. Minimal substantially lowers the framework floor; the full host intentionally spends more on framework-owned behavior.
 
 GitHub-hosted release measurements are useful for trends, but they are not controlled hardware. Consumers with strict latency or allocation requirements should benchmark their own workload. See [the benchmark documentation](../benchmarks/README.md) for the broader matrix and methodology.
