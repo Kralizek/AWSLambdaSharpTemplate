@@ -35,12 +35,39 @@ Because the redesign changes public base classes and handler contracts, migrate 
 
 ## Performance
 
-The controlled reference published for beta 4 measured V5 against the **default/full V6 hosting model**. It established that full V6 has measurable runtime and allocation overhead compared with V5. The magnitude depends heavily on workload shape: synchronous microbenchmarks expose the framework floor, while genuinely asynchronous workloads give a more relevant view of async pipelines. Exact ratios should not be generalized to every function.
+V6 has two different performance profiles because it has two different hosting choices for source-neutral Request/Event functions.
 
-That beta-4 comparison should be read together with the semantics the measured V6 paths provide. For record-oriented integrations those include one independent DI scope per record, source-specific immutable contexts, raw/origin record access, partial-batch result handling, automatic exception translation, cancellation and disposal guarantees, telemetry seams, and reusable nested record processing. The additional work is therefore not simply implementation waste, and not every additional allocation is a defect.
+The **default/full host** provides the complete V6 Request/Event invocation infrastructure, including the framework's internal invocation telemetry path. The **Minimal host** runs the same V6 handler and context contracts through a shorter path when that infrastructure is not needed. Source-specific Record functions continue to use the full source-specific hosts because their record-processing semantics are part of the model rather than optional hosting decoration.
 
-Minimal hosting does not invalidate that reference or replace the default host. It adds a second hosting choice for source-neutral Request/Event functions. When a function does not need the full host's internal invocation telemetry or source-specific Record processing, Minimal retains the same v6 handler/context/DI model while deliberately reducing framework involvement. It should be evaluated as a smaller capability set, not as a compatibility mode or a claim that the full V6 model was incorrect.
+The current release benchmark snapshot provides the most useful comparison. On its GitHub-hosted runner, the Request benchmark measured:
 
-The original beta-4 figures remain the controlled V5-to-full-V6 baseline. New measurements that include Minimal should be treated as an additional comparison showing how much of the Request/Event overhead belongs to the full hosting path versus the v6 handler/context model retained by Minimal.
+| Model | Mean | Allocated |
+| --- | ---: | ---: |
+| Raw AWS SDK | 32.2 ns | 128 B |
+| V5 | 196.7 ns | 352 B |
+| V6 Minimal | 299.6 ns | 584 B |
+| V6 full | 443.0 ns | 712 B |
 
-Consumers with strict latency or allocation requirements should benchmark their own workload. See [the benchmark documentation](../benchmarks/README.md#controlled-v5-to-v6-reference) for the controlled-hardware methodology, repeated-run values, allocations, stability spread, and the distinction between synchronous framework-overhead and genuinely asynchronous workloads.
+The Request workload intentionally does almost no application work, so it magnifies framework overhead. In that run, Minimal reduced the V6 hosting cost substantially: it was about 32% faster than the full V6 host and allocated 128 B less per invocation. Compared with V5, Minimal still had a measurable floor: roughly 103 ns and 232 B per invocation on this synthetic workload.
+
+A nested SQS -> SNS -> S3 workload gives a different view because event-processing work dominates more of the invocation. The current release snapshot measured:
+
+| Model | Mean | Allocated |
+| --- | ---: | ---: |
+| Raw AWS SDK | 5.60 us | 4,168 B |
+| V5 | 6.01 us | 4,280 B |
+| V6 Minimal comparison | 5.88 us | 4,624 B |
+| V6 full/source-specific | 7.93 us | 6,088 B |
+
+The Minimal contender in record-oriented benchmark suites is a comparison fixture rather than a `MinimalSqsFunction` or other source-specific Minimal host. It deliberately keeps the Minimal Request/Event hosting model while moving AWS-specific iteration, decoding, failure translation, and nested envelope processing back into application code. This makes the benchmark useful for showing the boundary between lean V6 hosting and framework-owned AWS orchestration, but it is not a second source-specific hosting API.
+
+These measurements should be interpreted as architectural comparisons rather than universal throughput ratios. GitHub-hosted runners are useful for release-to-release trends but are not controlled benchmark hardware, and very small timing measurements are especially sensitive to run-to-run variation. Allocation differences are much more stable. For latency- or allocation-sensitive functions, benchmark the actual workload.
+
+The practical migration guidance is therefore:
+
+- choose the full V6 host when the function benefits from the complete V6 invocation infrastructure or source-specific Record semantics;
+- choose Minimal for source-neutral Request/Event functions that want the V6 handler/context/DI programming model with less hosting overhead;
+- do not treat Minimal as a compatibility mode or as evidence that the full V6 model is incorrect;
+- expect the relative overhead to shrink as real application work becomes more significant than the framework floor.
+
+See [the benchmark documentation](../benchmarks/README.md) for methodology, controlled measurements, release benchmark history, and the broader benchmark matrix.
