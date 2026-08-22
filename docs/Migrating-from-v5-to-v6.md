@@ -61,8 +61,6 @@ A nested SQS -> SNS -> S3 workload gives a different view because event-processi
 
 The Minimal contender in record-oriented benchmark suites is a comparison fixture rather than a `MinimalSqsFunction` or other source-specific Minimal host. It deliberately keeps the Minimal Request/Event hosting model while moving AWS-specific iteration, decoding, failure translation, and nested envelope processing back into application code. This makes the benchmark useful for showing the boundary between lean V6 hosting and framework-owned AWS orchestration, but it is not a second source-specific hosting API.
 
-The current implementation also avoids unnecessary root `FunctionContext` bookkeeping. Across independent benchmark paths, this reduces allocations by a fixed 520 B per invocation for both Minimal and full V6 hosts compared with the previous implementation. That consistent allocation reduction is strong evidence that the optimization removed framework bookkeeping rather than shifting work elsewhere.
-
 These measurements should be interpreted as architectural comparisons rather than universal throughput ratios. GitHub-hosted runners are useful for release-to-release trends but are not controlled benchmark hardware, and very small timing measurements are especially sensitive to run-to-run variation. Allocation differences are much more stable. For latency- or allocation-sensitive functions, benchmark the actual workload.
 
 The practical migration guidance is therefore:
