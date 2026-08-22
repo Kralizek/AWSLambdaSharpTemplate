@@ -39,7 +39,7 @@ V6 has two different performance profiles because it has two different hosting c
 
 The **default/full host** provides the complete V6 Request/Event invocation infrastructure, including the framework's internal invocation telemetry path. The **Minimal host** runs the same V6 handler and context contracts through a shorter path when that infrastructure is not needed. Source-specific Record functions continue to use the full source-specific hosts because their record-processing semantics are part of the model rather than optional hosting decoration.
 
-The beta-5 release benchmark snapshot is the most useful current comparison. On its GitHub-hosted runner, the Request benchmark measured:
+The current release benchmark snapshot provides the most useful comparison. On its GitHub-hosted runner, the Request benchmark measured:
 
 | Model | Mean | Allocated |
 | --- | ---: | ---: |
@@ -50,7 +50,7 @@ The beta-5 release benchmark snapshot is the most useful current comparison. On 
 
 The Request workload intentionally does almost no application work, so it magnifies framework overhead. In that run, Minimal reduced the V6 hosting cost substantially: it was about 32% faster than the full V6 host and allocated 128 B less per invocation. Compared with V5, Minimal still had a measurable floor: roughly 103 ns and 232 B per invocation on this synthetic workload.
 
-A nested SQS -> SNS -> S3 workload gives a different view because event-processing work dominates more of the invocation. The beta-5 snapshot measured:
+A nested SQS -> SNS -> S3 workload gives a different view because event-processing work dominates more of the invocation. The current release snapshot measured:
 
 | Model | Mean | Allocated |
 | --- | ---: | ---: |
@@ -61,7 +61,7 @@ A nested SQS -> SNS -> S3 workload gives a different view because event-processi
 
 The Minimal contender in record-oriented benchmark suites is a comparison fixture rather than a `MinimalSqsFunction` or other source-specific Minimal host. It deliberately keeps the Minimal Request/Event hosting model while moving AWS-specific iteration, decoding, failure translation, and nested envelope processing back into application code. This makes the benchmark useful for showing the boundary between lean V6 hosting and framework-owned AWS orchestration, but it is not a second source-specific hosting API.
 
-The beta-5 release also includes the root `FunctionContext` allocation optimization. Across independent benchmark paths it removed a fixed 520 B per invocation from both Minimal and full V6 hosts, which is a strong allocation-level confirmation that the optimization removed root-context bookkeeping rather than shifting work elsewhere.
+The current implementation also avoids unnecessary root `FunctionContext` bookkeeping. Across independent benchmark paths, this reduces allocations by a fixed 520 B per invocation for both Minimal and full V6 hosts compared with the previous implementation. That consistent allocation reduction is strong evidence that the optimization removed framework bookkeeping rather than shifting work elsewhere.
 
 These measurements should be interpreted as architectural comparisons rather than universal throughput ratios. GitHub-hosted runners are useful for release-to-release trends but are not controlled benchmark hardware, and very small timing measurements are especially sensitive to run-to-run variation. Allocation differences are much more stable. For latency- or allocation-sensitive functions, benchmark the actual workload.
 
@@ -72,4 +72,4 @@ The practical migration guidance is therefore:
 - do not treat Minimal as a compatibility mode or as evidence that the full V6 model is incorrect;
 - expect the relative overhead to shrink as real application work becomes more significant than the framework floor.
 
-See [the benchmark documentation](../benchmarks/README.md) for methodology, historical controlled measurements, release benchmark history, and the broader benchmark matrix.
+See [the benchmark documentation](../benchmarks/README.md) for methodology, controlled measurements, release benchmark history, and the broader benchmark matrix.
