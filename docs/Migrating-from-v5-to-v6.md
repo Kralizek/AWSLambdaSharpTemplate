@@ -19,8 +19,7 @@ Apply these changes to every migrated function first:
    - `Configure(...)` becomes `ConfigureConfiguration(...)`;
    - `ConfigureLogging(ILoggingBuilder, IExecutionEnvironment)` becomes `ConfigureLogging(ILoggingBuilder)`;
    - `ConfigureServices(IServiceCollection, IExecutionEnvironment)` becomes `ConfigureServices(IServiceCollection, IConfiguration)`.
-9. Preserve calls to the corresponding `base.Configure...(...)` methods unless you intentionally want to replace framework defaults.
-10. Build and run the function's tests before changing another integration.
+9. Build and run the function's tests before changing another integration.
 
 The sections below show the concrete v5-to-v6 transformation for the four most common v5 function shapes.
 
@@ -428,13 +427,11 @@ protected override void ConfigureConfiguration(
     IConfigurationBuilder configuration)
 {
     configuration.AddEnvironmentVariables();
-    base.ConfigureConfiguration(configuration);
 }
 
 protected override void ConfigureLogging(ILoggingBuilder logging)
 {
     // Add or customize logging here.
-    base.ConfigureLogging(logging);
 }
 
 protected override void ConfigureServices(
@@ -442,7 +439,6 @@ protected override void ConfigureServices(
     IConfiguration configuration)
 {
     services.AddScoped<IMyService, MyService>();
-    base.ConfigureServices(services, configuration);
 }
 ```
 
