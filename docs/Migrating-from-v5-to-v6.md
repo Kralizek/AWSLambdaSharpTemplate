@@ -207,7 +207,7 @@ public sealed class RawSnsHandler : ISnsRecordHandler
 {
     public ValueTask<SnsRecordResult> HandleAsync(
         SNSEvent.SNSRecord record,
-        SnsRecordContext context,
+        SnsNotificationContext context,
         CancellationToken cancellationToken)
         => ValueTask.FromResult(SnsRecordResult.Completed);
 }
@@ -223,7 +223,15 @@ services
     .WithParallelExecution(maxDegreeOfParallelism: 4);
 ```
 
-In v6, parallel processing is explicit in the function type. Use the corresponding `ParallelSnsFunction<...>` variant and configure its supported degree of parallelism rather than chaining a registration extension.
+In v6, parallel processing is explicit in the function type:
+
+```csharp
+public sealed class Function
+    : ParallelSnsFunction<OrderCreated, OrderCreatedHandler>
+{
+    protected override int MaxDegreeOfParallelism => 4;
+}
+```
 
 Sequential processing is the default.
 
@@ -301,7 +309,7 @@ public sealed class RawSqsHandler : ISqsRecordHandler
 {
     public ValueTask<SqsRecordResult> HandleAsync(
         SQSEvent.SQSMessage record,
-        SqsRecordContext context,
+        SqsMessageContext context,
         CancellationToken cancellationToken)
         => ValueTask.FromResult(SqsRecordResult.Success);
 }
@@ -363,7 +371,17 @@ services
     .WithParallelExecution(maxDegreeOfParallelism: 4);
 ```
 
-In v6, choose the corresponding `ParallelSqsFunction<...>` variant. Sequential processing is the default.
+In v6, choose the corresponding parallel function variant:
+
+```csharp
+public sealed class Function
+    : ParallelSqsFunction<OrderCreated, OrderCreatedHandler>
+{
+    protected override int MaxDegreeOfParallelism => 4;
+}
+```
+
+Sequential processing is the default.
 
 ### SQS custom serialization
 
@@ -440,8 +458,8 @@ Use the supplied v6 context first:
 
 - `RequestContext` for Request functions;
 - `EventContext` for Event functions;
-- `SqsMessageContext` / `SqsRecordContext` for SQS;
-- `SnsNotificationContext` / `SnsRecordContext` for SNS.
+- `SqsMessageContext` for both typed and raw SQS handlers;
+- `SnsNotificationContext` for both typed and raw SNS handlers.
 
 These contexts expose the stable invocation/source metadata expected by application code. Source-specific contexts also preserve the original AWS records through escape-hatch extensions when needed.
 
@@ -475,7 +493,7 @@ public sealed class OrderCreatedDecoder
 {
     public ValueTask<OrderCreated> DecodeAsync(
         string payload,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         // Decode the payload.
     }
