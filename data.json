@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1787408597369,
+  "lastUpdated": 1787643275935,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -1333,6 +1333,58 @@
             "bytesAllocated": 8272
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 2210.051789919535,
+            "unit": "ns",
+            "range": "± 6.507813095086224",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4035.1081374032156,
+            "unit": "ns",
+            "range": "± 9.337819527786865",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 2218.1962221781414,
+            "unit": "ns",
+            "range": "± 9.092053398444406",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 8348.062818254743,
+            "unit": "ns",
+            "range": "± 27.780537078719522",
+            "bytesAllocated": 8192
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 9321.422538248698,
+            "unit": "ns",
+            "range": "± 28.30753862376614",
+            "bytesAllocated": 8272
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -2085,6 +2137,51 @@
             "bytesAllocated": 712
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 27.754743333046253,
+            "unit": "ns",
+            "range": "± 0.17554336227089964",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 185.71571166174752,
+            "unit": "ns",
+            "range": "± 0.796617385557056",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 266.0639921597072,
+            "unit": "ns",
+            "range": "± 1.2580291876128218",
+            "bytesAllocated": 584
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 434.1779565811157,
+            "unit": "ns",
+            "range": "± 1.5708924965607496",
+            "bytesAllocated": 712
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -2610,6 +2707,58 @@
             "bytesAllocated": 8456
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2462.0536234537763,
+            "unit": "ns",
+            "range": "± 9.8897919074976",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2731.763289388021,
+            "unit": "ns",
+            "range": "± 13.926878501523413",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 2865.6411886948804,
+            "unit": "ns",
+            "range": "± 10.842782370400354",
+            "bytesAllocated": 2176
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 9410.561622111003,
+            "unit": "ns",
+            "range": "± 68.0903462492047",
+            "bytesAllocated": 8376
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 9911.41733609713,
+            "unit": "ns",
+            "range": "± 21.3496406217353",
+            "bytesAllocated": 8456
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -3055,6 +3204,51 @@
             "value": 7732.267217000325,
             "unit": "ns",
             "range": "± 23.74207536061173",
+            "bytesAllocated": 6088
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 5042.66182607015,
+            "unit": "ns",
+            "range": "± 35.01351666231912",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5366.67487894694,
+            "unit": "ns",
+            "range": "± 37.99057938730304",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 5316.563243103027,
+            "unit": "ns",
+            "range": "± 17.463876486430816",
+            "bytesAllocated": 4624
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 7618.521084125226,
+            "unit": "ns",
+            "range": "± 20.78342412723699",
             "bytesAllocated": 6088
           }
         ]
@@ -3504,6 +3698,51 @@
             "unit": "ns",
             "range": "± 532.7817603748284",
             "bytesAllocated": 7603
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8873.299673614501,
+            "unit": "ns",
+            "range": "± 970.8401589374691",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 9437.443580322266,
+            "unit": "ns",
+            "range": "± 896.0315125319066",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 7636.067502391582,
+            "unit": "ns",
+            "range": "± 524.8791393718532",
+            "bytesAllocated": 5000
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 13622.902440207345,
+            "unit": "ns",
+            "range": "± 586.1161460461735",
+            "bytesAllocated": 7602
           }
         ]
       }
@@ -4031,6 +4270,58 @@
             "bytesAllocated": 11696
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4774.044662475586,
+            "unit": "ns",
+            "range": "± 8.330219607191685",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5714.6419951121015,
+            "unit": "ns",
+            "range": "± 7.026709997063698",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 5334.495140075684,
+            "unit": "ns",
+            "range": "± 22.523669041430484",
+            "bytesAllocated": 2432
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 21801.504536220007,
+            "unit": "ns",
+            "range": "± 53.16373410058348",
+            "bytesAllocated": 10208
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 26015.26438685826,
+            "unit": "ns",
+            "range": "± 53.6261613836365",
+            "bytesAllocated": 11696
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -4553,6 +4844,58 @@
             "value": 38888.86409983916,
             "unit": "ns",
             "range": "± 758.2119350984512",
+            "bytesAllocated": 15232
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "b7462654c70d44a0688175d869ee8880de566c10",
+          "message": "docs: add concrete v5 to v6 upgrade guide (#111)",
+          "timestamp": "2026-08-25T07:21:51Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b7462654c70d44a0688175d869ee8880de566c10"
+        },
+        "date": 1787643275935,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 7891.00108692744,
+            "unit": "ns",
+            "range": "± 391.07618208101155",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 17275.26352902676,
+            "unit": "ns",
+            "range": "± 667.0814931644375",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 8586.649657790726,
+            "unit": "ns",
+            "range": "± 270.19534045574056",
+            "bytesAllocated": 2312
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 34589.92222595215,
+            "unit": "ns",
+            "range": "± 869.3124797537329",
+            "bytesAllocated": 13392
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 39497.01839599609,
+            "unit": "ns",
+            "range": "± 1072.755786814061",
             "bytesAllocated": 15232
           }
         ]
