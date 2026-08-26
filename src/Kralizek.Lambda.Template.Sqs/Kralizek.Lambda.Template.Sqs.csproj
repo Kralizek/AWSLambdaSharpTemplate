@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.Sqs</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sqs</PackageTags>
-    <Description>Extension to Kralizek.Lambda.Template for AWS Lambda functions triggered by SQS.</Description>
+    <Description>Amazon SQS message processing with raw or decoded payloads, bounded parallel execution, and partial-batch failure responses.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>

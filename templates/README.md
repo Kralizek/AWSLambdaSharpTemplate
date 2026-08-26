@@ -24,6 +24,7 @@ dotnet new list lambda-template
 | Request Function | `lambda-template-request` | The Lambda handles an input and returns an application result. |
 | EventBridge Function | `lambda-template-eventbridge` | The Lambda is targeted by EventBridge and receives a strongly typed event detail inside the AWS event envelope. |
 | DynamoDB Streams Function | `lambda-template-dynamodb-stream` | The Lambda consumes DynamoDB Streams records with source-specific context and partial-batch failure support. |
+| Kinesis Streams Function | `lambda-template-kinesis-stream` | The Lambda consumes Kinesis Data Streams records as raw AWS records or decoded binary payloads with partial-batch failure support. |
 | S3 Function | `lambda-template-s3` | The Lambda reacts to native S3 event notifications using a synthetic object-event model. |
 | S3 Batch Function | `lambda-template-s3-batch` | The Lambda processes S3 Batch Operations tasks using invocation schema 2.0. |
 | SNS Function | `lambda-template-sns` | The Lambda is triggered by SNS and processes each decoded notification independently. |
@@ -65,6 +66,12 @@ Create a DynamoDB Streams function:
 
 ```bash
 dotnet new lambda-template-dynamodb-stream --name MyDynamoDbStreamFunction
+```
+
+Create a Kinesis Streams function:
+
+```bash
+dotnet new lambda-template-kinesis-stream --name MyKinesisStreamFunction
 ```
 
 Create an S3 notification function:
@@ -155,6 +162,14 @@ public sealed class Function : DynamoDbStreamFunction<OrderChangeHandler>;
 ```
 
 The handler receives a `DynamoDbStreamItem` containing keys, old/new images, sequence number and stream metadata together with `DynamoDbStreamRecordContext` for the outer event metadata. The original AWS stream record remains available through `context.GetDynamoDbStreamRecord()`. DynamoDB images remain in AWS's `DynamoDBEvent.AttributeValue` model rather than being treated as JSON. Record failures are translated into `StreamsEventResponse` partial-batch failures; the event-source mapping must enable `ReportBatchItemFailures` for Lambda to honor them. Records are processed sequentially within each invocation; applications that need more throughput should configure `ParallelizationFactor` on the DynamoDB Streams event-source mapping.
+
+A Kinesis Streams Function derives from `KinesisStreamFunction<TPayload, THandler>` for decoded payloads or `KinesisStreamFunction<THandler>` for raw AWS records:
+
+```csharp
+public sealed class Function : KinesisStreamFunction<OrderCreated, OrderCreatedHandler>;
+```
+
+Typed handlers decode `KinesisEventRecord.Kinesis.Data` through `IBinaryPayloadDecoder<TPayload>`, with System.Text.Json registered by default. Failed records are translated into `StreamsEventResponse` partial-batch failures using Kinesis sequence numbers; the event-source mapping must enable `ReportBatchItemFailures` for Lambda to honor them. Records are processed sequentially within each invocation, leaving concurrency such as `ParallelizationFactor` to the event source mapping.
 
 An S3 Function derives from `S3Function<THandler>` and invokes an `IS3ObjectEventHandler` for each native S3 notification record:
 

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [6.0.0] - Unreleased
+## [6.0.0] - 2026-08-26
 
 Version 6 is a major redesign of the library and template set. It replaces the V5 programming model with semantic function types, expands the supported AWS event sources, and moves the project to .NET 10.
 
