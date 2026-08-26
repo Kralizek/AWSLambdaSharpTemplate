@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.Sns</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;sns</PackageTags>
-    <Description>Extension to Kralizek.Lambda.Template for AWS Lambda functions triggered by SNS.</Description>
+    <Description>Amazon SNS notification processing with raw or decoded payloads and bounded parallel execution support.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>

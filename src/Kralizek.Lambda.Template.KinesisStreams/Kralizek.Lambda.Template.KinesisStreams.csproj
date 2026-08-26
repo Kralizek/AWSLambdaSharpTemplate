@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.KinesisStreams</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;kinesis;streams</PackageTags>
-    <Description>Extension to Kralizek.Lambda.Template for AWS Lambda functions triggered by Amazon Kinesis Data Streams.</Description>
+    <Description>Kinesis Data Streams record processing with raw or decoded payloads and partial-batch failure responses.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>

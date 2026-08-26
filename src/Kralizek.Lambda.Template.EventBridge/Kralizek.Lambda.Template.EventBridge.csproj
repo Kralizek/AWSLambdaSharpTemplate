@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.EventBridge</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;eventbridge</PackageTags>
-    <Description>Extension to Kralizek.Lambda.Template for AWS Lambda functions triggered by Amazon EventBridge.</Description>
+    <Description>Amazon EventBridge function model with strongly typed event detail and access to the complete AWS event envelope.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>

@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.Cognito</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;cognito</PackageTags>
-    <Description>Extension to Kralizek.Lambda.Template for Amazon Cognito user pool Lambda triggers.</Description>
+    <Description>Amazon Cognito User Pool Lambda trigger specializations and strongly typed handler contracts.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>

@@ -6,7 +6,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Templates</PackageId>
     <PackageType>Template</PackageType>
-    <Description>Templates for AWS Lambda using Kralizek.Lambda.Template</Description>
+    <Description>dotnet new project templates for .NET 10 AWS Lambda functions using Kralizek.Lambda.Template and its source-specific integrations.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>

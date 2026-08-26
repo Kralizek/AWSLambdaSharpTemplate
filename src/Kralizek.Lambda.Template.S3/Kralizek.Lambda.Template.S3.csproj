@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template.S3</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp;s3</PackageTags>
-    <Description>Extension to Kralizek.Lambda.Template for AWS Lambda functions triggered by Amazon S3.</Description>
+    <Description>Amazon S3 event notification and S3 Batch Operations function models with source-specific contexts and results.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>
