@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Amazon.Lambda.CloudWatchEvents" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.CloudWatchEvents" Version="5.1.0" />
     <PackageVersion Include="Amazon.Lambda.CognitoEvents" Version="5.0.0" />
     <PackageVersion Include="Amazon.Lambda.Core" Version="3.3.0" />
     <PackageVersion Include="Amazon.Lambda.DynamoDBEvents" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.KinesisEvents" Version="4.0.0" />
-    <PackageVersion Include="Amazon.Lambda.Logging.AspNetCore" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Logging.AspNetCore" Version="5.0.1" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="2.2.0" />
     <PackageVersion Include="Amazon.Lambda.S3Events" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.1" />
