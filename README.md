@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/Kralizek/AWSLambdaSharpTemplate/actions/workflows/ci.yml/badge.svg)](https://github.com/Kralizek/AWSLambdaSharpTemplate/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/Kralizek/AWSLambdaSharpTemplate)](https://github.com/Kralizek/AWSLambdaSharpTemplate/releases/latest)
-[![Stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Templates?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Templates)
-[![Latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Templates?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Templates)
-[![Downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Templates?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Templates)
+[![Stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template)
+[![Latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template)
+[![Downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template)
 
 AWS Lambda runtime libraries and `dotnet new` templates for .NET 10, built around explicit handler contracts, dependency injection, configuration, logging, cancellation, and source-specific AWS semantics.
 
