@@ -1,5 +1,8 @@
 # AWS Lambda Sharp Template
 
+[![CI](https://github.com/Kralizek/AWSLambdaSharpTemplate/actions/workflows/ci.yml/badge.svg)](https://github.com/Kralizek/AWSLambdaSharpTemplate/actions/workflows/ci.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/Kralizek/AWSLambdaSharpTemplate)](https://github.com/Kralizek/AWSLambdaSharpTemplate/releases/latest)
+
 AWS Lambda runtime libraries and `dotnet new` templates for .NET 10, built around explicit handler contracts, dependency injection, configuration, logging, cancellation, and source-specific AWS semantics.
 
 ## Programming model
