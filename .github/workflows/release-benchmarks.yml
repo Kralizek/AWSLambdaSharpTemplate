@@ -33,16 +33,14 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout benchmark source
-        uses: actions/checkout@v6
+      - name: Build benchmarks
+        uses: Kralizek/github-actions/actions/dotnet-build@v0.3
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-
-      - name: Setup benchmark .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: benchmarks/global.json
+          global_json_file: benchmarks/global.json
+          working_directory: benchmarks
+          fetch_depth: 0
+          format: false
+          test: false
 
       - name: Run benchmarks
         working-directory: benchmarks
@@ -50,6 +48,7 @@ jobs:
           dotnet run
           --project Benchmarks/Benchmarks.csproj
           --configuration Release
+          --no-build
           --
           --profile ${{ inputs.benchmark-profile }}
           --filter '*'
