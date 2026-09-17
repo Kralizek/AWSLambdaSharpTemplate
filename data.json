@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1789601389064,
+  "lastUpdated": 1789609235442,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -1801,6 +1801,58 @@
             "bytesAllocated": 8272
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1864.5425522668022,
+            "unit": "ns",
+            "range": "± 5.3502174690439155",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 3759.104000345866,
+            "unit": "ns",
+            "range": "± 23.460609378489128",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 2362.603162384033,
+            "unit": "ns",
+            "range": "± 10.429659752565327",
+            "bytesAllocated": 2168
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 13906.270411173502,
+            "unit": "ns",
+            "range": "± 63.81479482386146",
+            "bytesAllocated": 11840
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 16555.10144696917,
+            "unit": "ns",
+            "range": "± 71.78455206945044",
+            "bytesAllocated": 13440
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -2958,6 +3010,51 @@
             "bytesAllocated": 712
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 28.635768266518912,
+            "unit": "ns",
+            "range": "± 0.2608447482316559",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 169.99643353621164,
+            "unit": "ns",
+            "range": "± 0.9115600970139953",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 433.9539972305298,
+            "unit": "ns",
+            "range": "± 5.218358436676488",
+            "bytesAllocated": 808
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 761.3038505554199,
+            "unit": "ns",
+            "range": "± 4.5305050957104145",
+            "bytesAllocated": 1080
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -3951,6 +4048,58 @@
             "bytesAllocated": 8456
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2355.266010284424,
+            "unit": "ns",
+            "range": "± 5.787767657391999",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2525.100010735648,
+            "unit": "ns",
+            "range": "± 4.7372963126116545",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 2898.272470474243,
+            "unit": "ns",
+            "range": "± 5.808168020027405",
+            "bytesAllocated": 2400
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 14552.863678995769,
+            "unit": "ns",
+            "range": "± 56.92239210846201",
+            "bytesAllocated": 12024
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 16828.921319144112,
+            "unit": "ns",
+            "range": "± 123.81488862815368",
+            "bytesAllocated": 13624
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -4804,6 +4953,51 @@
             "bytesAllocated": 6088
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 4850.072550964355,
+            "unit": "ns",
+            "range": "± 51.60298249839091",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5431.18860168457,
+            "unit": "ns",
+            "range": "± 49.501241419618715",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 5497.82930246989,
+            "unit": "ns",
+            "range": "± 35.39743238970278",
+            "bytesAllocated": 4848
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 8716.416232299805,
+            "unit": "ns",
+            "range": "± 76.48943861360235",
+            "bytesAllocated": 7208
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -5655,6 +5849,51 @@
             "unit": "ns",
             "range": "± 956.578329978775",
             "bytesAllocated": 7606
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8512.553899536133,
+            "unit": "ns",
+            "range": "± 849.8162593931372",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 9190.707159423828,
+            "unit": "ns",
+            "range": "± 578.9573174681495",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 8074.423605041504,
+            "unit": "ns",
+            "range": "± 860.8085937665052",
+            "bytesAllocated": 5128
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 13360.27677734375,
+            "unit": "ns",
+            "range": "± 797.7235821645667",
+            "bytesAllocated": 8039
           }
         ]
       }
@@ -6650,6 +6889,58 @@
             "bytesAllocated": 11696
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4585.292917104868,
+            "unit": "ns",
+            "range": "± 12.59417812112061",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5452.9450923374725,
+            "unit": "ns",
+            "range": "± 9.229369115886154",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 5245.681119646345,
+            "unit": "ns",
+            "range": "± 19.614965721477766",
+            "bytesAllocated": 2656
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 26345.882956368583,
+            "unit": "ns",
+            "range": "± 111.12704738229428",
+            "bytesAllocated": 14632
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 32171.82370867048,
+            "unit": "ns",
+            "range": "± 82.39730362379956",
+            "bytesAllocated": 16864
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -7641,6 +7932,58 @@
             "unit": "ns",
             "range": "± 309.84985896333046",
             "bytesAllocated": 15235
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22",
+          "message": "Adopt shared GitHub Actions v0.3 for benchmarks (#117)",
+          "timestamp": "2026-09-17T01:27:58Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dd8ba5f3a37f2eecb1f8e7689abd68f7e3612c22"
+        },
+        "date": 1789609235442,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 8411.757202529907,
+            "unit": "ns",
+            "range": "± 298.79682073098303",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 16671.719760366588,
+            "unit": "ns",
+            "range": "± 773.4036252465343",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 9021.163190476438,
+            "unit": "ns",
+            "range": "± 335.2742445814329",
+            "bytesAllocated": 2440
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 39300.81794084822,
+            "unit": "ns",
+            "range": "± 383.7295683759351",
+            "bytesAllocated": 14772
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 44863.52102426382,
+            "unit": "ns",
+            "range": "± 356.10488071360163",
+            "bytesAllocated": 17169
           }
         ]
       }
