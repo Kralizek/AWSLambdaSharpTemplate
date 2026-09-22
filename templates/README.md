@@ -104,7 +104,7 @@ Create an SQS router for a tenant-isolated downstream Lambda:
 dotnet new lambda-template-sqs --name MyTenantRouter --tenant-routing
 ```
 
-The generated tenant router expects a `tenant-id` SQS message attribute and constructs a `TenantLambdaRoute` with an explicit downstream-function placeholder in code. Replace that placeholder with the application's static, configuration-driven, or per-message target selection. The option composes with `--aot` and `--otel`.
+The generated tenant router includes an example `ResolveTenantId` method that reads a `tenant-id` SQS message attribute. That is only a starting point: applications can derive or resolve the tenant ID from message attributes, `MessageGroupId`, the payload, a tenant registry, or any other application-specific source. The handler then constructs a `TenantLambdaRoute` with that tenant ID and an explicit downstream-function placeholder in code. Replace the target placeholder with the application's static, configuration-driven, or per-message destination selection. The option composes with `--aot` and `--otel`.
 
 Create a Cognito pre sign-up function:
 
