@@ -98,6 +98,14 @@ Create an SQS function:
 dotnet new lambda-template-sqs --name MySqsFunction
 ```
 
+Create an SQS router for a tenant-isolated downstream Lambda:
+
+```bash
+dotnet new lambda-template-sqs --name MyTenantRouter --tenant
+```
+
+The generated tenant router expects a `tenant-id` SQS message attribute and reads the downstream function name or ARN from `TenantRouting:FunctionName` (or `TenantRouting__FunctionName` as an environment variable). The option composes with `--aot` and `--otel`.
+
 Create a Cognito pre sign-up function:
 
 ```bash
@@ -231,6 +239,7 @@ Cognito trigger bases specialize the request-function model with the correspondi
 | [`Kralizek.Lambda.Template.KinesisStreams`](https://www.nuget.org/packages/Kralizek.Lambda.Template.KinesisStreams) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.KinesisStreams?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.KinesisStreams) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.KinesisStreams?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.KinesisStreams) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.KinesisStreams?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.KinesisStreams) | Kinesis Streams record processing, payload decoding and checkpoint/partial-batch behavior. |
 | [`Kralizek.Lambda.Template.S3`](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.S3?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.S3?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.S3?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | Native S3 event notifications and S3 Batch Operations. |
 | [`Kralizek.Lambda.Template.Sns`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.Sns?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.Sns?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.Sns?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | SNS notification processing and payload decoding. |
+| [`Kralizek.Lambda.Template.TenantRouting`](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.TenantRouting?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.TenantRouting?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.TenantRouting?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | Source-neutral synchronous routing to tenant-isolated Lambda functions. |
 | [`Kralizek.Lambda.Template.Sqs`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.Sqs?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.Sqs?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.Sqs?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | SQS message processing, payload decoding and partial-batch response support. |
 
 ## Package compatibility
