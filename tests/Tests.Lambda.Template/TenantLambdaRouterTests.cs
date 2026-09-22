@@ -33,8 +33,8 @@ public class TenantLambdaRouterTests
             .Callback<InvokeRequest, CancellationToken>((request, _) =>
             {
                 capturedRequest = request;
-                request.Payload.Position = 0;
-                using var reader = new StreamReader(request.Payload, Encoding.UTF8, leaveOpen: true);
+                request.PayloadStream.Position = 0;
+                using var reader = new StreamReader(request.PayloadStream, Encoding.UTF8, leaveOpen: true);
                 capturedPayload = reader.ReadToEnd();
             })
             .ReturnsAsync(new InvokeResponse());
