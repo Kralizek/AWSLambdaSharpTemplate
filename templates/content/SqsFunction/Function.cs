@@ -4,8 +4,12 @@ using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
-#if (!raw)
+#if (!raw || tenantRouting)
 using Microsoft.Extensions.DependencyInjection;
+#endif
+
+#if (tenantRouting)
+using Microsoft.Extensions.Configuration;
 #endif
 
 #if (otel)
@@ -21,13 +25,20 @@ using OpenTelemetry.Trace;
 
 namespace LambdaFunctionProject;
 
-#if (raw)
+#if (tenantRouting)
+public sealed class Function : SqsFunction<TenantRoutingHandler>
+#elif (raw)
 public sealed class Function : SqsFunction<RawSqsRecordHandler>
 #else
 public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
 #endif
 {
-#if (!raw)
+#if (tenantRouting)
+    protected override void ConfigureServices(
+        IServiceCollection services,
+        IConfiguration configuration) =>
+        services.AddTenantLambdaRouting();
+#elif (!raw)
     protected override void ConfigureFrameworkServices(IServiceCollection services) =>
         services.AddSingleton(PayloadJsonSerializerContext.Default.OrderCreated);
 #endif
