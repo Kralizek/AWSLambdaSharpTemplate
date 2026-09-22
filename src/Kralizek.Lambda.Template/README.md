@@ -16,4 +16,6 @@ Minimal hosting retains configuration, logging, function-local dependency inject
 
 For usage, processing semantics, and examples, see [Programming Model](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/Programming-Model.md).
 
+Tenant-isolated invocations expose their tenant identifier directly through `FunctionContext.TenantId`. See [Tenant Isolation](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/Tenant-Isolation.md) for execution-environment, dependency-injection, caching, and telemetry guidance.
+
 The complete library documentation is available in the [`docs/` directory](https://github.com/Kralizek/AWSLambdaSharpTemplate/blob/HEAD/docs/README.md).

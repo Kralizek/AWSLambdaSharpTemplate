@@ -21,7 +21,9 @@ Because the input type in this sample is `string`, a direct test invocation can 
 
 The Lambda serializer turns that JSON string into the `string` passed to `StringEventHandler`.
 
-`Function` derives from `EventFunction<string, StringEventHandler>`. The framework creates the invocation scope, resolves the handler through dependency injection, and supplies an `EventContext` containing invocation metadata such as the AWS request ID.
+`Function` derives from `EventFunction<string, StringEventHandler>`. The framework creates the invocation scope, resolves the handler through dependency injection, and supplies an `EventContext` containing invocation metadata such as the AWS request ID and, for tenant-isolated invocations, `TenantId`.
+
+The sample logs `context.TenantId` to show that tenant identity is ordinary invocation metadata in the KLT programming model. Standard Lambda invocations expose it as `null`; tenant-isolated invocations receive the tenant identifier supplied by Lambda.
 
 There is deliberately no Terraform example here: `EventFunction<TInput, THandler>` is the source-neutral event model. Infrastructure depends on whatever service or application invokes the Lambda.
 

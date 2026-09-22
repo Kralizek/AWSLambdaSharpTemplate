@@ -24,7 +24,11 @@ public class StringEventHandler : IEventHandler<string>
 
     public ValueTask HandleAsync(string input, EventContext context, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Input {Input} for request {AwsRequestId}", input, context.AwsRequestId);
+        _logger.LogInformation(
+            "Input {Input} for request {AwsRequestId}, tenant {TenantId}",
+            input,
+            context.AwsRequestId,
+            context.TenantId);
         return ValueTask.CompletedTask;
     }
 }

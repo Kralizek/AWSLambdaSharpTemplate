@@ -16,7 +16,13 @@ public sealed record FunctionContextMetadata(
     int MemoryLimitInMB,
     TimeSpan RemainingTime,
     string LogGroupName,
-    string LogStreamName);
+    string LogStreamName)
+{
+    /// <summary>
+    /// Gets the tenant identifier for a tenant-isolated invocation, or <see langword="null"/> for a standard invocation.
+    /// </summary>
+    public string? TenantId { get; init; }
+}
 
 /// <summary>
 /// Provides metadata about the current function invocation without depending on a source-specific runtime context.
@@ -37,6 +43,7 @@ public abstract class FunctionContext
         RemainingTime = metadata.RemainingTime;
         LogGroupName = metadata.LogGroupName;
         LogStreamName = metadata.LogStreamName;
+        TenantId = metadata.TenantId;
         Properties = properties is SinglePropertyDictionary
             ? properties
             : CreatePropertySnapshot(properties);
@@ -79,6 +86,7 @@ public abstract class FunctionContext
         RemainingTime = source.RemainingTime;
         LogGroupName = source.LogGroupName;
         LogStreamName = source.LogStreamName;
+        TenantId = source.TenantId;
         Properties = properties;
     }
 
@@ -97,6 +105,11 @@ public abstract class FunctionContext
     public string LogGroupName { get; }
 
     public string LogStreamName { get; }
+
+    /// <summary>
+    /// Gets the tenant identifier for a tenant-isolated invocation, or <see langword="null"/> for a standard invocation.
+    /// </summary>
+    public string? TenantId { get; }
 
     /// <summary>
     /// Gets additional runtime-specific data that is not represented by the strongly typed properties.

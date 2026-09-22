@@ -45,13 +45,13 @@ public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAcc
 
     public virtual async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        LambdaTelemetry.EnrichInvocation("request");
+        var requestContext = CreateContext(input, context);
+
+        LambdaTelemetry.EnrichInvocation("request", requestContext);
         if (Activity.Current is { } activity)
         {
             EnrichInvocationActivity(activity, input, context);
         }
-
-        var requestContext = CreateContext(input, context);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
 

@@ -8,7 +8,7 @@ The source-neutral contexts are:
 - `RequestContext`
 - `RecordContext`
 
-They expose common Lambda invocation metadata through CLR properties. Source-specific integrations derive richer contexts for delivery metadata, such as `SqsMessageContext`, `SnsNotificationContext`, `DynamoDbStreamRecordContext`, and `KinesisStreamRecordContext`.
+They expose common Lambda invocation metadata through CLR properties, including `TenantId` when the function is invoked with Lambda tenant isolation. Standard invocations expose `TenantId` as `null`. Source-specific integrations derive richer contexts for delivery metadata, such as `SqsMessageContext`, `SnsNotificationContext`, `DynamoDbStreamRecordContext`, and `KinesisStreamRecordContext`.
 
 The original AWS Lambda context is preserved as an escape hatch and can be retrieved with `GetLambdaContext()`. Source-specific contexts similarly preserve the original AWS record where useful, for example `GetSqsMessage()`, `GetSnsRecord()`, and `GetDynamoDbStreamRecord()`.
 

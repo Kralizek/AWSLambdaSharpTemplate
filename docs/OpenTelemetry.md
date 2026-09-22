@@ -20,6 +20,9 @@ The framework does not create a second Lambda invocation span. When a function i
 The invocation activity receives:
 
 - `kralizek.lambda.function.model`: `request`, `event`, or `record`
+- `kralizek.aws.lambda.tenant_id`: the Lambda tenant identifier when tenant isolation is active
+
+OpenTelemetry does not currently define a standard AWS Lambda tenant attribute, so KLT keeps the tenant identifier in its own AWS-specific namespace rather than publishing an unstandardized `aws.*` attribute.
 
 Glue packages that represent one event or request per invocation enrich this same span with source-owned metadata. EventBridge adds event identity/source/type information, while Cognito adds trigger, user-pool, user, and region information. They do not create artificial record spans.
 
@@ -44,7 +47,7 @@ Source packages also interpret their handler result types. A handler that return
 
 A handled record failure does not mark the parent Lambda invocation span as `Error`. For partial-batch sources such as SQS, Kinesis Streams, and DynamoDB Streams, successfully producing the source-specific response means the invocation completed correctly even when one or more record spans report failure. The invocation span is reserved for failures of the invocation itself.
 
-High-cardinality record identifiers belong on spans only. Framework metrics intentionally do not copy message IDs, object keys, sequence numbers, partition keys, resource ARNs, user names, failure messages, or similar values into metric tags.
+High-cardinality identifiers belong on spans only. Framework metrics intentionally do not copy tenant IDs, message IDs, object keys, sequence numbers, partition keys, resource ARNs, user names, failure messages, or similar values into metric tags.
 
 Business-specific telemetry is application-owned. Handlers should create their own activities and meters for domain concepts rather than extending framework source metadata with business identifiers.
 

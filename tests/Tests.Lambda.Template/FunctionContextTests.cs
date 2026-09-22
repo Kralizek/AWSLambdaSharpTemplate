@@ -13,7 +13,7 @@ public class FunctionContextTests
     [Test]
     public void Factory_populates_strongly_typed_metadata_and_preserves_lambda_context()
     {
-        var lambdaContext = TestLambdaContexts.Create();
+        var lambdaContext = TestLambdaContexts.Create("tenant-123");
 
         var context = FunctionContextFactory.CreateEventContext(lambdaContext);
 
@@ -27,8 +27,17 @@ public class FunctionContextTests
             Assert.That(context.RemainingTime, Is.EqualTo(lambdaContext.RemainingTime));
             Assert.That(context.LogGroupName, Is.EqualTo(lambdaContext.LogGroupName));
             Assert.That(context.LogStreamName, Is.EqualTo(lambdaContext.LogStreamName));
+            Assert.That(context.TenantId, Is.EqualTo("tenant-123"));
             Assert.That(context.GetLambdaContext(), Is.SameAs(lambdaContext));
         });
+    }
+
+    [Test]
+    public void Factory_normalizes_missing_tenant_id_to_null()
+    {
+        var context = FunctionContextFactory.CreateEventContext(TestLambdaContexts.Create());
+
+        Assert.That(context.TenantId, Is.Null);
     }
 
     [Test]

@@ -10,6 +10,7 @@ AWS Lambda Sharp Template provides .NET 10 runtime libraries and `dotnet new` te
 - Migrating an existing application? Read [Migrating from v5 to v6](Migrating-from-v5-to-v6.md).
 - Composing nested record envelopes? Read [Record Processing](Record-Processing.md).
 - Adding traces and metrics? Read [OpenTelemetry](OpenTelemetry.md).
+- Running a tenant-isolated Lambda? Read [Tenant Isolation](Tenant-Isolation.md).
 - Publishing with Native AOT? Read [Native AOT](Native-AOT.md).
 
 ## AWS integrations

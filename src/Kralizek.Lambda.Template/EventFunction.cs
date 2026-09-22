@@ -44,13 +44,13 @@ public abstract class EventFunction<TInput, TContext, [DynamicallyAccessedMember
 
     public virtual async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        LambdaTelemetry.EnrichInvocation("event");
+        var eventContext = CreateContext(input, context);
+
+        LambdaTelemetry.EnrichInvocation("event", eventContext);
         if (Activity.Current is { } activity)
         {
             EnrichInvocationActivity(activity, input, context);
         }
-
-        var eventContext = CreateContext(input, context);
 
         await using var invocationScope = ServiceProvider.CreateAsyncScope();
 
