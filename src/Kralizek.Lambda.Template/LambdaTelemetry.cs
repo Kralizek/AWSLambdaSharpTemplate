@@ -44,9 +44,14 @@ public static class LambdaTelemetry
     private static readonly Histogram<double> RecordDuration =
         Meter.CreateHistogram<double>("kralizek.lambda.record.duration", unit: "s");
 
-    internal static void EnrichInvocation(string functionModel)
+    internal static void EnrichInvocation(string functionModel, string? tenantId)
     {
         Activity.Current?.SetTag("kralizek.lambda.function.model", functionModel);
+
+        if (!string.IsNullOrEmpty(tenantId))
+        {
+            Activity.Current?.SetTag("aws.lambda.tenant.id", tenantId);
+        }
 
         InvocationCounter.Add(
             1,
