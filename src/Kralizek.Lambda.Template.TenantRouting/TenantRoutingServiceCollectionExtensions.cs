@@ -13,7 +13,8 @@ public static class TenantRoutingServiceCollectionExtensions
     public static IServiceCollection AddTenantLambdaRouting(this IServiceCollection services)
     {
         services.TryAddSingleton<IAmazonLambda, AmazonLambdaClient>();
-        services.TryAddSingleton<ITenantLambdaRouter, TenantLambdaRouter>();
+        services.TryAddSingleton<ITenantLambdaRouter>(serviceProvider =>
+            new TenantLambdaRouter(serviceProvider.GetRequiredService<IAmazonLambda>()));
 
         return services;
     }
