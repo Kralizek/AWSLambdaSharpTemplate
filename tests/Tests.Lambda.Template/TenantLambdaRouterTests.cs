@@ -4,6 +4,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Amazon;
+using Amazon.Extensions.NETCore.Setup;
 using Amazon.Lambda;
 using Amazon.Lambda.Model;
 
@@ -24,13 +26,19 @@ public class TenantLambdaRouterTests
     public void AddTenantLambdaRouting_resolves_router_with_default_registration()
     {
         var services = new ServiceCollection();
+        services.AddDefaultAWSOptions(new AWSOptions
+        {
+            Region = RegionEndpoint.EUNorth1
+        });
         services.AddTenantLambdaRouting();
 
         using var provider = services.BuildServiceProvider();
 
-        Assert.That(
-            provider.GetRequiredService<ITenantLambdaRouter>(),
-            Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(provider.GetRequiredService<IAmazonLambda>(), Is.Not.Null);
+            Assert.That(provider.GetRequiredService<ITenantLambdaRouter>(), Is.Not.Null);
+        });
     }
 
     [Test]
