@@ -190,7 +190,7 @@
       "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["SqsFunction<RawSqsRecordHandler>", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
       "mustNotMatch": ["SqsFunction<OrderCreated, OrderCreatedHandler>", "OpenTelemetry"]
-    },,
+    },
     {
       "name": "SQS (tenant routing)",
       "shortName": "lambda-template-sqs",
