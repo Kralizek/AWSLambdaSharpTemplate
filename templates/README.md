@@ -101,7 +101,7 @@ dotnet new lambda-template-sqs --name MySqsFunction
 Create an SQS router for a tenant-isolated downstream Lambda:
 
 ```bash
-dotnet new lambda-template-sqs --name MyTenantRouter --tenant
+dotnet new lambda-template-sqs --name MyTenantRouter --tenant-routing
 ```
 
 The generated tenant router expects a `tenant-id` SQS message attribute and constructs a `TenantLambdaRoute` with an explicit downstream-function placeholder in code. Replace that placeholder with the application's static, configuration-driven, or per-message target selection. The option composes with `--aot` and `--otel`.
