@@ -46,7 +46,10 @@ public static class FunctionContextFactory
             lambdaContext.MemoryLimitInMB,
             lambdaContext.RemainingTime,
             lambdaContext.LogGroupName,
-            lambdaContext.LogStreamName);
+            lambdaContext.LogStreamName)
+        {
+            TenantId = string.IsNullOrEmpty(lambdaContext.TenantId) ? null : lambdaContext.TenantId
+        };
     }
 
     /// <summary>
