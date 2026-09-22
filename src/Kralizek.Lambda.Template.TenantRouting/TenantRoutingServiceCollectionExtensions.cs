@@ -1,3 +1,4 @@
+using Amazon.Extensions.NETCore.Setup;
 using Amazon.Lambda;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +13,7 @@ public static class TenantRoutingServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddTenantLambdaRouting(this IServiceCollection services)
     {
-        services.TryAddSingleton<IAmazonLambda, AmazonLambdaClient>();
+        services.AddAWSService<IAmazonLambda>();
         services.TryAddSingleton<ITenantLambdaRouter>(serviceProvider =>
             new TenantLambdaRouter(serviceProvider.GetRequiredService<IAmazonLambda>()));
 
