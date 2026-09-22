@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.S3\Kralizek.Lambda.Template.S3.csproj" />
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sns\Kralizek.Lambda.Template.Sns.csproj" />
     <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.Sqs\Kralizek.Lambda.Template.Sqs.csproj" />
+    <ProjectReference Include="..\..\src\Kralizek.Lambda.Template.TenantRouting\Kralizek.Lambda.Template.TenantRouting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
