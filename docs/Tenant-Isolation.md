@@ -48,7 +48,7 @@ A singleton may therefore cache data that is safe to reuse for the tenant assign
 The normal KLT host enriches the Lambda invocation activity with:
 
 ```text
-kralizek.aws.lambda.tenant.id
+kralizek.aws.lambda.tenant_id
 ```
 
 when tenant isolation is active.
