@@ -29,7 +29,7 @@ dotnet new list lambda-template
 
 See [Project Templates](docs/Project-Templates.md) for the supported templates and when to use each one.
 
-The template options are independent where supported: `--minimal` selects lean hosting for source-neutral Request/Event templates, `--raw` chooses the record/payload shape, `--aot` chooses executable hosting and source-generated Lambda serialization, and `--otel` adds Lambda invocation instrumentation.
+The template options are independent where supported: `--minimal` selects lean hosting for source-neutral Request/Event templates, `--raw` chooses the record/payload shape, `--tenant-routing` composes SQS with tenant-aware downstream Lambda routing, `--aot` chooses executable hosting and source-generated Lambda serialization, and `--otel` adds Lambda invocation instrumentation.
 
 ## Package family
 
@@ -47,6 +47,7 @@ The template options are independent where supported: `--minimal` selects lean h
 | [`Kralizek.Lambda.Template.S3`](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.S3?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.S3?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.S3?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.S3) | Native S3 event notifications and S3 Batch Operations. |
 | [`Kralizek.Lambda.Template.Sns`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.Sns?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.Sns?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.Sns?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sns) | SNS notification processing and payload decoding. |
 | [`Kralizek.Lambda.Template.Sqs`](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.Sqs?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.Sqs?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.Sqs?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.Sqs) | SQS message processing, payload decoding and partial-batch response support. |
+| [`Kralizek.Lambda.Template.TenantRouting`](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | [![stable](https://img.shields.io/nuget/v/Kralizek.Lambda.Template.TenantRouting?label=stable)](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | [![latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template.TenantRouting?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | [![downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template.TenantRouting?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template.TenantRouting) | Source-neutral routing to tenant-isolated Lambda functions. |
 
 The template package and all runtime packages use the same package version for a given release. For most applications, install `Kralizek.Lambda.Templates` and let the selected template choose the runtime package.
 
@@ -59,6 +60,7 @@ The template package and all runtime packages use the same package version for a
 - [Minimal Hosting](docs/Minimal-Hosting.md)
 - [Native AOT](docs/Native-AOT.md)
 - [OpenTelemetry](docs/OpenTelemetry.md)
+- [Tenant Isolation](docs/Tenant-Isolation.md)
 - [Payload Decoding](docs/Payload-Decoding.md)
 - [Record Processing](docs/Record-Processing.md)
 - [AWS integrations](docs/README.md#start-here)
