@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.Lambda;
-using Amazon.Runtime;
 using Amazon.Lambda.Model;
+using Amazon.Runtime;
 
 using Kralizek.Lambda;
 
