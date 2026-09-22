@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.Lambda;
+using Amazon.Runtime;
 using Amazon.Lambda.Model;
 
 using Kralizek.Lambda;
@@ -28,7 +29,8 @@ public class TenantLambdaRouterTests
         var services = new ServiceCollection();
         services.AddDefaultAWSOptions(new AWSOptions
         {
-            Region = RegionEndpoint.EUNorth1
+            Region = RegionEndpoint.EUNorth1,
+            Credentials = new BasicAWSCredentials("access-key", "secret-key")
         });
         services.AddTenantLambdaRouting();
 
