@@ -4,12 +4,11 @@ using Amazon.Lambda.Core;
 
 using Kralizek.Lambda;
 
-#if (!raw || tenant)
-using Microsoft.Extensions.DependencyInjection;
-#endif
-
 #if (tenant)
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+#elif (!raw)
+using Microsoft.Extensions.DependencyInjection;
 #endif
 
 #if (otel)
