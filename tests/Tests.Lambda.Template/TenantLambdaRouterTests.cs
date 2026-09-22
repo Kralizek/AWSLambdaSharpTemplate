@@ -23,13 +23,20 @@ public class TenantLambdaRouterTests
     public async Task RouteAsync_invokes_target_synchronously_with_tenant_and_payload()
     {
         InvokeRequest? capturedRequest = null;
+        string? capturedPayload = null;
 
         var lambda = new Mock<IAmazonLambda>();
         lambda
             .Setup(client => client.InvokeAsync(
                 It.IsAny<InvokeRequest>(),
                 It.IsAny<CancellationToken>()))
-            .Callback<InvokeRequest, CancellationToken>((request, _) => capturedRequest = request)
+            .Callback<InvokeRequest, CancellationToken>((request, _) =>
+            {
+                capturedRequest = request;
+                request.Payload.Position = 0;
+                using var reader = new StreamReader(request.Payload, Encoding.UTF8, leaveOpen: true);
+                capturedPayload = reader.ReadToEnd();
+            })
             .ReturnsAsync(new InvokeResponse());
 
         var services = new ServiceCollection();
@@ -51,17 +58,13 @@ public class TenantLambdaRouterTests
 
         Assert.That(capturedRequest, Is.Not.Null);
 
-        using var reader = new StreamReader(capturedRequest!.Payload, Encoding.UTF8, leaveOpen: true);
-        capturedRequest.Payload.Position = 0;
-        var payload = await reader.ReadToEndAsync();
-
         Assert.Multiple(() =>
         {
             Assert.That(capturedRequest.FunctionName, Is.EqualTo("orders-processor"));
             Assert.That(capturedRequest.TenantId, Is.EqualTo("tenant-42"));
             Assert.That(capturedRequest.Qualifier, Is.EqualTo("production"));
             Assert.That(capturedRequest.InvocationType, Is.EqualTo(InvocationType.RequestResponse));
-            Assert.That(payload, Is.EqualTo("{\"orderId\":\"123\"}"));
+            Assert.That(capturedPayload, Is.EqualTo("{\"orderId\":\"123\"}"));
         });
     }
 
