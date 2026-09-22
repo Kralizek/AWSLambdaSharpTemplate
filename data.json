@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1790063938702,
+  "lastUpdated": 1790087936853,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -1905,6 +1905,58 @@
             "bytesAllocated": 13536
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1944.4343439737956,
+            "unit": "ns",
+            "range": "± 12.303311358012193",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4155.355593363444,
+            "unit": "ns",
+            "range": "± 8.142623625054991",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 2646.09383392334,
+            "unit": "ns",
+            "range": "± 3.506902067610677",
+            "bytesAllocated": 2184
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 16930.545865740096,
+            "unit": "ns",
+            "range": "± 71.28103611889233",
+            "bytesAllocated": 11936
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 19601.337763859676,
+            "unit": "ns",
+            "range": "± 23.82884203092833",
+            "bytesAllocated": 13536
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -3152,6 +3204,51 @@
             "bytesAllocated": 1096
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 29.468617741266886,
+            "unit": "ns",
+            "range": "± 0.36103161446556603",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 187.8010552326838,
+            "unit": "ns",
+            "range": "± 3.085479036624206",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 598.6916627883911,
+            "unit": "ns",
+            "range": "± 4.557675379903171",
+            "bytesAllocated": 824
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 1100.5999130249024,
+            "unit": "ns",
+            "range": "± 2.8302624028917984",
+            "bytesAllocated": 1096
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -4249,6 +4346,58 @@
             "bytesAllocated": 13720
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2484.0246990748815,
+            "unit": "ns",
+            "range": "± 5.902225600892865",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2667.0654784611293,
+            "unit": "ns",
+            "range": "± 3.742413323066429",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 3316.5304143269855,
+            "unit": "ns",
+            "range": "± 9.684499120065116",
+            "bytesAllocated": 2416
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 17851.384354654947,
+            "unit": "ns",
+            "range": "± 39.14697940947176",
+            "bytesAllocated": 12120
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 21000.3753792899,
+            "unit": "ns",
+            "range": "± 48.12099293364789",
+            "bytesAllocated": 13720
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -5189,6 +5338,51 @@
             "value": 4477.035087585449,
             "unit": "ns",
             "range": "± 40.83372283833202",
+            "bytesAllocated": 7240
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 5029.750430297851,
+            "unit": "ns",
+            "range": "± 21.78403393754766",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5602.6869557698565,
+            "unit": "ns",
+            "range": "± 19.229497690170177",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 5919.522209712437,
+            "unit": "ns",
+            "range": "± 17.562025710365816",
+            "bytesAllocated": 4864
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 10044.765663655598,
+            "unit": "ns",
+            "range": "± 55.45027948912493",
             "bytesAllocated": 7240
           }
         ]
@@ -6133,6 +6327,51 @@
             "unit": "ns",
             "range": "± 468.1494846366291",
             "bytesAllocated": 8072
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8930.452880477906,
+            "unit": "ns",
+            "range": "± 708.4098943724491",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 8784.442406856653,
+            "unit": "ns",
+            "range": "± 567.9309812181415",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 9135.340711669922,
+            "unit": "ns",
+            "range": "± 1479.4462307907556",
+            "bytesAllocated": 5144
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 16938.853806762694,
+            "unit": "ns",
+            "range": "± 1079.9034231747753",
+            "bytesAllocated": 8071
           }
         ]
       }
@@ -7232,6 +7471,58 @@
             "bytesAllocated": 16960
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4996.048152923584,
+            "unit": "ns",
+            "range": "± 17.51317012257399",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5818.941075838529,
+            "unit": "ns",
+            "range": "± 10.610442104022862",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 6000.125246320452,
+            "unit": "ns",
+            "range": "± 14.503947710451548",
+            "bytesAllocated": 2672
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 32210.039225260418,
+            "unit": "ns",
+            "range": "± 135.1949833382726",
+            "bytesAllocated": 14728
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 38081.271737234936,
+            "unit": "ns",
+            "range": "± 90.03151386281613",
+            "bytesAllocated": 16960
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -8327,6 +8618,58 @@
             "unit": "ns",
             "range": "± 262.01845492638574",
             "bytesAllocated": 17273
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "701efd879dfaef5dd34796a22d5e925cee53d184",
+          "message": "Add tenant-aware Lambda routing and SQS template support (#121)",
+          "timestamp": "2026-09-22T14:25:39Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/701efd879dfaef5dd34796a22d5e925cee53d184"
+        },
+        "date": 1790087936853,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 7918.166566394624,
+            "unit": "ns",
+            "range": "± 423.70626320304007",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 17095.28247522425,
+            "unit": "ns",
+            "range": "± 890.2642774836372",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 9176.037754535675,
+            "unit": "ns",
+            "range": "± 425.0807284953776",
+            "bytesAllocated": 2456
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 45197.889350043406,
+            "unit": "ns",
+            "range": "± 937.7362586170065",
+            "bytesAllocated": 14865
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 51626.9384765625,
+            "unit": "ns",
+            "range": "± 763.9196213627604",
+            "bytesAllocated": 17267
           }
         ]
       }
