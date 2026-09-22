@@ -63,7 +63,25 @@ Minimal Event and Request hosts keep their existing telemetry boundary: they exp
 
 KLT does not provision Lambda tenant isolation. Enable `TenancyConfig` through the infrastructure system that owns the Lambda function.
 
-Tenant isolation also affects how functions are invoked: the tenant identifier must be supplied through the Lambda invocation mechanism. Event source mappings do not automatically turn event payload tenant information into Lambda tenant-isolated invocations. See AWS guidance for the routing pattern when integrating event sources.
+Tenant isolation also affects how functions are invoked: the tenant identifier must be supplied through the Lambda invocation mechanism. Event source mappings do not automatically turn event payload tenant information into Lambda tenant-isolated invocations.
+
+## Tenant routing
+
+`Kralizek.Lambda.Template.TenantRouting` provides the source-neutral outbound routing primitive for this pattern. It invokes the downstream Lambda synchronously with the route's tenant ID, target function, and payload. A downstream Lambda function error is surfaced to the caller so the source integration can retain ownership of retries and acknowledgement.
+
+For SQS, the existing project template can generate the routing composition directly:
+
+```bash
+dotnet new lambda-template-sqs --tenant
+dotnet new lambda-template-sqs --tenant --otel
+dotnet new lambda-template-sqs --tenant --aot
+```
+
+The generated handler reads a `tenant-id` SQS message attribute, reads the downstream function from `TenantRouting:FunctionName`, and forwards the original message body. For environment-variable configuration, use `TenantRouting__FunctionName`.
+
+The generated function remains an ordinary raw `SqsFunction`. SQS therefore continues to own partial-batch failure responses and retry semantics; tenant routing does not introduce another function root.
+
+Applications using another event source can reference `Kralizek.Lambda.Template.TenantRouting` directly and compose `ITenantLambdaRouter` from their existing handler.
 
 ## AWS references
 
