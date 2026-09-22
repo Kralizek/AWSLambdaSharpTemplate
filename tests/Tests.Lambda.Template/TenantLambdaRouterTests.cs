@@ -95,7 +95,7 @@ public class TenantLambdaRouterTests
     }
 
     [Test]
-    public async Task RouteAsync_emits_outgoing_faas_span_without_adding_tenant_to_metrics()
+    public async Task RouteAsync_emits_outgoing_faas_span()
     {
         Activity? stoppedActivity = null;
 
