@@ -77,7 +77,7 @@ dotnet new lambda-template-sqs --tenant --otel
 dotnet new lambda-template-sqs --tenant --aot
 ```
 
-The generated handler reads a `tenant-id` SQS message attribute, reads the downstream function from `TenantRouting:FunctionName`, and forwards the original message body. For environment-variable configuration, use `TenantRouting__FunctionName`.
+The generated handler reads a `tenant-id` SQS message attribute and constructs a `TenantLambdaRoute` containing the tenant ID, downstream function, and original message body. The generated target name is an explicit placeholder in code so applications can replace it with static, configuration-driven, or per-message routing logic.
 
 The generated function remains an ordinary raw `SqsFunction`. SQS therefore continues to own partial-batch failure responses and retry semantics; tenant routing does not introduce another function root.
 
