@@ -35,7 +35,7 @@ public class TelemetryTests
                 .FirstOrDefault(tag => tag.Key == "kralizek.lambda.function.model")
                 .Value as string;
             var hasTenant = tags.ToArray()
-                .Any(tag => tag.Key == "kralizek.aws.lambda.tenant.id");
+                .Any(tag => tag.Key == "kralizek.aws.lambda.tenant_id");
             measurements.Add((value, model, hasTenant));
         });
         meterListener.Start();
@@ -51,7 +51,7 @@ public class TelemetryTests
                 invocation.GetTagItem("kralizek.lambda.function.model"),
                 Is.EqualTo("request"));
             Assert.That(
-                invocation.GetTagItem("kralizek.aws.lambda.tenant.id"),
+                invocation.GetTagItem("kralizek.aws.lambda.tenant_id"),
                 Is.EqualTo("tenant-123"));
             Assert.That(measurements, Does.Contain((1L, "request", false)));
         });
