@@ -20,7 +20,7 @@ The framework does not create a second Lambda invocation span. When a function i
 The invocation activity receives:
 
 - `kralizek.lambda.function.model`: `request`, `event`, or `record`
-- `kralizek.aws.lambda.tenant.id`: the Lambda tenant identifier when tenant isolation is active
+- `kralizek.aws.lambda.tenant_id`: the Lambda tenant identifier when tenant isolation is active
 
 OpenTelemetry does not currently define a standard AWS Lambda tenant attribute, so KLT keeps the tenant identifier in its own AWS-specific namespace rather than publishing an unstandardized `aws.*` attribute.
 
