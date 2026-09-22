@@ -31,7 +31,7 @@ internal sealed class TenantLambdaRouter(IAmazonLambda lambda) : ITenantLambdaRo
         {
             FunctionName = route.FunctionName,
             InvocationType = InvocationType.RequestResponse,
-            Payload = payload,
+            PayloadStream = payload,
             Qualifier = route.Qualifier,
             TenantId = route.TenantId
         };
