@@ -45,7 +45,7 @@ public abstract class RequestFunction<TInput, TOutput, TContext, [DynamicallyAcc
 
     public virtual async Task<TOutput> FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        LambdaTelemetry.EnrichInvocation("request");
+        LambdaTelemetry.EnrichInvocation("request", context.TenantId);
         if (Activity.Current is { } activity)
         {
             EnrichInvocationActivity(activity, input, context);
