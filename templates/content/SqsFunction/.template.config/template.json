@@ -54,7 +54,7 @@
       "datatype": "bool",
       "defaultValue": "false"
     },
-    "tenantRouting": {
+    "tenant": {
       "type": "parameter",
       "description": "Generate an SQS router that forwards records to a tenant-isolated Lambda function.",
       "datatype": "bool",
@@ -71,7 +71,7 @@
           ]
         },
         {
-          "condition": "tenantRouting",
+          "condition": "tenant",
           "exclude": [
             "OrderCreated.cs",
             "OrderCreatedHandler.cs",
@@ -79,7 +79,7 @@
           ]
         },
         {
-          "condition": "!tenantRouting",
+          "condition": "!tenant",
           "exclude": [
             "TenantRoutingHandler.cs"
           ]
