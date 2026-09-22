@@ -52,7 +52,7 @@ public abstract class RecordFunction<TEnvelope, TRecord, TRecordResult, TRespons
     /// </summary>
     public virtual async Task<TResponse> FunctionHandlerAsync(TEnvelope envelope, ILambdaContext lambdaContext)
     {
-        LambdaTelemetry.EnrichInvocation("record");
+        LambdaTelemetry.EnrichInvocation("record", lambdaContext.TenantId);
 
         var context = CreateRecordContext(envelope, lambdaContext);
 
