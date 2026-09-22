@@ -5,7 +5,6 @@ using Amazon.Lambda.Core;
 using Kralizek.Lambda;
 
 #if (tenant)
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 #elif (!raw)
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +34,7 @@ public sealed class Function : SqsFunction<OrderCreated, OrderCreatedHandler>
 #if (tenant)
     protected override void ConfigureServices(
         IServiceCollection services,
-        IConfiguration configuration) =>
+        Microsoft.Extensions.Configuration.IConfiguration configuration) =>
         services.AddTenantLambdaRouting();
 #elif (!raw)
     protected override void ConfigureFrameworkServices(IServiceCollection services) =>
