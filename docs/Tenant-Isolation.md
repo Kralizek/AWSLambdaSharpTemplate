@@ -77,7 +77,7 @@ dotnet new lambda-template-sqs --tenant-routing --otel
 dotnet new lambda-template-sqs --tenant-routing --aot
 ```
 
-The generated handler reads a `tenant-id` SQS message attribute and constructs a `TenantLambdaRoute` containing the tenant ID, downstream function, and original message body. The generated target name is an explicit placeholder in code so applications can replace it with static, configuration-driven, or per-message routing logic.
+The generated handler includes a sample `ResolveTenantId` method that reads a `tenant-id` SQS message attribute, but KLT does not prescribe where tenant identity comes from. Consumers can derive or resolve it from message attributes, `MessageGroupId`, the payload, a tenant registry, or any other application-specific source. The handler constructs a `TenantLambdaRoute` containing the resolved tenant ID, downstream function, and original message body. The generated target name is likewise an explicit placeholder so applications can replace it with static, configuration-driven, or per-message routing logic.
 
 The generated function remains an ordinary raw `SqsFunction`. SQS therefore continues to own partial-batch failure responses and retry semantics; tenant routing does not introduce another function root.
 
