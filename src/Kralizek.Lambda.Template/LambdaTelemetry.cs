@@ -50,7 +50,7 @@ public static class LambdaTelemetry
 
         if (!string.IsNullOrEmpty(tenantId))
         {
-            Activity.Current?.SetTag("aws.lambda.tenant.id", tenantId);
+            Activity.Current?.SetTag("kralizek.aws.lambda.tenant.id", tenantId);
         }
 
         InvocationCounter.Add(
