@@ -28,6 +28,7 @@ Record handlers use a source-specific result derived from `LambdaRecordResult`. 
 - `RemainingTime`
 - `LogGroupName`
 - `LogStreamName`
+- `TenantId` when Lambda tenant isolation is active
 
 The standard semantic contexts are `EventContext`, `RequestContext`, and `RecordContext`.
 
