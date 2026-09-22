@@ -18,7 +18,7 @@ public class TelemetryTests
     [Test]
     public async Task Request_function_enriches_current_activity_and_records_invocation()
     {
-        var measurements = new ConcurrentBag<(long Value, string? Model)>();
+        var measurements = new ConcurrentBag<(long Value, string? Model, bool HasTenant)>();
 
         using var meterListener = new MeterListener();
         meterListener.InstrumentPublished = (instrument, listener) =>
@@ -34,21 +34,26 @@ public class TelemetryTests
             var model = tags.ToArray()
                 .FirstOrDefault(tag => tag.Key == "kralizek.lambda.function.model")
                 .Value as string;
-            measurements.Add((value, model));
+            var hasTenant = tags.ToArray()
+                .Any(tag => tag.Key == "kralizek.aws.lambda.tenant.id");
+            measurements.Add((value, model, hasTenant));
         });
         meterListener.Start();
 
         using var invocation = new Activity("lambda-invocation").Start();
         var sut = new RequestFunctionTests.EchoHandlerFunction();
 
-        await sut.FunctionHandlerAsync("hello", TestLambdaContexts.Create());
+        await sut.FunctionHandlerAsync("hello", TestLambdaContexts.Create("tenant-123"));
 
         Assert.Multiple(() =>
         {
             Assert.That(
                 invocation.GetTagItem("kralizek.lambda.function.model"),
                 Is.EqualTo("request"));
-            Assert.That(measurements, Does.Contain((1L, "request")));
+            Assert.That(
+                invocation.GetTagItem("kralizek.aws.lambda.tenant.id"),
+                Is.EqualTo("tenant-123"));
+            Assert.That(measurements, Does.Contain((1L, "request", false)));
         });
     }
 
