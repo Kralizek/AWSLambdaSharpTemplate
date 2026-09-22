@@ -412,6 +412,7 @@ jobs:
           TEMPLATE_AOT: ${{ matrix.aot || false }}
           TEMPLATE_OTEL: ${{ matrix.otel || false }}
           TEMPLATE_RAW: ${{ matrix.raw || false }}
+          TEMPLATE_TENANT_ROUTING: ${{ matrix.tenantRouting || false }}
           TEMPLATE_MINIMAL: ${{ matrix.minimal || false }}
           TEMPLATE_VERSION: ${{ matrix.version || '' }}
         shell: bash
@@ -429,6 +430,9 @@ jobs:
           fi
           if [ "$TEMPLATE_RAW" = "true" ]; then
             args+=(--raw)
+          fi
+          if [ "$TEMPLATE_TENANT_ROUTING" = "true" ]; then
+            args+=(--tenant-routing)
           fi
           if [ "$TEMPLATE_MINIMAL" = "true" ]; then
             args+=(--minimal)

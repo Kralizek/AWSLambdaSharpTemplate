@@ -192,6 +192,54 @@
       "mustNotMatch": ["SqsFunction<OrderCreated, OrderCreatedHandler>", "OpenTelemetry"]
     },
     {
+      "name": "SQS (tenant routing)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsTenant",
+      "when": ["pr", "master", "release"],
+      "tenantRouting": true,
+      "mustExist": ["Function.cs", "TenantRoutingHandler.cs", "SmokeSqsTenant.csproj"],
+      "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "RawSqsRecordHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["SqsFunction<TenantRoutingHandler>", "AddTenantLambdaRouting", "Kralizek\\.Lambda\\.Template\\.TenantRouting", "TenantLambdaRoute\\.Utf8", "TargetFunction", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"],
+      "mustNotMatch": ["OpenTelemetry"]
+    },
+    {
+      "name": "SQS (tenant routing, OpenTelemetry)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsTenantOtel",
+      "when": ["pr", "master", "release"],
+      "tenantRouting": true,
+      "otel": true,
+      "mustExist": ["Function.cs", "TenantRoutingHandler.cs", "SmokeSqsTenantOtel.csproj"],
+      "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "RawSqsRecordHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["SqsFunction<TenantRoutingHandler>", "AddTenantLambdaRouting", "Kralizek\\.Lambda\\.Template\\.TenantRouting", "TargetFunction", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync"],
+      "mustNotMatch": []
+    },
+    {
+      "name": "SQS (tenant routing, Native AOT)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsTenantAot",
+      "when": ["pr", "master", "release"],
+      "tenantRouting": true,
+      "aot": true,
+      "mustExist": ["Function.cs", "TenantRoutingHandler.cs", "Program.cs", "SmokeSqsTenantAot.csproj"],
+      "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "RawSqsRecordHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["SqsFunction<TenantRoutingHandler>", "AddTenantLambdaRouting", "Kralizek\\.Lambda\\.Template\\.TenantRouting", "TargetFunction", "LambdaBootstrapBuilder", "SourceGeneratorLambdaJsonSerializer", "<PublishAot>true</PublishAot>", "\\\"function-handler\\\": \\\"SmokeSqsTenantAot\\\""],
+      "mustNotMatch": ["OpenTelemetry", "DefaultLambdaJsonSerializer", "::FunctionHandlerAsync"]
+    },
+    {
+      "name": "SQS (tenant routing, Native AOT, OpenTelemetry exhaustive)",
+      "shortName": "lambda-template-sqs",
+      "projectName": "SmokeSqsTenantAotOtelExhaustive",
+      "when": ["master", "release"],
+      "tenantRouting": true,
+      "aot": true,
+      "otel": true,
+      "mustExist": ["Function.cs", "TenantRoutingHandler.cs", "Program.cs", "SmokeSqsTenantAotOtelExhaustive.csproj"],
+      "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "RawSqsRecordHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
+      "mustMatch": ["SqsFunction<TenantRoutingHandler>", "AddTenantLambdaRouting", "Kralizek\\.Lambda\\.Template\\.TenantRouting", "TargetFunction", "LambdaBootstrapBuilder", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "<PublishAot>true</PublishAot>"],
+      "mustNotMatch": ["DefaultLambdaJsonSerializer"]
+    },
+    {
       "name": "Cognito Pre Sign-up",
       "shortName": "lambda-template-cognito-pre-signup",
       "projectName": "SmokeCognitoPreSignUp",

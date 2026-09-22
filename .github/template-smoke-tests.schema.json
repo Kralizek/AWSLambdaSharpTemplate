@@ -68,6 +68,10 @@
           "type": "boolean",
           "default": false
         },
+        "tenantRouting": {
+          "type": "boolean",
+          "default": false
+        },
         "minimal": {
           "type": "boolean",
           "default": false

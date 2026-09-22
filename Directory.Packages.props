@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.101.4" />
+    <PackageVersion Include="AWSSDK.Lambda" Version="4.0.108.1" />
     <PackageVersion Include="Amazon.Lambda.CloudWatchEvents" Version="5.1.0" />
     <PackageVersion Include="Amazon.Lambda.CognitoEvents" Version="5.0.0" />
     <PackageVersion Include="Amazon.Lambda.Core" Version="3.3.0" />

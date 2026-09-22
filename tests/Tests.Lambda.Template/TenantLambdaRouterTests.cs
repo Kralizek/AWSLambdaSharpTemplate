@@ -1,0 +1,168 @@
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Amazon;
+using Amazon.Extensions.NETCore.Setup;
+using Amazon.Lambda;
+using Amazon.Lambda.Model;
+using Amazon.Runtime;
+
+using Kralizek.Lambda;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using Moq;
+
+using NUnit.Framework;
+
+namespace Tests.Lambda;
+
+[TestFixture]
+public class TenantLambdaRouterTests
+{
+    [Test]
+    public void AddTenantLambdaRouting_resolves_router_with_default_registration()
+    {
+        var services = new ServiceCollection();
+        services.AddDefaultAWSOptions(new AWSOptions
+        {
+            Region = RegionEndpoint.EUNorth1,
+            Credentials = new BasicAWSCredentials("access-key", "secret-key")
+        });
+        services.AddTenantLambdaRouting();
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(provider.GetRequiredService<IAmazonLambda>(), Is.Not.Null);
+            Assert.That(provider.GetRequiredService<ITenantLambdaRouter>(), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public async Task RouteAsync_invokes_target_synchronously_with_tenant_and_payload()
+    {
+        InvokeRequest? capturedRequest = null;
+        string? capturedPayload = null;
+
+        var lambda = new Mock<IAmazonLambda>();
+        lambda
+            .Setup(client => client.InvokeAsync(
+                It.IsAny<InvokeRequest>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<InvokeRequest, CancellationToken>((request, _) =>
+            {
+                capturedRequest = request;
+                request.PayloadStream.Position = 0;
+                using var reader = new StreamReader(request.PayloadStream, Encoding.UTF8, leaveOpen: true);
+                capturedPayload = reader.ReadToEnd();
+            })
+            .ReturnsAsync(new InvokeResponse());
+
+        var services = new ServiceCollection();
+        services.AddSingleton(lambda.Object);
+        services.AddTenantLambdaRouting();
+
+        await using var provider = services.BuildServiceProvider();
+        var sut = provider.GetRequiredService<ITenantLambdaRouter>();
+
+        await sut.RouteAsync(
+            TenantLambdaRoute.Utf8(
+                "tenant-42",
+                "orders-processor",
+                "{\"orderId\":\"123\"}")
+            with
+            {
+                Qualifier = "production"
+            });
+
+        Assert.That(capturedRequest, Is.Not.Null);
+        var request = capturedRequest!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(request.FunctionName, Is.EqualTo("orders-processor"));
+            Assert.That(request.TenantId, Is.EqualTo("tenant-42"));
+            Assert.That(request.Qualifier, Is.EqualTo("production"));
+            Assert.That(request.InvocationType, Is.EqualTo(InvocationType.RequestResponse));
+            Assert.That(capturedPayload, Is.EqualTo("{\"orderId\":\"123\"}"));
+        });
+    }
+
+    [Test]
+    public void RouteAsync_surfaces_downstream_function_errors()
+    {
+        var lambda = new Mock<IAmazonLambda>();
+        lambda
+            .Setup(client => client.InvokeAsync(
+                It.IsAny<InvokeRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new InvokeResponse
+            {
+                FunctionError = "Unhandled"
+            });
+
+        var services = new ServiceCollection();
+        services.AddSingleton(lambda.Object);
+        services.AddTenantLambdaRouting();
+
+        using var provider = services.BuildServiceProvider();
+        var sut = provider.GetRequiredService<ITenantLambdaRouter>();
+        var route = TenantLambdaRoute.Utf8("tenant-42", "orders-processor", "{}");
+
+        Assert.That(
+            async () => await sut.RouteAsync(route),
+            Throws.TypeOf<TenantLambdaInvocationException>()
+                .With.Property(nameof(TenantLambdaInvocationException.FunctionName)).EqualTo("orders-processor")
+                .And.Property(nameof(TenantLambdaInvocationException.TenantId)).EqualTo("tenant-42")
+                .And.Property(nameof(TenantLambdaInvocationException.FunctionError)).EqualTo("Unhandled"));
+    }
+
+    [Test]
+    public async Task RouteAsync_emits_outgoing_faas_span()
+    {
+        Activity? stoppedActivity = null;
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == LambdaTelemetry.ActivitySourceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity => stoppedActivity = activity
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        var lambda = new Mock<IAmazonLambda>();
+        lambda
+            .Setup(client => client.InvokeAsync(
+                It.IsAny<InvokeRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new InvokeResponse());
+
+        var services = new ServiceCollection();
+        services.AddSingleton(lambda.Object);
+        services.AddTenantLambdaRouting();
+
+        await using var provider = services.BuildServiceProvider();
+        var sut = provider.GetRequiredService<ITenantLambdaRouter>();
+
+        await sut.RouteAsync(
+            TenantLambdaRoute.Utf8(
+                "tenant-42",
+                "orders-processor",
+                "{}"));
+
+        Assert.That(stoppedActivity, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(stoppedActivity!.DisplayName, Is.EqualTo("orders-processor"));
+            Assert.That(stoppedActivity.Kind, Is.EqualTo(ActivityKind.Client));
+            Assert.That(stoppedActivity.GetTagItem("faas.invoked_name"), Is.EqualTo("orders-processor"));
+            Assert.That(stoppedActivity.GetTagItem("faas.invoked_provider"), Is.EqualTo("aws"));
+            Assert.That(stoppedActivity.GetTagItem("kralizek.aws.lambda.tenant_id"), Is.EqualTo("tenant-42"));
+        });
+    }
+}

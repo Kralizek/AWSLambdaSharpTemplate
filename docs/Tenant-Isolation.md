@@ -63,7 +63,25 @@ Minimal Event and Request hosts keep their existing telemetry boundary: they exp
 
 KLT does not provision Lambda tenant isolation. Enable `TenancyConfig` through the infrastructure system that owns the Lambda function.
 
-Tenant isolation also affects how functions are invoked: the tenant identifier must be supplied through the Lambda invocation mechanism. Event source mappings do not automatically turn event payload tenant information into Lambda tenant-isolated invocations. See AWS guidance for the routing pattern when integrating event sources.
+Tenant isolation also affects how functions are invoked: the tenant identifier must be supplied through the Lambda invocation mechanism. Event source mappings do not automatically turn event payload tenant information into Lambda tenant-isolated invocations.
+
+## Tenant routing
+
+`Kralizek.Lambda.Template.TenantRouting` provides the source-neutral outbound routing primitive for this pattern. It invokes the downstream Lambda synchronously with the route's tenant ID, target function, and payload. A downstream Lambda function error is surfaced to the caller so the source integration can retain ownership of retries and acknowledgement.
+
+For SQS, the existing project template can generate the routing composition directly:
+
+```bash
+dotnet new lambda-template-sqs --tenant-routing
+dotnet new lambda-template-sqs --tenant-routing --otel
+dotnet new lambda-template-sqs --tenant-routing --aot
+```
+
+The generated handler includes a sample `ResolveTenantId` method that reads a `tenant-id` SQS message attribute, but KLT does not prescribe where tenant identity comes from. Consumers can derive or resolve it from message attributes, `MessageGroupId`, the payload, a tenant registry, or any other application-specific source. The handler constructs a `TenantLambdaRoute` containing the resolved tenant ID, downstream function, and original message body. The generated target name is likewise an explicit placeholder so applications can replace it with static, configuration-driven, or per-message routing logic.
+
+The generated function remains an ordinary raw `SqsFunction`. SQS therefore continues to own partial-batch failure responses and retry semantics; tenant routing does not introduce another function root.
+
+Applications using another event source can reference `Kralizek.Lambda.Template.TenantRouting` directly and compose `ITenantLambdaRouter` from their existing handler.
 
 ## AWS references
 

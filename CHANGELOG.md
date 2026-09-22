@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Added first-class Lambda tenant isolation metadata through `FunctionContext.TenantId`, including invocation span enrichment, sample usage, and guidance for tenant-affine execution-environment state.
+- Added `Kralizek.Lambda.Template.TenantRouting` for synchronous tenant-aware downstream Lambda invocation, plus `--tenant-routing` on the SQS project template with Native AOT and OpenTelemetry composition.
 
 ## [6.0.0] - 2026-08-26
 
