@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1789609235442,
+  "lastUpdated": 1790063938702,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -1853,6 +1853,58 @@
             "bytesAllocated": 13440
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 981.8524578094482,
+            "unit": "ns",
+            "range": "± 9.40724393472775",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 1856.5107223510743,
+            "unit": "ns",
+            "range": "± 13.59895411552597",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 1216.71897820064,
+            "unit": "ns",
+            "range": "± 7.525172692449106",
+            "bytesAllocated": 2184
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 7052.385209764753,
+            "unit": "ns",
+            "range": "± 71.57788350234905",
+            "bytesAllocated": 11936
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 7896.132109505789,
+            "unit": "ns",
+            "range": "± 49.90735902530584",
+            "bytesAllocated": 13536
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -3055,6 +3107,51 @@
             "bytesAllocated": 1080
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 13.885204357760292,
+            "unit": "ns",
+            "range": "± 0.32957962355588877",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 86.93397576468331,
+            "unit": "ns",
+            "range": "± 0.9117603564496752",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 241.74990155146673,
+            "unit": "ns",
+            "range": "± 1.3792147055472734",
+            "bytesAllocated": 824
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 416.2718272527059,
+            "unit": "ns",
+            "range": "± 7.367648021241665",
+            "bytesAllocated": 1096
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -4100,6 +4197,58 @@
             "bytesAllocated": 13624
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 1170.9382656415303,
+            "unit": "ns",
+            "range": "± 5.115403004544887",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 1308.0224503108434,
+            "unit": "ns",
+            "range": "± 8.815391198893895",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 1564.9816692352294,
+            "unit": "ns",
+            "range": "± 23.48332986727783",
+            "bytesAllocated": 2416
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 7847.83252919515,
+            "unit": "ns",
+            "range": "± 46.91770498717052",
+            "bytesAllocated": 12120
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 8827.504901123048,
+            "unit": "ns",
+            "range": "± 63.131546231812926",
+            "bytesAllocated": 13720
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -4998,6 +5147,51 @@
             "bytesAllocated": 7208
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 2511.3755752563475,
+            "unit": "ns",
+            "range": "± 46.96846956387838",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 2736.1100585243917,
+            "unit": "ns",
+            "range": "± 63.09299395639602",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 2700.1767659868515,
+            "unit": "ns",
+            "range": "± 22.098599892265344",
+            "bytesAllocated": 4864
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 4477.035087585449,
+            "unit": "ns",
+            "range": "± 40.83372283833202",
+            "bytesAllocated": 7240
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -5894,6 +6088,51 @@
             "unit": "ns",
             "range": "± 797.7235821645667",
             "bytesAllocated": 8039
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 4242.2363041469025,
+            "unit": "ns",
+            "range": "± 51.26920294585514",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 4454.164512023925,
+            "unit": "ns",
+            "range": "± 382.31626711410007",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 4503.364060668945,
+            "unit": "ns",
+            "range": "± 477.9867180394454",
+            "bytesAllocated": 5144
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 6537.412431030273,
+            "unit": "ns",
+            "range": "± 468.1494846366291",
+            "bytesAllocated": 8072
           }
         ]
       }
@@ -6941,6 +7180,58 @@
             "bytesAllocated": 16864
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 2397.935125350952,
+            "unit": "ns",
+            "range": "± 13.21527465032519",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 2846.508736830491,
+            "unit": "ns",
+            "range": "± 30.2973568628138",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 2756.881977898734,
+            "unit": "ns",
+            "range": "± 32.34617821187707",
+            "bytesAllocated": 2672
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 13860.376505533854,
+            "unit": "ns",
+            "range": "± 67.07194227212595",
+            "bytesAllocated": 14728
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 16432.83753051758,
+            "unit": "ns",
+            "range": "± 140.34395588756652",
+            "bytesAllocated": 16960
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -7984,6 +8275,58 @@
             "unit": "ns",
             "range": "± 356.10488071360163",
             "bytesAllocated": 17169
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "dbfd945ef009a67923f255c15f4cfc413353732c",
+          "message": "Add first-class Lambda tenant isolation context support (#120)",
+          "timestamp": "2026-09-22T07:47:42Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/dbfd945ef009a67923f255c15f4cfc413353732c"
+        },
+        "date": 1790063938702,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 3979.172359648205,
+            "unit": "ns",
+            "range": "± 85.42504674009808",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 8375.103377380372,
+            "unit": "ns",
+            "range": "± 503.1957920307395",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 4357.14559173584,
+            "unit": "ns",
+            "range": "± 56.191521239559464",
+            "bytesAllocated": 2456
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 20750.169116550023,
+            "unit": "ns",
+            "range": "± 1019.0687868319692",
+            "bytesAllocated": 14881
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 22008.58065359933,
+            "unit": "ns",
+            "range": "± 262.01845492638574",
+            "bytesAllocated": 17273
           }
         ]
       }
