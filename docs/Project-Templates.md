@@ -79,7 +79,7 @@ dotnet new lambda-template-sqs --tenant-routing --otel
 dotnet new lambda-template-sqs --tenant-routing --aot --otel
 ```
 
-The SQS template accepts `--tenant-routing` to generate an SQS-to-tenant-isolated-Lambda router. Tenant routing selects the raw SQS handler shape automatically, references `Kralizek.Lambda.Template.TenantRouting`, extracts `tenant-id` from SQS message attributes, and reads the target Lambda from `TenantRouting:FunctionName`. It composes with `--aot` and `--otel`.
+The SQS template accepts `--tenant-routing` to generate an SQS-to-tenant-isolated-Lambda router. Tenant routing selects the raw SQS handler shape automatically and references `Kralizek.Lambda.Template.TenantRouting`. The generated `ResolveTenantId` method demonstrates reading a `tenant-id` message attribute, but applications are free to resolve tenant identity from `MessageGroupId`, the payload, a registry, or another source. The downstream function remains part of `TenantLambdaRoute`; the generated code uses an explicit target placeholder that applications can replace with their own destination-selection logic. It composes with `--aot` and `--otel`.
 
 V6.0 exposes `--minimal` only on the source-neutral Request and Event templates. Source-specific Minimal hosts, including Minimal record functions, are intentionally outside the initial scope; consequently no current generated source-specific template combines `--minimal` and `--raw`.
 
