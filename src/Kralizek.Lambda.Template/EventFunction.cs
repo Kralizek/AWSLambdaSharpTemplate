@@ -44,7 +44,7 @@ public abstract class EventFunction<TInput, TContext, [DynamicallyAccessedMember
 
     public virtual async Task FunctionHandlerAsync(TInput input, ILambdaContext context)
     {
-        LambdaTelemetry.EnrichInvocation("event");
+        LambdaTelemetry.EnrichInvocation("event", context.TenantId);
         if (Activity.Current is { } activity)
         {
             EnrichInvocationActivity(activity, input, context);
