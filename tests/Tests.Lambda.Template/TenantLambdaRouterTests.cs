@@ -21,6 +21,19 @@ namespace Tests.Lambda;
 public class TenantLambdaRouterTests
 {
     [Test]
+    public void AddTenantLambdaRouting_resolves_router_with_default_registration()
+    {
+        var services = new ServiceCollection();
+        services.AddTenantLambdaRouting();
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.That(
+            provider.GetRequiredService<ITenantLambdaRouter>(),
+            Is.Not.Null);
+    }
+
+    [Test]
     public async Task RouteAsync_invokes_target_synchronously_with_tenant_and_payload()
     {
         InvokeRequest? capturedRequest = null;
