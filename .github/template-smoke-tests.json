@@ -238,7 +238,7 @@
       "mustNotExist": ["OrderCreated.cs", "OrderCreatedHandler.cs", "RawSqsRecordHandler.cs", "LambdaFunctionProject.csproj", ".template.config"],
       "mustMatch": ["SqsFunction<TenantRoutingHandler>", "AddTenantLambdaRouting", "Kralizek\\.Lambda\\.Template\\.TenantRouting", "LambdaBootstrapBuilder", "OpenTelemetry\\.Instrumentation\\.AWSLambda", "AWSLambdaWrapper\\.TraceAsync", "<PublishAot>true</PublishAot>"],
       "mustNotMatch": ["DefaultLambdaJsonSerializer"]
-    }
+    },
     {
       "name": "Cognito Pre Sign-up",
       "shortName": "lambda-template-cognito-pre-signup",
