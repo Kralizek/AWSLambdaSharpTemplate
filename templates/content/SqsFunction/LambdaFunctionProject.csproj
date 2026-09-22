@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Kralizek.Lambda.Template.Sqs" Version="__KRALIZEK_LAMBDA_VERSION__" />
-<!--#if (tenant)-->
+<!--#if (tenantRouting)-->
     <PackageReference Include="Kralizek.Lambda.Template.TenantRouting" Version="__KRALIZEK_LAMBDA_VERSION__" />
 <!--#endif-->
 <!--#if (aot)-->
