@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,13 +58,14 @@ public class TenantLambdaRouterTests
             });
 
         Assert.That(capturedRequest, Is.Not.Null);
+        var request = capturedRequest!;
 
         Assert.Multiple(() =>
         {
-            Assert.That(capturedRequest.FunctionName, Is.EqualTo("orders-processor"));
-            Assert.That(capturedRequest.TenantId, Is.EqualTo("tenant-42"));
-            Assert.That(capturedRequest.Qualifier, Is.EqualTo("production"));
-            Assert.That(capturedRequest.InvocationType, Is.EqualTo(InvocationType.RequestResponse));
+            Assert.That(request.FunctionName, Is.EqualTo("orders-processor"));
+            Assert.That(request.TenantId, Is.EqualTo("tenant-42"));
+            Assert.That(request.Qualifier, Is.EqualTo("production"));
+            Assert.That(request.InvocationType, Is.EqualTo(InvocationType.RequestResponse));
             Assert.That(capturedPayload, Is.EqualTo("{\"orderId\":\"123\"}"));
         });
     }
