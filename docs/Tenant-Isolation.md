@@ -72,9 +72,9 @@ Tenant isolation also affects how functions are invoked: the tenant identifier m
 For SQS, the existing project template can generate the routing composition directly:
 
 ```bash
-dotnet new lambda-template-sqs --tenant
-dotnet new lambda-template-sqs --tenant --otel
-dotnet new lambda-template-sqs --tenant --aot
+dotnet new lambda-template-sqs --tenant-routing
+dotnet new lambda-template-sqs --tenant-routing --otel
+dotnet new lambda-template-sqs --tenant-routing --aot
 ```
 
 The generated handler reads a `tenant-id` SQS message attribute and constructs a `TenantLambdaRoute` containing the tenant ID, downstream function, and original message body. The generated target name is an explicit placeholder in code so applications can replace it with static, configuration-driven, or per-message routing logic.
