@@ -13,7 +13,7 @@
     <PackageVersion Include="Amazon.Lambda.DynamoDBEvents" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.KinesisEvents" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.Logging.AspNetCore" Version="5.0.1" />
-    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="2.2.1" />
+    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="2.2.2" />
     <PackageVersion Include="Amazon.Lambda.S3Events" Version="4.0.0" />
     <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.1" />
     <PackageVersion Include="Amazon.Lambda.SNSEvents" Version="3.0.1" />
@@ -31,8 +31,8 @@
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.3.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.18.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.18.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.18.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.19.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.19.1" />
   </ItemGroup>
 </Project>
