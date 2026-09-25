@@ -63,8 +63,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          minimum_major_minor=$(sed -n 's:.*<MinVerMinimumMajorMinor>\\([^<]*\\)</MinVerMinimumMajorMinor>.*:\\1:p' eng/Package.props | head -n 1)
-          if [[ ! "$minimum_major_minor" =~ ^[0-9]+\\.[0-9]+$ ]]; then
+          minimum_major_minor=$(sed -n 's:.*<MinVerMinimumMajorMinor>\([^<]*\)</MinVerMinimumMajorMinor>.*:\1:p' eng/Package.props | head -n 1)
+          if [[ ! "$minimum_major_minor" =~ ^[0-9]+\.[0-9]+$ ]]; then
             echo "Could not determine MinVerMinimumMajorMinor from eng/Package.props."
             exit 1
           fi
