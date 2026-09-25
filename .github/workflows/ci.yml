@@ -47,6 +47,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.prerelease-version.outputs.version }}
+      release-notes-start-tag: ${{ steps.prerelease-version.outputs['release-notes-start-tag'] }}
       smoke-cache-key-suffix: ${{ steps.smoke-cache-key.outputs.suffix }}
 
     steps:
@@ -59,50 +60,11 @@ jobs:
       - name: Determine prerelease version
         if: github.event_name == 'workflow_dispatch' && inputs.release_channel != 'none'
         id: prerelease-version
-        env:
-          RELEASE_CHANNEL: ${{ inputs.release_channel }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          minimum_major_minor=$(sed -n 's:.*<MinVerMinimumMajorMinor>\([^<]*\)</MinVerMinimumMajorMinor>.*:\1:p' eng/Package.props | head -n 1)
-
-          if [[ ! "$minimum_major_minor" =~ ^[0-9]+\.[0-9]+$ ]]; then
-            echo "Could not determine MinVerMinimumMajorMinor from eng/Package.props."
-            exit 1
-          fi
-
-          minimum_version="${minimum_major_minor}.0"
-          latest_stable_tag=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
-
-          if [ -z "$latest_stable_tag" ]; then
-            release_base="$minimum_version"
-          else
-            latest_stable_version="${latest_stable_tag#v}"
-            IFS=. read -r stable_major stable_minor _ <<< "$latest_stable_version"
-            auto_incremented_version="${stable_major}.$((stable_minor + 1)).0"
-
-            release_base=$(printf '%s\n%s\n' "$minimum_version" "$auto_incremented_version" | sort -V | tail -n 1)
-          fi
-
-          latest_channel_tag=$(git tag -l "v${release_base}-${RELEASE_CHANNEL}.*" --sort=-version:refname | head -n 1 || true)
-
-          if [ -z "$latest_channel_tag" ]; then
-            channel_number=1
-          else
-            channel_number="${latest_channel_tag##*.}"
-
-            if [[ ! "$channel_number" =~ ^[0-9]+$ ]]; then
-              echo "Could not determine prerelease number from $latest_channel_tag."
-              exit 1
-            fi
-
-            channel_number=$((channel_number + 1))
-          fi
-
-          version="${release_base}-${RELEASE_CHANNEL}.${channel_number}"
-          echo "Selected prerelease version: $version"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+        uses: Kralizek/github-actions/actions/calculate-next-version@v0.4
+        with:
+          bump: minor
+          channel: ${{ inputs.release_channel }}
+          minimum-version: 6.0.0
 
       - name: Determine smoke cache key
         id: smoke-cache-key
@@ -759,6 +721,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && !inputs.dry_run && inputs.release_channel != 'none'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES_START_TAG: ${{ needs.prepare-version.outputs['release-notes-start-tag'] }}
         shell: bash
         run: |
           set -euo pipefail
@@ -768,12 +731,11 @@ jobs:
             exit 0
           fi
 
-          gh release create "$RELEASE_TAG" \
-            --repo "${{ github.repository }}" \
-            --target "$GITHUB_SHA" \
-            --title "$RELEASE_TAG" \
-            --generate-notes \
-            --prerelease
+          args=("$RELEASE_TAG" --repo "${{ github.repository }}" --target "$GITHUB_SHA" --title "$RELEASE_TAG" --generate-notes --prerelease)
+          if [[ -n "$RELEASE_NOTES_START_TAG" ]]; then
+            args+=(--notes-start-tag "$RELEASE_NOTES_START_TAG")
+          fi
+          gh release create "${args[@]}"
 
       - name: Attach packages to the GitHub release
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run && inputs.release_channel != 'none')
