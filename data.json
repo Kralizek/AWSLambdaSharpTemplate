@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1790093142866,
+  "lastUpdated": 1790345738468,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -2009,6 +2009,58 @@
             "bytesAllocated": 13536
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1497.2232703254335,
+            "unit": "ns",
+            "range": "± 35.53992785476431",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 3279.622224680583,
+            "unit": "ns",
+            "range": "± 50.076473571588714",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 1825.2389822006226,
+            "unit": "ns",
+            "range": "± 23.702162425077656",
+            "bytesAllocated": 2184
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 10024.671303304036,
+            "unit": "ns",
+            "range": "± 186.35070454801019",
+            "bytesAllocated": 11936
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 11374.120255470276,
+            "unit": "ns",
+            "range": "± 214.32427573660132",
+            "bytesAllocated": 13536
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -3346,6 +3398,51 @@
             "bytesAllocated": 1096
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 30.09921532869339,
+            "unit": "ns",
+            "range": "± 0.7076565731657436",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 166.1462701388768,
+            "unit": "ns",
+            "range": "± 1.9222667510660305",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 419.1772991929735,
+            "unit": "ns",
+            "range": "± 4.974592767999496",
+            "bytesAllocated": 824
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 654.3224266597202,
+            "unit": "ns",
+            "range": "± 10.193240484827788",
+            "bytesAllocated": 1096
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -4547,6 +4644,58 @@
             "bytesAllocated": 13720
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 1786.3185606002808,
+            "unit": "ns",
+            "range": "± 13.69924184381631",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 1962.8662249247234,
+            "unit": "ns",
+            "range": "± 9.76925443580727",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 2303.858966573079,
+            "unit": "ns",
+            "range": "± 10.804212930182453",
+            "bytesAllocated": 2416
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 10423.29096476237,
+            "unit": "ns",
+            "range": "± 141.4866050224839",
+            "bytesAllocated": 12120
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 11927.976462227958,
+            "unit": "ns",
+            "range": "± 102.63099412134231",
+            "bytesAllocated": 13720
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -5580,6 +5729,51 @@
             "bytesAllocated": 7240
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 3973.7522829229183,
+            "unit": "ns",
+            "range": "± 96.54853841001861",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 4422.7604354858395,
+            "unit": "ns",
+            "range": "± 38.127591304733954",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 4587.997300720215,
+            "unit": "ns",
+            "range": "± 39.83467281299625",
+            "bytesAllocated": 4864
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 7652.03689066569,
+            "unit": "ns",
+            "range": "± 117.25433357149255",
+            "bytesAllocated": 7240
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -6610,6 +6804,51 @@
             "value": 16272.127333984376,
             "unit": "ns",
             "range": "± 995.3190973791935",
+            "bytesAllocated": 8072
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 6462.829758605957,
+            "unit": "ns",
+            "range": "± 743.8900713096352",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 7078.5797327553355,
+            "unit": "ns",
+            "range": "± 254.41574136498846",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 7032.260675844939,
+            "unit": "ns",
+            "range": "± 159.11336189637112",
+            "bytesAllocated": 5144
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 11894.4990873115,
+            "unit": "ns",
+            "range": "± 434.10235014659986",
             "bytesAllocated": 8072
           }
         ]
@@ -7814,6 +8053,58 @@
             "bytesAllocated": 16960
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 3646.695379257202,
+            "unit": "ns",
+            "range": "± 68.11017294374328",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 4524.524986775717,
+            "unit": "ns",
+            "range": "± 33.15301863469782",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 4407.051924024309,
+            "unit": "ns",
+            "range": "± 47.67546818480888",
+            "bytesAllocated": 2672
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 21674.95760672433,
+            "unit": "ns",
+            "range": "± 314.41435095592044",
+            "bytesAllocated": 14728
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 25699.120049612862,
+            "unit": "ns",
+            "range": "± 201.12102999223993",
+            "bytesAllocated": 16960
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -9013,6 +9304,58 @@
             "unit": "ns",
             "range": "± 1000.7095935695022",
             "bytesAllocated": 17265
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "8ee67bc174a65272a520ffd60a4fb42f72e5d873",
+          "message": "Bump the nuget-dependencies group with 4 updates (#122)\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-09-25T14:03:46Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/8ee67bc174a65272a520ffd60a4fb42f72e5d873"
+        },
+        "date": 1790345738468,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 9285.909920636346,
+            "unit": "ns",
+            "range": "± 438.6435239845228",
+            "bytesAllocated": 1729
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 16621.31944632023,
+            "unit": "ns",
+            "range": "± 1663.241902851886",
+            "bytesAllocated": 4515
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 10459.808117044384,
+            "unit": "ns",
+            "range": "± 299.00034263922487",
+            "bytesAllocated": 2456
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 38198.637451171875,
+            "unit": "ns",
+            "range": "± 672.0957293768249",
+            "bytesAllocated": 14868
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 41015.67746117002,
+            "unit": "ns",
+            "range": "± 969.0427544911116",
+            "bytesAllocated": 17266
           }
         ]
       }
