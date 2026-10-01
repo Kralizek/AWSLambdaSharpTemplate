@@ -13,7 +13,7 @@ updates:
       - dependency-name: NUnit
         update-types:
           - "version-update:semver-major"
-      - dependency-name: AutoFixture
+      - dependency-name: "AutoFixture*"
         update-types:
           - "version-update:semver-major"
 
