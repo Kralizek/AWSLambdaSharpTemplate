@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1790362899602,
+  "lastUpdated": 1790841339842,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -2269,6 +2269,58 @@
             "bytesAllocated": 13536
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 960.5095157623291,
+            "unit": "ns",
+            "range": "± 2.47115931108004",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 1859.783934048244,
+            "unit": "ns",
+            "range": "± 3.2206313032323854",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 1207.8383527902456,
+            "unit": "ns",
+            "range": "± 2.6828912511838405",
+            "bytesAllocated": 2184
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 7273.396626608713,
+            "unit": "ns",
+            "range": "± 100.2260896532479",
+            "bytesAllocated": 11936
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 7986.224713839018,
+            "unit": "ns",
+            "range": "± 10.280430671360929",
+            "bytesAllocated": 13536
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -3831,6 +3883,51 @@
             "bytesAllocated": 1096
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 13.196725783439783,
+            "unit": "ns",
+            "range": "± 0.1343377913193091",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 84.67554225371434,
+            "unit": "ns",
+            "range": "± 0.27763425887231225",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 241.72264070510863,
+            "unit": "ns",
+            "range": "± 0.938863780590031",
+            "bytesAllocated": 824
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 421.02499226729077,
+            "unit": "ns",
+            "range": "± 1.8186354538014318",
+            "bytesAllocated": 1096
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -5292,6 +5389,58 @@
             "bytesAllocated": 13720
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 1158.8045045307704,
+            "unit": "ns",
+            "range": "± 1.9846581908767376",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 1337.5715710566594,
+            "unit": "ns",
+            "range": "± 3.913430023973978",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 1541.213151051448,
+            "unit": "ns",
+            "range": "± 13.516454871745138",
+            "bytesAllocated": 2416
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 7336.470871558557,
+            "unit": "ns",
+            "range": "± 43.594883986116784",
+            "bytesAllocated": 12120
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 8253.086576021635,
+            "unit": "ns",
+            "range": "± 27.762224630989717",
+            "bytesAllocated": 13720
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -6550,6 +6699,51 @@
             "bytesAllocated": 7240
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 2353.5762095133464,
+            "unit": "ns",
+            "range": "± 10.461916982637662",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 2643.2398398263113,
+            "unit": "ns",
+            "range": "± 9.104553906263261",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 2749.426714677077,
+            "unit": "ns",
+            "range": "± 16.721554346284766",
+            "bytesAllocated": 4864
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 4350.059097290039,
+            "unit": "ns",
+            "range": "± 9.619088890060697",
+            "bytesAllocated": 7240
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -7805,6 +7999,51 @@
             "value": 11004.31649271647,
             "unit": "ns",
             "range": "± 234.37346402705305",
+            "bytesAllocated": 8072
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 4229.327781431137,
+            "unit": "ns",
+            "range": "± 124.85588088463635",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 4564.476418380737,
+            "unit": "ns",
+            "range": "± 268.28259492302277",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 4449.664792175293,
+            "unit": "ns",
+            "range": "± 470.6070847225416",
+            "bytesAllocated": 5144
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 5839.8655889174515,
+            "unit": "ns",
+            "range": "± 185.77042314673716",
             "bytesAllocated": 8072
           }
         ]
@@ -9269,6 +9508,58 @@
             "bytesAllocated": 16960
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 2456.277105331421,
+            "unit": "ns",
+            "range": "± 5.029479599832891",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 2882.973820906419,
+            "unit": "ns",
+            "range": "± 4.605752942879939",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 2750.825322958139,
+            "unit": "ns",
+            "range": "± 4.531888788991284",
+            "bytesAllocated": 2672
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 13828.98161315918,
+            "unit": "ns",
+            "range": "± 21.07689103964787",
+            "bytesAllocated": 14728
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 16568.594322791465,
+            "unit": "ns",
+            "range": "± 32.93276137894669",
+            "bytesAllocated": 16960
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -10728,6 +11019,58 @@
             "unit": "ns",
             "range": "± 348.23461231701754",
             "bytesAllocated": 17270
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "Kralizek"
+          },
+          "sha": "b4b7bdf4325fd69247aa5d1e6896db536b0ddf78",
+          "message": "Prevent major NUnit and AutoFixture updates",
+          "timestamp": "2026-10-01T07:43:49Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/b4b7bdf4325fd69247aa5d1e6896db536b0ddf78"
+        },
+        "date": 1790841339842,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 4076.7692881266275,
+            "unit": "ns",
+            "range": "± 130.04187396950167",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 8259.785563700909,
+            "unit": "ns",
+            "range": "± 413.8312957015709",
+            "bytesAllocated": 4489
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 4499.793691781851,
+            "unit": "ns",
+            "range": "± 54.8723646267435",
+            "bytesAllocated": 2456
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 21350.192240870278,
+            "unit": "ns",
+            "range": "± 1110.9379122225462",
+            "bytesAllocated": 14864
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 22565.89254921361,
+            "unit": "ns",
+            "range": "± 488.3748142429929",
+            "bytesAllocated": 17281
           }
         ]
       }
