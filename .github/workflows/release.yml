@@ -1,0 +1,305 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        required: true
+        default: minor
+        options:
+          - major
+          - minor
+          - patch
+      release_channel:
+        description: Release channel
+        type: choice
+        required: true
+        default: stable
+        options:
+          - stable
+          - alpha
+          - beta
+          - rc
+      dry_run:
+        description: Calculate and package the selected release without publishing it
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  CONFIGURATION: Release
+  ARTIFACTS_PATH: ./artifacts
+  MinVerDefaultPreReleaseIdentifiers: preview
+
+jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      release-notes-start-tag: ${{ steps.version.outputs['release-notes-start-tag'] }}
+
+    steps:
+      - name: Validate release source
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "Releases must be dispatched from master."
+          exit 1
+
+      - name: Require successful CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          successful_runs=$(gh api \
+            --method GET \
+            "repos/${{ github.repository }}/actions/workflows/ci.yml/runs" \
+            -f head_sha="$GITHUB_SHA" \
+            -f event=push \
+            -f status=success \
+            -f per_page=1 \
+            --jq '.total_count')
+
+          if [ "$successful_runs" -lt 1 ]; then
+            echo "No successful CI push run exists for commit $GITHUB_SHA."
+            echo "Wait for CI on master to finish successfully before releasing this commit."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine minimum version
+        id: minimum-version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          minimum_major_minor=$(sed -n 's:.*<MinVerMinimumMajorMinor>\([^<]*\)</MinVerMinimumMajorMinor>.*:\1:p' eng/Package.props | head -n 1)
+
+          if [[ ! "$minimum_major_minor" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Could not determine MinVerMinimumMajorMinor from eng/Package.props."
+            exit 1
+          fi
+
+          echo "version=${minimum_major_minor}.0" >> "$GITHUB_OUTPUT"
+
+      - name: Calculate release version
+        id: version
+        uses: Kralizek/github-actions/actions/calculate-next-version@v0.4
+        with:
+          bump: ${{ inputs.bump }}
+          channel: ${{ inputs.release_channel != 'stable' && inputs.release_channel || '' }}
+          minimum-version: ${{ steps.minimum-version.outputs.version }}
+
+  pack:
+    name: Build and pack
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MinVerVersionOverride: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.props
+            **/*.targets
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration $CONFIGURATION --no-restore --warnaserror
+
+      - name: Pack
+        run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
+
+      - name: Verify package versions
+        env:
+          EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          versions_file=$(mktemp)
+
+          for package in "$ARTIFACTS_PATH"/packages/Kralizek.Lambda.*.nupkg; do
+            nuspec=$(unzip -p "$package" '*.nuspec')
+            package_id=$(printf '%s\n' "$nuspec" | sed -n 's:.*<id>\(.*\)</id>.*:\1:p' | head -n 1)
+            package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
+
+            if [ -z "$package_id" ] || [ -z "$package_version" ]; then
+              echo "Could not read package metadata from $package"
+              exit 1
+            fi
+
+            printf '%-45s %s\n' "$package_id" "$package_version"
+            echo "$package_version" >> "$versions_file"
+          done
+
+          package_versions=$(sort -u "$versions_file")
+          version_count=$(printf '%s\n' "$package_versions" | sed '/^$/d' | wc -l)
+
+          if [ "$version_count" -ne 1 ]; then
+            echo "Packed projects do not share the same package version:"
+            printf '%s\n' "$package_versions"
+            exit 1
+          fi
+
+          package_version=$(printf '%s\n' "$package_versions" | head -n 1)
+          if [ "$package_version" != "$EXPECTED_VERSION" ]; then
+            echo "Packed version $package_version does not match calculated release version $EXPECTED_VERSION."
+            exit 1
+          fi
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: |
+            ${{ env.ARTIFACTS_PATH }}/packages/*.nupkg
+            ${{ env.ARTIFACTS_PATH }}/packages/*.snupkg
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    needs: [prepare, pack]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-packages
+          path: ./artifacts/packages
+
+      - name: Dry-run release summary
+        if: inputs.dry_run
+        run: |
+          echo "Dry run: no packages or GitHub release will be published."
+          echo "Version bump: ${{ inputs.bump }}"
+          echo "Release channel: ${{ inputs.release_channel }}"
+          echo "Version: ${{ needs.prepare.outputs.version }}"
+          echo "Tag: ${{ needs.prepare.outputs.tag }}"
+          echo "Release notes start tag: ${{ needs.prepare.outputs['release-notes-start-tag'] }}"
+
+      - name: Create GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_NOTES_START_TAG: ${{ needs.prepare.outputs['release-notes-start-tag'] }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          args=("$RELEASE_TAG" --repo "${{ github.repository }}" --target "$GITHUB_SHA" --title "$RELEASE_TAG" --generate-notes)
+          if [ "${{ inputs.release_channel }}" != "stable" ]; then
+            args+=(--prerelease)
+          fi
+          if [[ -n "$RELEASE_NOTES_START_TAG" ]]; then
+            args+=(--notes-start-tag "$RELEASE_NOTES_START_TAG")
+          fi
+
+          gh release create "${args[@]}"
+
+      - name: Configure GitHub Packages source
+        if: ${{ !inputs.dry_run }}
+        run: >-
+          dotnet nuget add source
+          "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          --name github
+          --username "${{ github.actor }}"
+          --password "${{ github.token }}"
+          --store-password-in-clear-text
+
+      - name: Publish to GitHub Packages
+        if: ${{ !inputs.dry_run }}
+        run: >-
+          dotnet nuget push
+          "./artifacts/packages/*.nupkg"
+          --source github
+          --api-key "${{ github.token }}"
+          --skip-duplicate
+
+      - name: Log in to NuGet.org
+        if: ${{ !inputs.dry_run && inputs.release_channel != 'alpha' }}
+        id: nuget-login
+        uses: nuget/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: Kralizek
+
+      - name: Publish to NuGet.org
+        if: ${{ !inputs.dry_run && inputs.release_channel != 'alpha' }}
+        run: >-
+          dotnet nuget push
+          "./artifacts/packages/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          --skip-duplicate
+
+      - name: Attach packages to GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: >-
+          gh release upload "$RELEASE_TAG"
+          ./artifacts/packages/*.nupkg
+          ./artifacts/packages/*.snupkg
+          --repo "${{ github.repository }}"
+          --clobber
+
+  benchmark-snapshot:
+    name: Benchmark snapshot
+    needs: [prepare, publish]
+    if: needs.publish.result == 'success' && !inputs.dry_run
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/release-benchmarks.yml
+    with:
+      release-mode: true
+      release-tag: ${{ needs.prepare.outputs.tag }}
