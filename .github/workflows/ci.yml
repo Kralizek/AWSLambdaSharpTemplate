@@ -57,7 +57,6 @@ jobs:
       - name: Pack
         run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
 
-
   smoke-pack:
     name: Pack for template smoke tests
     runs-on: ubuntu-latest
