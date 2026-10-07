@@ -23,7 +23,7 @@ on:
           - beta
           - rc
       dry_run:
-        description: Validate the selected release without publishing packages or creating a release
+        description: Calculate and package the selected release without publishing it
         type: boolean
         required: false
         default: false
@@ -40,16 +40,16 @@ env:
   MinVerDefaultPreReleaseIdentifiers: preview
 
 jobs:
-  prepare-version:
-    name: Prepare version
+  prepare:
+    name: Prepare release
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
       release-notes-start-tag: ${{ steps.version.outputs['release-notes-start-tag'] }}
-      smoke-cache-key-suffix: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Validate release source
@@ -57,6 +57,21 @@ jobs:
         run: |
           echo "Releases must be dispatched from master."
           exit 1
+
+      - name: Require successful CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          successful_runs=$(gh api             --method GET             "repos/${{ github.repository }}/actions/workflows/ci.yml/runs"             -f head_sha="$GITHUB_SHA"             -f event=push             -f status=success             -f per_page=1             --jq '.total_count')
+
+          if [ "$successful_runs" -lt 1 ]; then
+            echo "No successful CI push run exists for commit $GITHUB_SHA."
+            echo "Wait for CI on master to finish successfully before releasing this commit."
+            exit 1
+          fi
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -86,14 +101,14 @@ jobs:
           channel: ${{ inputs.release_channel != 'stable' && inputs.release_channel || '' }}
           minimum-version: ${{ steps.minimum-version.outputs.version }}
 
-  validate-and-pack:
-    name: Validate and pack
-    needs: prepare-version
+  pack:
+    name: Build and pack
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
       contents: read
     env:
-      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
+      MinVerVersionOverride: ${{ needs.prepare.outputs.version }}
 
     steps:
       - name: Checkout
@@ -114,62 +129,15 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      - name: Verify formatting
-        run: dotnet format --verify-no-changes --no-restore
-
       - name: Build
         run: dotnet build --configuration $CONFIGURATION --no-restore --warnaserror
-
-      - name: Test
-        run: dotnet test --configuration $CONFIGURATION --no-build --logger GitHubActions
 
       - name: Pack
         run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
 
-      - name: Upload packages
-        uses: actions/upload-artifact@v7
-        with:
-          name: nuget-packages
-          path: |
-            ${{ env.ARTIFACTS_PATH }}/packages/*.nupkg
-            ${{ env.ARTIFACTS_PATH }}/packages/*.snupkg
-          if-no-files-found: error
-
-  smoke-pack:
-    name: Pack for template smoke tests
-    needs: prepare-version
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-          cache: true
-          cache-dependency-path: |
-            **/*.csproj
-            **/*.props
-            **/*.targets
-
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration $CONFIGURATION --no-restore --warnaserror
-
-      - name: Pack locally
-        run: dotnet pack --configuration $CONFIGURATION --no-build --output $ARTIFACTS_PATH/packages
-
       - name: Verify package versions
+        env:
+          EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
@@ -200,347 +168,23 @@ jobs:
           fi
 
           package_version=$(printf '%s\n' "$package_versions" | head -n 1)
-          echo "$package_version" > "$ARTIFACTS_PATH/packages/package-version.txt"
-
-      - name: Cache smoke-test packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ env.ARTIFACTS_PATH }}/packages
-          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-release-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
-
-  prepare-template-smoke-tests:
-    name: Prepare template smoke tests
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      mode: ${{ steps.mode.outputs.mode }}
-      matrix: ${{ steps.matrix.outputs.matrix }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Determine template smoke-test mode
-        id: mode
-        run: echo "mode=release" >> "$GITHUB_OUTPUT"
-
-      - name: Read template smoke-test matrix
-        shell: bash
-        run: jq -c . .github/template-smoke-tests.json > "$RUNNER_TEMP/template-smoke-tests.source.json"
-
-      - name: Validate template smoke-test matrix
-        run: >-
-          npx --yes ajv-cli@5.0.0 validate
-          --spec=draft7
-          --all-errors
-          -s .github/template-smoke-tests.schema.json
-          -d "$RUNNER_TEMP/template-smoke-tests.source.json"
-
-      - name: Filter template smoke-test matrix
-        env:
-          SMOKE_TEST_MODE: ${{ steps.mode.outputs.mode }}
-        shell: bash
-        run: >-
-          jq -ce --arg mode "$SMOKE_TEST_MODE"
-          '{include: [.include[] | select(.when | index($mode))]}
-          | if (.include | length) > 0 then . else error("No template smoke tests selected for mode: " + $mode) end'
-          "$RUNNER_TEMP/template-smoke-tests.source.json"
-          > "$RUNNER_TEMP/template-smoke-tests.json"
-
-      - name: Export template smoke-test matrix
-        id: matrix
-        shell: bash
-        run: echo "matrix=$(cat "$RUNNER_TEMP/template-smoke-tests.json")" >> "$GITHUB_OUTPUT"
-
-  prepare-native-aot-samples:
-    name: Prepare Native AOT samples
-    needs: prepare-template-smoke-tests
-    if: needs.prepare-template-smoke-tests.outputs.mode != 'pr'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Discover Native AOT samples
-        id: matrix
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python <<'PY' > "$RUNNER_TEMP/native-aot-samples.json"
-          import json
-          from pathlib import Path
-          import xml.etree.ElementTree as ET
-
-          samples = []
-
-          for project in sorted(Path("samples").glob("**/*.csproj")):
-              root = ET.parse(project).getroot()
-              publish_aot = any(
-                  element.text is not None and element.text.strip().lower() == "true"
-                  for element in root.iter()
-                  if element.tag.endswith("PublishAot")
-              )
-
-              if publish_aot:
-                  samples.append(
-                      {
-                          "projectName": project.stem,
-                          "projectPath": project.as_posix(),
-                      }
-                  )
-
-          if not samples:
-              raise SystemExit("No Native AOT sample projects found under samples/**/*.csproj with <PublishAot>true</PublishAot>.")
-
-          print(json.dumps({"include": samples}, separators=(",", ":")))
-          PY
-
-          echo "Discovered Native AOT samples:"
-          cat "$RUNNER_TEMP/native-aot-samples.json"
-          echo "matrix=$(cat "$RUNNER_TEMP/native-aot-samples.json")" >> "$GITHUB_OUTPUT"
-
-  template-smoke-test:
-    name: Template smoke test (${{ matrix.name }})
-    needs: [prepare-version, smoke-pack, prepare-template-smoke-tests]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare-template-smoke-tests.outputs.matrix) }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Restore smoke-test packages
-        uses: actions/cache/restore@v5
-        with:
-          path: ${{ env.ARTIFACTS_PATH }}/packages
-          key: smoke-packages-${{ runner.os }}-${{ github.sha }}-release-${{ needs.prepare-version.outputs.smoke-cache-key-suffix }}
-          fail-on-cache-miss: true
-
-      - name: Read package metadata
-        shell: bash
-        run: |
-          echo "PACKAGE_VERSION=$(cat "$ARTIFACTS_PATH/packages/package-version.txt")" >> "$GITHUB_ENV"
-          echo "TEMPLATE_PACKAGE=$(ls "$ARTIFACTS_PATH"/packages/Kralizek.Lambda.Templates.*.nupkg)" >> "$GITHUB_ENV"
-
-      - name: Install packaged templates
-        run: |
-          dotnet new install "$TEMPLATE_PACKAGE"
-          dotnet new list "${{ matrix.shortName }}"
-
-      - name: Instantiate ${{ matrix.name }} template
-        env:
-          TEMPLATE_AOT: ${{ matrix.aot || false }}
-          TEMPLATE_OTEL: ${{ matrix.otel || false }}
-          TEMPLATE_RAW: ${{ matrix.raw || false }}
-          TEMPLATE_TENANT_ROUTING: ${{ matrix.tenantRouting || false }}
-          TEMPLATE_MINIMAL: ${{ matrix.minimal || false }}
-          TEMPLATE_VERSION: ${{ matrix.version || '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p "$RUNNER_TEMP/lambda-template-smoke"
-
-          args=()
-          if [ "$TEMPLATE_AOT" = "true" ]; then
-            args+=(--aot)
-          fi
-          if [ "$TEMPLATE_OTEL" = "true" ]; then
-            args+=(--otel)
-          fi
-          if [ "$TEMPLATE_RAW" = "true" ]; then
-            args+=(--raw)
-          fi
-          if [ "$TEMPLATE_TENANT_ROUTING" = "true" ]; then
-            args+=(--tenant-routing)
-          fi
-          if [ "$TEMPLATE_MINIMAL" = "true" ]; then
-            args+=(--minimal)
-          fi
-          if [ -n "$TEMPLATE_VERSION" ]; then
-            args+=(--version "$TEMPLATE_VERSION")
+          if [ "$package_version" != "$EXPECTED_VERSION" ]; then
+            echo "Packed version $package_version does not match calculated release version $EXPECTED_VERSION."
+            exit 1
           fi
 
-          dotnet new "${{ matrix.shortName }}" \
-            --name "${{ matrix.projectName }}" \
-            --output "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}" \
-            --profile SmokeProfile \
-            --region eu-north-1 \
-            --role SmokeRole \
-            "${args[@]}"
-
-      - name: Verify generated content
-        env:
-          MUST_EXIST: ${{ toJSON(matrix.mustExist) }}
-          MUST_NOT_EXIST: ${{ toJSON(matrix.mustNotExist) }}
-          MUST_MATCH: ${{ toJSON(matrix.mustMatch) }}
-          MUST_NOT_MATCH: ${{ toJSON(matrix.mustNotMatch) }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          project="$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
-          grep -q 'SmokeProfile' "$project/aws-lambda-tools-defaults.json"
-          grep -q 'eu-north-1' "$project/aws-lambda-tools-defaults.json"
-          grep -q 'SmokeRole' "$project/aws-lambda-tools-defaults.json"
-          grep -q "Version=\"$PACKAGE_VERSION\"" "$project/${{ matrix.projectName }}.csproj"
-          ! grep -R -q '__KRALIZEK_LAMBDA_VERSION__' "$project"
-
-          while IFS= read -r file; do
-            [ -z "$file" ] || test -e "$project/$file"
-          done < <(jq -r '.[]?' <<< "$MUST_EXIST")
-
-          while IFS= read -r file; do
-            [ -z "$file" ] || test ! -e "$project/$file"
-          done < <(jq -r '.[]?' <<< "$MUST_NOT_EXIST")
-
-          while IFS= read -r pattern; do
-            if [ -n "$pattern" ] && ! grep -R -E -q -- "$pattern" "$project"; then
-              echo "Expected generated content to match regex: $pattern"
-              exit 1
-            fi
-          done < <(jq -r '.[]?' <<< "$MUST_MATCH")
-
-          while IFS= read -r pattern; do
-            if [ -n "$pattern" ] && grep -R -E -q -- "$pattern" "$project"; then
-              echo "Expected generated content not to match regex: $pattern"
-              exit 1
-            fi
-          done < <(jq -r '.[]?' <<< "$MUST_NOT_MATCH")
-
-      - name: Configure smoke-test package sources
-        shell: bash
-        run: |
-          local_feed=$(realpath $ARTIFACTS_PATH/packages)
-          cat > "$RUNNER_TEMP/lambda-template-smoke/NuGet.config" <<EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <clear />
-              <add key="local" value="$local_feed" />
-              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-            </packageSources>
-            <packageSourceMapping>
-              <packageSource key="local">
-                <package pattern="Kralizek.Lambda.*" />
-              </packageSource>
-              <packageSource key="nuget.org">
-                <package pattern="*" />
-              </packageSource>
-            </packageSourceMapping>
-          </configuration>
-          EOF
-
-      - name: Restore generated project
-        run: >-
-          dotnet restore
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
-          --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
-          --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
-
-      - name: Restore Native AOT runtime assets
-        if: matrix.aot == true
-        run: >-
-          dotnet restore
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
-          --runtime linux-x64
-          --configfile "$RUNNER_TEMP/lambda-template-smoke/NuGet.config"
-          --packages "$RUNNER_TEMP/lambda-template-smoke/packages"
-
-      - name: Build generated project
-        run: >-
-          dotnet build
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
-          --configuration $CONFIGURATION
-          --no-restore
-          --warnaserror
-
-      - name: Publish Native AOT generated project
-        if: matrix.aot == true
-        run: >-
-          dotnet publish
-          "$RUNNER_TEMP/lambda-template-smoke/${{ matrix.projectName }}"
-          --configuration $CONFIGURATION
-          --runtime linux-x64
-          --self-contained true
-          --no-restore
-          --warnaserror
-
-  validate-native-aot-sample:
-    name: Native AOT sample (${{ matrix.projectName }})
-    needs: [prepare-version, prepare-template-smoke-tests, prepare-native-aot-samples]
-    if: needs.prepare-template-smoke-tests.outputs.mode != 'pr' && needs.prepare-native-aot-samples.result == 'success'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      MinVerVersionOverride: ${{ needs.prepare-version.outputs.version }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare-native-aot-samples.outputs.matrix) }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Upload packages
+        uses: actions/upload-artifact@v7
         with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-          cache: true
-          cache-dependency-path: |
-            **/*.csproj
-            **/*.props
-            **/*.targets
-
-      - name: Restore Native AOT sample
-        run: >-
-          dotnet restore
-          ${{ matrix.projectPath }}
-          --runtime linux-x64
-
-      - name: Build Native AOT sample
-        run: >-
-          dotnet build
-          ${{ matrix.projectPath }}
-          --configuration $CONFIGURATION
-          --no-restore
-          --warnaserror
-
-      - name: Publish Native AOT sample
-        run: >-
-          dotnet publish
-          ${{ matrix.projectPath }}
-          --configuration $CONFIGURATION
-          --runtime linux-x64
-          --self-contained true
-          --no-restore
-          --warnaserror
+          name: nuget-packages
+          path: |
+            ${{ env.ARTIFACTS_PATH }}/packages/*.nupkg
+            ${{ env.ARTIFACTS_PATH }}/packages/*.snupkg
+          if-no-files-found: error
 
   publish:
     name: Publish
-    needs: [prepare-version, validate-and-pack, template-smoke-test, validate-native-aot-sample]
-    if: needs.validate-native-aot-sample.result == 'success'
+    needs: [prepare, pack]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -564,38 +208,22 @@ jobs:
           name: nuget-packages
           path: ./artifacts/packages
 
-      - name: Validate package version
-        env:
-          EXPECTED_VERSION: ${{ needs.prepare-version.outputs.version }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          package=$(ls ./artifacts/packages/Kralizek.Lambda.Templates.*.nupkg)
-          nuspec=$(unzip -p "$package" '*.nuspec')
-          package_version=$(printf '%s\n' "$nuspec" | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -n 1)
-
-          if [ "$package_version" != "$EXPECTED_VERSION" ]; then
-            echo "Packed version $package_version does not match calculated release version $EXPECTED_VERSION."
-            exit 1
-          fi
-
       - name: Dry-run release summary
         if: inputs.dry_run
         run: |
           echo "Dry run: no packages or GitHub release will be published."
           echo "Version bump: ${{ inputs.bump }}"
           echo "Release channel: ${{ inputs.release_channel }}"
-          echo "Version: ${{ needs.prepare-version.outputs.version }}"
-          echo "Tag: ${{ needs.prepare-version.outputs.tag }}"
-          echo "Release notes start tag: ${{ needs.prepare-version.outputs['release-notes-start-tag'] }}"
+          echo "Version: ${{ needs.prepare.outputs.version }}"
+          echo "Tag: ${{ needs.prepare.outputs.tag }}"
+          echo "Release notes start tag: ${{ needs.prepare.outputs['release-notes-start-tag'] }}"
 
       - name: Create GitHub release
         if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.prepare-version.outputs.tag }}
-          RELEASE_NOTES_START_TAG: ${{ needs.prepare-version.outputs['release-notes-start-tag'] }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_NOTES_START_TAG: ${{ needs.prepare.outputs['release-notes-start-tag'] }}
         shell: bash
         run: |
           set -euo pipefail
@@ -649,7 +277,7 @@ jobs:
         if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.prepare-version.outputs.tag }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
         run: >-
           gh release upload "$RELEASE_TAG"
           ./artifacts/packages/*.nupkg
@@ -659,7 +287,7 @@ jobs:
 
   benchmark-snapshot:
     name: Benchmark snapshot
-    needs: [publish, prepare-version]
+    needs: [prepare, publish]
     if: needs.publish.result == 'success' && !inputs.dry_run
     permissions:
       actions: read
@@ -667,4 +295,4 @@ jobs:
     uses: ./.github/workflows/release-benchmarks.yml
     with:
       release-mode: true
-      release-tag: ${{ needs.prepare-version.outputs.tag }}
+      release-tag: ${{ needs.prepare.outputs.tag }}
