@@ -250,10 +250,10 @@ jobs:
           if release_response=$(gh api --include "repos/${{ github.repository }}/releases/tags/$RELEASE_TAG" 2>&1); then
             release_exists=true
           else
-            status=$(printf '%s\\n' "$release_response" | awk '/^HTTP\\// { print $2; exit }')
+            status=$(printf '%s\n' "$release_response" | awk '/^HTTP\// { print $2; exit }')
             if [ "$status" != "404" ]; then
               echo "::error::Unable to check GitHub release $RELEASE_TAG (HTTP ${status:-unknown})."
-              printf '%s\\n' "$release_response" >&2
+              printf '%s\n' "$release_response" >&2
               exit 1
             fi
             release_exists=false
