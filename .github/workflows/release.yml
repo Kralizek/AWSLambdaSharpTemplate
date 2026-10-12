@@ -245,7 +245,21 @@ jobs:
 
           # A prior attempt can have created the release before package publication failed.
           # Reuse it only when the existing tag identifies this exact source commit.
-          if gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+          # Only a confirmed HTTP 404 means there is no release to reuse.
+          # Authentication failures, rate limiting, and transient API errors must abort.
+          if release_response=$(gh api --include "repos/${{ github.repository }}/releases/tags/$RELEASE_TAG" 2>&1); then
+            release_exists=true
+          else
+            status=$(printf '%s\\n' "$release_response" | awk '/^HTTP\\// { print $2; exit }')
+            if [ "$status" != "404" ]; then
+              echo "::error::Unable to check GitHub release $RELEASE_TAG (HTTP ${status:-unknown})."
+              printf '%s\\n' "$release_response" >&2
+              exit 1
+            fi
+            release_exists=false
+          fi
+
+          if [ "$release_exists" = true ]; then
             git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
             existing_sha=$(git rev-parse "$RELEASE_TAG^{commit}")
             if [ "$existing_sha" != "$GITHUB_SHA" ]; then
