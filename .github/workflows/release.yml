@@ -243,7 +243,42 @@ jobs:
             args+=(--notes-start-tag "$RELEASE_NOTES_START_TAG")
           fi
 
-          gh release create "${args[@]}"
+          # A prior attempt can have created the release before package publication failed.
+          # Reuse it only when the existing tag identifies this exact source commit.
+          # Only a confirmed HTTP 404 means there is no release to reuse.
+          # Authentication failures, rate limiting, and transient API errors must abort.
+          if release_response=$(gh api --include "repos/${{ github.repository }}/releases/tags/$RELEASE_TAG" 2>&1); then
+            release_exists=true
+          else
+            status=$(printf '%s\n' "$release_response" | awk '/^HTTP\// { print $2; exit }')
+            if [ "$status" != "404" ]; then
+              echo "::error::Unable to check GitHub release $RELEASE_TAG (HTTP ${status:-unknown})."
+              printf '%s\n' "$release_response" >&2
+              exit 1
+            fi
+            release_exists=false
+          fi
+
+          if [ "$release_exists" = true ]; then
+            git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+            existing_sha=$(git rev-parse "$RELEASE_TAG^{commit}")
+            if [ "$existing_sha" != "$GITHUB_SHA" ]; then
+              echo "::error::Release $RELEASE_TAG points to $existing_sha, expected $GITHUB_SHA."
+              exit 1
+            fi
+            echo "Reusing existing release $RELEASE_TAG for commit $GITHUB_SHA."
+          else
+            # Do not accidentally create a release with a tag left by a failed attempt
+            # unless it identifies the same commit.
+            if git rev-parse -q --verify "refs/tags/$RELEASE_TAG^{commit}" >/dev/null; then
+              existing_sha=$(git rev-parse "$RELEASE_TAG^{commit}")
+              if [ "$existing_sha" != "$GITHUB_SHA" ]; then
+                echo "::error::Existing tag $RELEASE_TAG points to $existing_sha, expected $GITHUB_SHA."
+                exit 1
+              fi
+            fi
+            gh release create "${args[@]}"
+          fi
 
       - name: Configure GitHub Packages source
         if: ${{ !inputs.dry_run }}
