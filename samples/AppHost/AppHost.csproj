@@ -1,10 +1,10 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.6.5">
+<Project Sdk="Aspire.AppHost.Sdk/17.0.0">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <NoWarn>$(NoWarn);ASPIRE004;ASPIRE010</NoWarn>
-    <!-- Keep NuGet-provided Dashboard/DCP assets for this CI-only sample. -->
-    <AspireUseCliBundle>false</AspireUseCliBundle>
+    <NoWarn>$(NoWarn);ASPIRE004</NoWarn>
+    <!-- Preserve typed AWS Lambda project resources during the Aspire 17 upgrade. -->
+    <SuppressAspireAppHostSdkObsoleteWarning>true</SuppressAspireAppHostSdkObsoleteWarning>
   </PropertyGroup>
 
   <ItemGroup>
