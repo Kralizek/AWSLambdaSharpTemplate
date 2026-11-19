@@ -42,6 +42,11 @@ jobs:
             **/*.props
             **/*.targets
 
+      - name: Install Aspire CLI 17
+        run: |
+          dotnet tool install --global Aspire.Cli --version 17.0.0
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
       - name: Restore
         run: dotnet restore
 
@@ -77,6 +82,11 @@ jobs:
             **/*.csproj
             **/*.props
             **/*.targets
+
+      - name: Install Aspire CLI 17
+        run: |
+          dotnet tool install --global Aspire.Cli --version 17.0.0
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Restore
         run: dotnet restore
