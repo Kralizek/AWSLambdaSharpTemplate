@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <NoWarn>$(NoWarn);ASPIRE004</NoWarn>
+    <NoWarn>$(NoWarn);ASPIRE004;ASPIRE010</NoWarn>
+    <!-- Keep NuGet-provided Dashboard/DCP assets for this CI-only sample. -->
+    <AspireUseCliBundle>false</AspireUseCliBundle>
   </PropertyGroup>
 
   <ItemGroup>
