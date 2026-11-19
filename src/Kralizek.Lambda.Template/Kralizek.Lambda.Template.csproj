@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <PackageId>Kralizek.Lambda.Template</PackageId>
     <PackageTags>aws-lambda-csharp;dotnet-core;aws-lambda;aws;lambda;csharp</PackageTags>
     <Description>Core runtime for AWS Lambda functions using the Event, Request, and Record programming models, with dependency injection, configuration, logging, cancellation, and framework telemetry.</Description>
