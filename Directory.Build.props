@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <LangVersion>15.0</LangVersion>
     <DebugType>portable</DebugType>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
