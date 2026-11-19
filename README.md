@@ -6,7 +6,7 @@
 [![Latest](https://img.shields.io/nuget/vpre/Kralizek.Lambda.Template?label=latest)](https://www.nuget.org/packages/Kralizek.Lambda.Template)
 [![Downloads](https://img.shields.io/nuget/dt/Kralizek.Lambda.Template?label=downloads)](https://www.nuget.org/packages/Kralizek.Lambda.Template)
 
-AWS Lambda runtime libraries and `dotnet new` templates for .NET 10, built around explicit handler contracts, dependency injection, configuration, logging, cancellation, and source-specific AWS semantics.
+AWS Lambda runtime libraries compatible with .NET 10 and .NET 11, plus `dotnet new` templates targeting the AWS Lambda managed .NET 10 runtime, built around explicit handler contracts, dependency injection, configuration, logging, cancellation, and source-specific AWS semantics.
 
 ## Programming model
 
