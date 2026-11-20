@@ -30,7 +30,7 @@ jobs:
 
       - name: Verify benchmark SDK
         working-directory: benchmarks
-        run: test "$(dotnet --version)" = "10.0.400"
+        run: test "$(dotnet --version)" = "11.0.100"
 
       - name: Validate benchmark profiles
         working-directory: benchmarks
