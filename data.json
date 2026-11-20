@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1793870355612,
+  "lastUpdated": 1795136810032,
   "repoUrl": "https://github.com/Kralizek/AWSLambdaSharpTemplate",
   "entries": {
     "Benchmarks.SqsBenchmarks": [
@@ -2789,6 +2789,58 @@
             "bytesAllocated": 13536
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsBenchmarks.RawSdk(BatchSize: 10)",
+            "value": 1941.691195678711,
+            "unit": "ns",
+            "range": "± 11.440907001616315",
+            "bytesAllocated": 1560
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V5Typed(BatchSize: 10)",
+            "value": 4346.613934199016,
+            "unit": "ns",
+            "range": "± 10.305720885202417",
+            "bytesAllocated": 3040
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Minimal(BatchSize: 10)",
+            "value": 2611.5214042663574,
+            "unit": "ns",
+            "range": "± 7.517586985671656",
+            "bytesAllocated": 2184
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Raw(BatchSize: 10)",
+            "value": 16798.52344923753,
+            "unit": "ns",
+            "range": "± 35.809435415402106",
+            "bytesAllocated": 11936
+          },
+          {
+            "name": "Benchmarks.SqsBenchmarks.V6Typed(BatchSize: 10)",
+            "value": 19642.09870793269,
+            "unit": "ns",
+            "range": "± 102.19471055419476",
+            "bytesAllocated": 13536
+          }
+        ]
       }
     ],
     "Benchmarks.RequestBenchmarks": [
@@ -4801,6 +4853,51 @@
             "bytesAllocated": 1096
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.RequestBenchmarks.RawSdk",
+            "value": 30.823365207513174,
+            "unit": "ns",
+            "range": "± 0.4555238552803202",
+            "bytesAllocated": 128
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V5",
+            "value": 191.51922465165455,
+            "unit": "ns",
+            "range": "± 1.543729567406472",
+            "bytesAllocated": 352
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6Minimal",
+            "value": 631.7285138643705,
+            "unit": "ns",
+            "range": "± 1.3457214038610605",
+            "bytesAllocated": 824
+          },
+          {
+            "name": "Benchmarks.RequestBenchmarks.V6",
+            "value": 1110.0206410544258,
+            "unit": "ns",
+            "range": "± 6.946217032240171",
+            "bytesAllocated": 1096
+          }
+        ]
       }
     ],
     "Benchmarks.SqsReturnedFailureBenchmarks": [
@@ -6782,6 +6879,58 @@
             "bytesAllocated": 13720
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.RawSdkReturnedFailure(FailurePercent: 10)",
+            "value": 2412.76167678833,
+            "unit": "ns",
+            "range": "± 9.021298771547832",
+            "bytesAllocated": 1720
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V5RequestResponseReturnedFailure(FailurePercent: 10)",
+            "value": 2671.467917578561,
+            "unit": "ns",
+            "range": "± 12.42537369872656",
+            "bytesAllocated": 1944
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6MinimalReturnedFailure(FailurePercent: 10)",
+            "value": 3143.535760243734,
+            "unit": "ns",
+            "range": "± 17.087382673366857",
+            "bytesAllocated": 2416
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6RawReturnedFailure(FailurePercent: 10)",
+            "value": 17097.62855834961,
+            "unit": "ns",
+            "range": "± 85.05485974944014",
+            "bytesAllocated": 12120
+          },
+          {
+            "name": "Benchmarks.SqsReturnedFailureBenchmarks.V6TypedReturnedFailure(FailurePercent: 10)",
+            "value": 20029.44480242048,
+            "unit": "ns",
+            "range": "± 90.44685061684564",
+            "bytesAllocated": 13720
+          }
+        ]
       }
     ],
     "Benchmarks.NestedSqsSnsS3Benchmarks": [
@@ -8490,6 +8639,51 @@
             "bytesAllocated": 7240
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.RawSdk(BatchSize: 1)",
+            "value": 5125.19500380296,
+            "unit": "ns",
+            "range": "± 22.274349558963678",
+            "bytesAllocated": 4168
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V5(BatchSize: 1)",
+            "value": 5641.184400285993,
+            "unit": "ns",
+            "range": "± 43.591666478190966",
+            "bytesAllocated": 4280
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6Minimal(BatchSize: 1)",
+            "value": 5891.09648677281,
+            "unit": "ns",
+            "range": "± 15.23947801823123",
+            "bytesAllocated": 4864
+          },
+          {
+            "name": "Benchmarks.NestedSqsSnsS3Benchmarks.V6(BatchSize: 1)",
+            "value": 10535.894546508789,
+            "unit": "ns",
+            "range": "± 38.09809654113515",
+            "bytesAllocated": 7240
+          }
+        ]
       }
     ],
     "Benchmarks.NestedAsyncSqsSnsS3Benchmarks": [
@@ -10195,6 +10389,51 @@
             "value": 10966.732975679286,
             "unit": "ns",
             "range": "± 333.73119571268353",
+            "bytesAllocated": 8071
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.RawSdkAsync(BatchSize: 1)",
+            "value": 8698.57201965332,
+            "unit": "ns",
+            "range": "± 1304.8488219510807",
+            "bytesAllocated": 4360
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V5Async(BatchSize: 1)",
+            "value": 9139.145948840725,
+            "unit": "ns",
+            "range": "± 498.6045783837421",
+            "bytesAllocated": 4824
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6MinimalAsync(BatchSize: 1)",
+            "value": 8061.528192264517,
+            "unit": "ns",
+            "range": "± 591.253307619026",
+            "bytesAllocated": 5144
+          },
+          {
+            "name": "Benchmarks.NestedAsyncSqsSnsS3Benchmarks.V6Async(BatchSize: 1)",
+            "value": 16170.841560058594,
+            "unit": "ns",
+            "range": "± 1817.882460099095",
             "bytesAllocated": 8071
           }
         ]
@@ -12179,6 +12418,58 @@
             "bytesAllocated": 16960
           }
         ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.RawSdkExceptionFailure(FailurePercent: 10)",
+            "value": 4749.36377360026,
+            "unit": "ns",
+            "range": "± 29.858038709248717",
+            "bytesAllocated": 1976
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V5RequestResponseExceptionFailure(FailurePercent: 10)",
+            "value": 5791.031136145959,
+            "unit": "ns",
+            "range": "± 8.859763949105062",
+            "bytesAllocated": 2360
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6MinimalExceptionFailure(FailurePercent: 10)",
+            "value": 5895.090804508754,
+            "unit": "ns",
+            "range": "± 38.72890350012683",
+            "bytesAllocated": 2672
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6RawExceptionFailure(FailurePercent: 10)",
+            "value": 30678.123966762,
+            "unit": "ns",
+            "range": "± 226.1446948368575",
+            "bytesAllocated": 14728
+          },
+          {
+            "name": "Benchmarks.SqsExceptionFailureBenchmarks.V6TypedExceptionFailure(FailurePercent: 10)",
+            "value": 37252.971810477124,
+            "unit": "ns",
+            "range": "± 98.86163048924513",
+            "bytesAllocated": 16960
+          }
+        ]
       }
     ],
     "Benchmarks.AsyncSqsBenchmarks": [
@@ -14157,6 +14448,58 @@
             "value": 35076.85946858724,
             "unit": "ns",
             "range": "± 301.28101107235267",
+            "bytesAllocated": 17266
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "username": "Kralizek"
+          },
+          "committer": {
+            "username": "web-flow"
+          },
+          "sha": "ff1199c926bf69cf8c514f7f76365fa9b44570ce",
+          "message": "benchmarks: build with .NET 11 SDK (#137)",
+          "timestamp": "2026-11-20T00:54:37Z",
+          "url": "https://github.com/Kralizek/AWSLambdaSharpTemplate/commit/ff1199c926bf69cf8c514f7f76365fa9b44570ce"
+        },
+        "date": 1795136810032,
+        "benches": [
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.RawSdkAsync(BatchSize: 10)",
+            "value": 7994.388641662597,
+            "unit": "ns",
+            "range": "± 470.0100208354568",
+            "bytesAllocated": 1728
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V5TypedAsync(BatchSize: 10)",
+            "value": 16743.688209751675,
+            "unit": "ns",
+            "range": "± 810.1553776790313",
+            "bytesAllocated": 4488
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6MinimalAsync(BatchSize: 10)",
+            "value": 9071.301087812944,
+            "unit": "ns",
+            "range": "± 426.5335569777867",
+            "bytesAllocated": 2456
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6RawAsync(BatchSize: 10)",
+            "value": 44631.6982421875,
+            "unit": "ns",
+            "range": "± 474.87515021685135",
+            "bytesAllocated": 14869
+          },
+          {
+            "name": "Benchmarks.AsyncSqsBenchmarks.V6TypedAsync(BatchSize: 10)",
+            "value": 52259.96287434896,
+            "unit": "ns",
+            "range": "± 768.77183574838",
             "bytesAllocated": 17266
           }
         ]
